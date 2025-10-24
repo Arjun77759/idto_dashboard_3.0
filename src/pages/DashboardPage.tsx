@@ -1,0 +1,54 @@
+import { motion } from 'framer-motion'
+import SimulationModeBanner from '@/components/dashboard/SimulationModeBanner'
+import WelcomeSection from '@/components/dashboard/WelcomeSection'
+import StatsGrid from '@/components/dashboard/StatsGrid'
+import ActionCards from '@/components/dashboard/ActionCards'
+import ChartSection from '@/components/dashboard/ChartSection'
+import InvoicesTable from '@/components/dashboard/InvoicesTable'
+
+const DashboardPage = () => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="flex flex-col gap-5 items-start relative w-full"
+    >
+      {/* Welcome Section */}
+      <WelcomeSection />
+
+      {/* Welcome Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+        className="bg-[#f7f7f8] flex flex-col gap-5 grow items-start min-h-0 min-w-0 overflow-hidden p-6 relative rounded-2xl w-full"
+      >
+        <div className="flex gap-2 items-center px-3 py-1.5 relative rounded w-full">
+          <div className="overflow-hidden relative shrink-0 size-6">
+            <div className="absolute inset-[9.38%_7.29%]">
+              <span className="text-2xl">👋</span>
+            </div>
+          </div>
+          <p className="font-medium leading-[1.4] relative text-[20px] text-[#131b31] text-nowrap tracking-[-0.2px] whitespace-pre">
+            Welcome— Here's What's New
+          </p>
+        </div>
+
+        {/* Stats Grid */}
+        <StatsGrid />
+
+        {/* Action Cards */}
+        <ActionCards />
+
+        {/* Bottom Section - Chart and Table */}
+        <div className="flex gap-5 items-start relative w-full">
+          <ChartSection />
+          <InvoicesTable />
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+export default DashboardPage

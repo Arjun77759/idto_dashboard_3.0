@@ -1,0 +1,185 @@
+import { motion } from 'framer-motion'
+
+const InvoicesTable = () => {
+  const invoices = [
+    {
+      id: 'Inv-2023-001',
+      date: '04/17/23  16:56:07',
+      status: 'Paid',
+      amount: 'Rs 1500'
+    },
+    {
+      id: 'Inv-2023-001',
+      date: '04/17/23  16:56:07',
+      status: 'Paid',
+      amount: 'Rs 2800'
+    },
+    {
+      id: 'Inv-2023-001',
+      date: '04/17/23  16:56:07',
+      status: 'Paid',
+      amount: 'Rs 3450'
+    },
+    {
+      id: 'Inv-2023-001',
+      date: '04/17/23  16:56:07',
+      status: 'Paid',
+      amount: 'Rs 2500'
+    }
+  ]
+
+  const handleSeeDetails = (invoiceId: string) => {
+    console.log('See details for:', invoiceId)
+  }
+
+  const handleSeeAll = () => {
+    console.log('See all invoices')
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: 0.5 }}
+      className="grow bg-white border border-[#e7e8ea] border-solid min-h-0 min-w-0 relative rounded-2xl shrink-0"
+    >
+      <div className="flex flex-col gap-6 items-start overflow-hidden p-4 relative rounded-[inherit] w-full">
+        <div className="flex items-center justify-between relative w-full">
+          <div className="content-center flex flex-wrap gap-2 items-center relative rounded-3 shrink-0 w-[238px]">
+            <div className="flex flex-col items-start justify-center relative rounded-3 shrink-0">
+              <p className="font-medium leading-[1.4] relative text-[12px] text-[#616675] tracking-[-0.12px] w-full">
+                Recent Invoices
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-row items-center self-stretch">
+            <div className="flex gap-1 h-full items-center justify-center px-2 py-0 relative rounded-lg shrink-0">
+              <button
+                onClick={handleSeeAll}
+                className="font-medium leading-[1.4] relative text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre"
+              >
+                See All
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-lg w-full">
+          <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full">
+            {/* Table Header */}
+            <div className="bg-white flex items-start relative w-full">
+              <div className="grow border-r border-b border-[#e7e8ea] border-solid h-10 min-h-0 min-w-0 relative shrink-0">
+                <div className="h-10 overflow-hidden relative rounded-[inherit] w-full">
+                  <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
+                    Invoice ID
+                  </p>
+                  <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
+                </div>
+              </div>
+              <div className="border-r border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[170px]">
+                <div className="h-10 overflow-hidden relative rounded-[inherit] w-[170px]">
+                  <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
+                    Date & Time
+                  </p>
+                  <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
+                </div>
+              </div>
+              <div className="border-r border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[112px]">
+                <div className="h-10 overflow-hidden relative rounded-[inherit] w-[112px]">
+                  <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
+                    Status
+                  </p>
+                  <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
+                </div>
+              </div>
+              <div className="border-r border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[115px]">
+                <div className="h-10 overflow-hidden relative rounded-[inherit] w-[115px]">
+                  <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
+                    Amount
+                  </p>
+                  <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
+                </div>
+              </div>
+              <div className="border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[107px]">
+                <div className="h-10 overflow-hidden relative rounded-[inherit] w-[107px]">
+                  <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] text-center tracking-[-0.084px] translate-y-[100%]">
+                    Actions
+                  </p>
+                  <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
+                </div>
+              </div>
+              <div className="border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-6">
+                <div className="h-10 overflow-hidden relative rounded-[inherit] w-6">
+                  <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Table Rows */}
+            {invoices.map((invoice, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
+                className={`flex items-start relative w-full ${
+                  index % 2 === 0 ? 'bg-[#f7f7f8]' : 'bg-white'
+                }`}
+              >
+                <div className="grow border-r border-[#e7e8ea] border-solid h-10 min-h-0 min-w-0 relative shrink-0">
+                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-full">
+                    <p className="absolute font-normal leading-[24px] left-4 not-italic right-4 text-[#9296a0] text-[14px] top-2 tracking-[-0.084px]">
+                      {invoice.id}
+                    </p>
+                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+                  </div>
+                </div>
+                <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[170px]">
+                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[170px]">
+                    <p className="absolute font-normal leading-[24px] left-4 not-italic right-4 text-[#9296a0] text-[14px] top-2 tracking-[-0.084px] whitespace-pre-wrap">
+                      {invoice.date}
+                    </p>
+                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+                  </div>
+                </div>
+                <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[112px]">
+                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[112px]">
+                    <p className="absolute font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#3ac828] top-2 tracking-[-0.084px]">
+                      {invoice.status}
+                    </p>
+                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+                  </div>
+                </div>
+                <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[115px]">
+                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[115px]">
+                    <p className="absolute font-normal leading-[24px] left-4 not-italic right-4 text-[#9296a0] text-[14px] top-2 tracking-[-0.084px]">
+                      {invoice.amount}
+                    </p>
+                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+                  </div>
+                </div>
+                <div className="h-10 overflow-hidden relative shrink-0 w-[107px]">
+                  <div className="absolute border border-[#e7e8ea] border-solid h-[29px] left-1/2 rounded-lg top-1.5 translate-x-[-50%] w-[79px]">
+                    <button
+                      onClick={() => handleSeeDetails(invoice.id)}
+                      className="flex gap-1 h-[29px] items-center justify-center px-2 py-[14px] relative rounded-[inherit] w-[79px]"
+                    >
+                      <p className="font-medium leading-[1.4] relative text-[#9296a0] text-[12px] text-center text-nowrap tracking-[-0.12px] whitespace-pre">
+                        See details
+                      </p>
+                    </button>
+                  </div>
+                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+                </div>
+                <div className="h-10 overflow-hidden relative shrink-0 w-6">
+                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+export default InvoicesTable

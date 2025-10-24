@@ -1,0 +1,97 @@
+import { motion } from 'framer-motion'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts'
+import { Calendar } from 'lucide-react'
+
+// Sample data for the chart - based on the heights from the original design
+const chartData = [
+  { month: 'Jan', transactions: 380 },
+  { month: 'Feb', transactions: 660 },
+  { month: 'Mar', transactions: 550 },
+  { month: 'Apr', transactions: 550 },
+  { month: 'May', transactions: 420 },
+  { month: 'Jun', transactions: 780 },
+  { month: 'Jul', transactions: 840 },
+  { month: 'Aug', transactions: 340 },
+  { month: 'Sep', transactions: 800 },
+  { month: 'Oct', transactions: 710 },
+  { month: 'Nov', transactions: 930 },
+  { month: 'Dec', transactions: 1000 },
+]
+
+const MonthlyTransactionsChart = () => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: 0.4 }}
+      className="flex-1"
+    >
+      <Card className="h-[245px] w-full flex-1 min-w-[280px] rounded-2xl border-[#e7e8ea]">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 px-6 pt-6">
+          <div className="space-y-1">
+            <h3 className="text-xs font-medium text-[#616675] tracking-[-0.12px]">
+              Monthly Transactions
+            </h3>
+          </div>
+          <Badge variant="outline" className="flex items-center gap-1 px-2 py-0 h-auto text-xs text-[#9296a0] font-medium tracking-[-0.12px] border-0 bg-transparent">
+            <span>Jan 2025 - Aug 2025</span>
+            <Calendar className="h-4 w-4" />
+          </Badge>
+        </CardHeader>
+        <CardContent className="h-[172px] p-0 relative -left-5 top-5">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+              <defs>
+                <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#54eebe" />
+                  <stop offset="100%" stopColor="#8a95ff" />
+                </linearGradient>
+              </defs>
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke="#f0f0f0" 
+                horizontal={true}
+                vertical={false}
+              />
+              <XAxis 
+                dataKey="month" 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 11, fill: '#949494', fontFamily: 'Roboto', fontWeight: 500 }}
+                interval={0}
+              />
+              <YAxis 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 11, fill: '#949494', fontFamily: 'Roboto', fontWeight: 500 }}
+                domain={[0, 1000]}
+                ticks={[200, 400, 600, 800, 1000]}
+              />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: '1px solid #e7e8ea',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  color: '#616675'
+                }}
+                labelStyle={{ color: '#616675', fontSize: '12px' }}
+                formatter={(value: number) => [`${value}`, 'Transactions']}
+              />
+              <Bar 
+                dataKey="transactions" 
+                fill="url(#barGradient)"
+                radius={[0, 0, 0, 0]}
+                maxBarSize={6}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
+}
+
+export default MonthlyTransactionsChart
