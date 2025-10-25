@@ -1,10 +1,8 @@
 import React from 'react'
-
-// Image assets from Figma
-const imgPriority = "http://localhost:3845/assets/463a235a3b145b1e261f1f8355514bd3a62d825f.svg"
+import { Info } from 'lucide-react'
 
 interface VerificationStep {
-  icon: string
+  icon: React.ComponentType<{ className?: string }>
   title: string
 }
 
@@ -35,11 +33,7 @@ const VerificationSteps: React.FC<VerificationStepsProps> = ({ steps }) => {
         <div className="flex flex-col gap-2 items-start relative shrink-0 w-full">
           {steps.map((step, index) => (
             <div key={index} className="flex gap-2 items-center px-3 py-1.5 relative rounded shrink-0 w-full">
-              <div className="overflow-clip relative shrink-0 size-4">
-                <div className="absolute inset-[8.333%]">
-                  <img alt="" className="block max-w-none size-full" src={step.icon} />
-                </div>
-              </div>
+              <step.icon className="size-4 text-[#9296a0]" />
               <p className="font-medium leading-[1.4] not-italic relative shrink-0 text-xs text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
                 {step.title}
               </p>
@@ -50,9 +44,7 @@ const VerificationSteps: React.FC<VerificationStepsProps> = ({ steps }) => {
 
       {/* Info section */}
       <div className="flex gap-2 items-start px-0 py-2 relative shrink-0 w-full">
-        <div className="relative shrink-0 size-6">
-          <img alt="" className="block max-w-none size-full" src={imgPriority} />
-        </div>
+        <Info className="size-6 text-[#9296a0]" />
         <p className="font-normal leading-[1.4] text-xs text-[#9296a0] tracking-[-0.12px]">
           Finish these steps to verify your business and get dashboard access. Details are required for compliance.
         </p>

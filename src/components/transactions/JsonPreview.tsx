@@ -1,5 +1,4 @@
-// Image assets from Figma
-const imgCopyIcon = "http://localhost:3845/assets/fea1075794bb7f6173b15387e1844ccfaee70159.svg"
+import { Copy } from 'lucide-react'
 
 interface JsonPreviewProps {
   jsonData: any
@@ -21,13 +20,7 @@ const JsonPreview = ({ jsonData, onCopy }: JsonPreviewProps) => {
             <p className="font-medium leading-[1.4] text-[12px] text-[#8a95ff] text-nowrap tracking-[-0.12px] whitespace-pre">
               Copy
             </p>
-            <div className="overflow-hidden relative shrink-0 size-4">
-              <div className="absolute inset-[8.333%]">
-                <div className="absolute inset-[-7.5%]">
-                  <img alt="" className="block max-w-none size-full" src={imgCopyIcon} />
-                </div>
-              </div>
-            </div>
+            <Copy className="size-4 text-[#8a95ff]" />
           </button>
         </div>
         <div className="bg-[#f7f7f8] border border-[#e7e8ea] border-solid grow relative rounded shrink-0 w-full">

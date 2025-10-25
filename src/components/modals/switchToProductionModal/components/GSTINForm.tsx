@@ -1,5 +1,4 @@
-// Image assets from Figma
-const imgArrow = "http://localhost:3845/assets/6d49c00ba1e6982026197d277254f897858afa9b.svg"
+import { ArrowRight } from 'lucide-react'
 
 interface GSTINFormProps {
   onNext: () => void
@@ -61,11 +60,7 @@ const GSTINForm = ({ onNext, isLoading = false }: GSTINFormProps) => {
                   <p className="font-bold leading-4 relative text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
                     Continue
                   </p>
-                  <div className="overflow-clip relative shrink-0 size-4">
-                    <div className="absolute inset-[29.17%_16.67%]">
-                      <img alt="" className="block max-w-none size-full" src={imgArrow} />
-                    </div>
-                  </div>
+                  <ArrowRight className="size-4 text-[#0019ff]" />
                 </>
               )}
             </button>
