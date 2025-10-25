@@ -5,6 +5,7 @@ import {
   BookOpen,
   CreditCard,
   DollarSign,
+  FlaskConical,
   Home,
   MessageSquare,
   Settings,
@@ -53,7 +54,7 @@ const Sidebar = () => {
     {
       name: 'Developer Tools',
       items: [
-        { name: 'API Testing', href: '/api-testing', icon: TestTube, isActive: location.pathname === '/api-testing' },
+        { name: 'API Testing', href: '/api-testing', icon: FlaskConical, isActive: location.pathname === '/api-testing' },
         { name: 'API Documentation', href: '/api-docs', icon: BookOpen, isActive: location.pathname === '/api-docs' }
       ]
     },

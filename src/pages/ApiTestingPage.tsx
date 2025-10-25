@@ -4,6 +4,7 @@ import ApiFilters from '@/components/api-testing/ApiFilters'
 import ApiList from '@/components/api-testing/ApiList'
 import ApiConfiguration from '@/components/api-testing/ApiConfiguration'
 import ApiResponse from '@/components/api-testing/ApiResponse'
+import { FlaskConical } from 'lucide-react'
 
 const ApiTestingPage = () => {
   const [selectedApi, setSelectedApi] = useState<string | null>('pan-verification')
@@ -29,7 +30,7 @@ const ApiTestingPage = () => {
       <div className="flex gap-2 items-center px-3 py-1.5 relative rounded shrink-0 w-full">
         <div className="overflow-hidden relative shrink-0 size-6">
           <div className="absolute inset-[5.21%_9.37%_5.21%_9.39%]">
-            <span className="text-2xl">🧪</span>
+            <FlaskConical className="w-6 h-6 text-[#131b31]" />
           </div>
         </div>
         <p className="font-medium leading-[1.4] relative shrink-0 text-[20px] text-[#131b31] text-nowrap tracking-[-0.2px] whitespace-pre">
@@ -42,7 +43,7 @@ const ApiTestingPage = () => {
         {/* Left Sidebar */}
         <div className="bg-white border border-[#e7e8ea] border-solid flex flex-col gap-4 h-full items-center p-4 relative rounded-2xl shrink-0 w-[373px]">
           <ApiFilters />
-          <ApiList 
+          <ApiList
             selectedApi={selectedApi}
             onApiSelect={handleApiSelect}
           />
@@ -50,7 +51,7 @@ const ApiTestingPage = () => {
 
         {/* Right Content */}
         <div className="flex flex-col gap-2 grow h-full min-h-0 min-w-0 overflow-hidden relative rounded shrink-0">
-          <ApiConfiguration 
+          <ApiConfiguration
             selectedApi={selectedApi}
             onApiRun={handleApiRun}
           />
