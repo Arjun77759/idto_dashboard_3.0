@@ -1,9 +1,5 @@
 import { motion } from 'framer-motion'
-
-// Image assets from Figma
-const imgGroup2 = "http://localhost:3845/assets/430f42e540bae5e7f423b82cf9c75fa75e67279c.svg"
-const imgGroup3 = "http://localhost:3845/assets/b07ccb8b0a60cb5a7faa9fdb2bff7f53476bf04f.svg"
-const imgGroup4 = "http://localhost:3845/assets/1f6042af4db85c88f9b791ea8d2283901409d597.svg"
+import { TrendingDown, TrendingUp } from 'lucide-react'
 
 const StatsGrid = () => {
   const stats = [
@@ -40,11 +36,11 @@ const StatsGrid = () => {
   const getTrendIcon = (changeType: string) => {
     switch (changeType) {
       case 'positive':
-        return imgGroup2
+        return <TrendingUp className='size-4 text-[#09de13]' />
       case 'negative':
-        return imgGroup3
+        return <TrendingDown className='size-4 text-[#ff0000]' />
       default:
-        return imgGroup4
+        return <TrendingUp className='size-4 text-[#09de13]' />
     }
   }
 
@@ -62,9 +58,8 @@ const StatsGrid = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: 0.2 + index * 0.1 }}
-            className={`border-r border-[#e7e8ea] border-solid relative shrink-0 ${
-              index === stats.length - 1 ? 'border-r-0' : ''
-            }`}
+            className={`border-r border-[#e7e8ea] border-solid relative shrink-0 ${index === stats.length - 1 ? 'border-r-0' : ''
+              }`}
           >
             <div className="flex flex-col gap-4 items-start p-6 relative rounded-[inherit] size-full">
               <p className="font-medium leading-[1.4] relative text-[12px] text-[#9296a0] tracking-[-0.12px] w-full">
@@ -79,10 +74,8 @@ const StatsGrid = () => {
                     <div className="overflow-hidden relative shrink-0 size-5">
                       <div className="absolute flex inset-[30%_14.62%_22.91%_10%] items-center justify-center">
                         <div className="flex-none h-1.5 rotate-[345deg] w-3.5">
-                          <div className="relative size-full">
-                            <div className="absolute inset-[-11.67%_-5%]">
-                              <img alt="" className="block max-w-none size-full" src={getTrendIcon(stat.changeType)} />
-                            </div>
+                          <div className="relative size-full -top-1">
+                            {getTrendIcon(stat.changeType)}
                           </div>
                         </div>
                       </div>
