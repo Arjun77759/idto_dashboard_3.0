@@ -104,7 +104,7 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation List */}
-      <div className="flex flex-col gap-2 grow items-start min-h-0 min-w-0 relative w-full ">
+      <div className="flex flex-col gap-2 grow items-start min-h-0 min-w-0 relative w-full overflow-y-auto">
         {categories.map((category, categoryIndex) => (
           <div key={categoryIndex} className="w-full ">
             {/* Category Header */}

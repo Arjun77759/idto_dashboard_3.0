@@ -22,7 +22,7 @@ const SimulationModeBanner = () => {
       transition={{ duration: 0.3 }}
       className="bg-[#fff7ea] flex items-center justify-between overflow-hidden px-4 py-2 relative rounded-[50px] shrink-0 w-fit gap-[50px]"
     >
-      <div className="flex gap-2.5 items-center relative">
+      <div className="flex gap-2.5 items-center relative hidden md:flex">
         <AlertTriangle className="size-4 text-[#b47d1f]" />
         <p className="font-semibold leading-[1.4] relative text-[12px] text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
           <span>You are in </span>
