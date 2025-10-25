@@ -1,8 +1,5 @@
 import { ArrowRight } from "lucide-react"
 
-// Image assets from Figma
-const imgEzgif1460026A0F79D71 = "http://localhost:3845/assets/e079d388aa72d204e17bbcacdaeb96ba1b848a0b.png"
-const imgShield = "http://localhost:3845/assets/9ad6eee4ff79d554dff12952c828890e36f16b0d.svg"
 
 interface DirectorKYCFormProps {
   onNext: () => void
@@ -37,16 +34,16 @@ const DirectorKYCForm = ({ onNext, isLoading = false }: DirectorKYCFormProps) =>
             <img
               alt=""
               className="absolute inset-0 max-w-none object-50%-50% object-cover pointer-events-none rounded-3xl size-full"
-              src={imgEzgif1460026A0F79D71}
+              src={'https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/digilocker_preview.png'}
             />
           </div>
 
           {/* Security Badge */}
           <div className="flex gap-1 items-center relative shrink-0">
             <div className="overflow-clip relative shrink-0 size-5">
-              <div className="absolute inset-[3.4%_6.25%_3.63%_6.25%]">
-                <img alt="" className="block max-w-none size-full" src={imgShield} />
-              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M10 19.275L1.25 14.6698V1.7605L2.46075 2.16408C4.53783 2.85644 6.81375 2.60661 8.69117 1.48016L10.0235 0.680786L10.9502 1.29866C12.8097 2.53828 15.1251 2.88413 17.2657 2.24197L18.75 1.79667V14.6698L10 19.275Z" fill="#44BD42" />
+              </svg>
             </div>
             <p className="font-semibold leading-6 relative shrink-0 text-[#44bd42] text-sm text-nowrap tracking-[-0.28px] whitespace-pre">
               Secured by Govt. of India

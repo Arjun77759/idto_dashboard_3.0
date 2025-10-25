@@ -1,11 +1,6 @@
 import { motion } from 'framer-motion'
+import { Play, X } from 'lucide-react'
 
-// Image assets from Figma
-const imgGroup = "http://localhost:3845/assets/a6f05b6a1da8237d798cc243b4d6d0fbca070cbd.svg"
-const imgGroup1 = "http://localhost:3845/assets/761a744d3dc3b73dec1bcbe1daac2764f6cbb6f1.svg"
-const imgCancel = "http://localhost:3845/assets/89947c75d150bf6df1476eb2b4099175bb5963fa.svg"
-const imgPlay = "http://localhost:3845/assets/54aef033ca57ebaafe2038b97ca133885069a97e.svg"
-const imgEllipse = "http://localhost:3845/assets/acc614b4456686314da234f1566643c2e93f6228.svg"
 
 const WelcomeSection = () => {
   const handleClose = () => {
@@ -29,12 +24,7 @@ const WelcomeSection = () => {
       <div className="flex flex-col gap-4 items-end justify-center min-w-inherit overflow-hidden p-8 relative rounded-[inherit] w-full">
         <div className="flex items-start justify-between px-0 py-1.5 relative w-full">
           <div className="h-7 overflow-hidden relative w-[52px]">
-            <div className="absolute inset-[14.44%_69.17%_14.26%_7.78%]">
-              <img alt="" className="block max-w-none size-full" src={imgGroup} />
-            </div>
-            <div className="absolute inset-[28.75%_7.98%_28.51%_38.52%]">
-              <img alt="" className="block max-w-none size-full" src={imgGroup1} />
-            </div>
+            <img alt="" className="block max-w-none size-full" src={'https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/dashboard_2.0/idto_color_logo.png'} />
           </div>
           <div className="flex gap-2 items-center px-3 py-1.5 relative rounded">
             <button
@@ -44,11 +34,7 @@ const WelcomeSection = () => {
               <p className="font-medium leading-[1.4] relative text-[12px] text-[#000b6b] text-nowrap tracking-[-0.12px] whitespace-pre">
                 Close
               </p>
-              <div className="overflow-hidden relative shrink-0 size-4">
-                <div className="absolute inset-[17.708%]">
-                  <img alt="" className="block max-w-none size-full" src={imgCancel} />
-                </div>
-              </div>
+              <X className="size-4 text-[#000B6B]" />
             </button>
           </div>
         </div>
@@ -65,12 +51,10 @@ const WelcomeSection = () => {
               className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative"
             >
               <div className="[grid-area:1_/_1] ml-0 mt-0 relative size-[79px]">
-                <img alt="" className="block max-w-none size-full" src={imgEllipse} />
+                <div className='bg-[#E6E8FF] rounded-full size-[79px]' />
               </div>
               <div className="[grid-area:1_/_1] ml-6 mt-6 relative size-8">
-                <div className="absolute inset-[13.54%_17.71%]">
-                  <img alt="" className="block max-w-none size-full" src={imgPlay} />
-                </div>
+                <Play className="size-8 text-[#000B6B]" />
               </div>
             </button>
           </div>
