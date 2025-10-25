@@ -57,18 +57,18 @@ const PublicLayout = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="h-screen w-screen bg-gray-50"
+      className="min-h-screen w-screen bg-gray-50"
     >
 
       {/* Main Content with Two Panel Layout */}
-      <main className="flex-1 flex flex-col lg:flex-row">
+      <main className="flex flex-col lg:flex-row min-h-screen">
         {/* Left Panel - Content */}
-        <div className="flex-1 max-w-2xl lg:max-w-none">
+        <div className="flex-1 lg:max-w-2xl xl:max-w-none lg:min-h-screen flex flex-col">
           <Outlet />
         </div>
 
-        {/* Right Panel - Carousel */}
-        <div className="flex-1 bg-[#101010] relative overflow-hidden min-h-[400px] lg:min-h-full max-h-screen">
+        {/* Right Panel - Carousel - Hidden on mobile, visible on lg+ */}
+        <div className="hidden lg:flex flex-1 bg-[#101010] relative overflow-hidden h-screen">
           <Carousel
             setApi={setApi}
             className="w-full h-full"
@@ -90,8 +90,6 @@ const PublicLayout = () => {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            {/* <CarouselPrevious className="left-4" />
-            <CarouselNext className="right-4" /> */}
           </Carousel>
 
           {/* Carousel Indicators */}
