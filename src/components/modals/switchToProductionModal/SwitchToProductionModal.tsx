@@ -1,13 +1,7 @@
 import { useState } from 'react'
 import { Dialog, DialogContent } from '../../ui/dialog'
 import { ModalHeader, StepperProgress, StepForm } from './components'
-
-// Image assets from Figma
-const imgInfo = "http://localhost:3845/assets/dd73afcd31659ad8365e150d0a3fd170460adb60.svg"
-const imgBusiness = "http://localhost:3845/assets/c9bbcb9880591923042f58296ee01b3fdf21d4b2.svg"
-const imgBuilding = "http://localhost:3845/assets/cc86ea75bbe1cc7245c05264931f73e12fc33592.svg"
-const imgCreditCard = "http://localhost:3845/assets/6f9ddf7c798f338dd2c0b1de451c9a7dd8cf381d.svg"
-const imgLock = "http://localhost:3845/assets/4ffc919aa48b1c2274e4c551eb6fdd98cab07d68.svg"
+import { Info, Building2, Building, CreditCard, Lock, ArrowRight } from 'lucide-react'
 
 interface SwitchToProductionModalProps {
   isOpen: boolean
@@ -52,35 +46,35 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
     {
       id: 'basic-details',
       title: 'Provide your basic details',
-      icon: imgInfo,
+      icon: Info,
       isActive: currentStep === 'basic-details',
       isCompleted: currentStepIndex > 0
     },
     {
       id: 'business-info',
       title: 'Tell us about your Business',
-      icon: imgBusiness,
+      icon: Building2,
       isActive: currentStep === 'business-info',
       isCompleted: currentStepIndex > 1
     },
     {
       id: 'business-pan',
       title: 'Provide your business PAN',
-      icon: imgBuilding,
+      icon: Building,
       isActive: currentStep === 'business-pan',
       isCompleted: currentStepIndex > 2
     },
     {
       id: 'gstin',
       title: 'Provide your GSTIN number',
-      icon: imgCreditCard,
+      icon: CreditCard,
       isActive: currentStep === 'gstin',
       isCompleted: currentStepIndex > 3
     },
     {
       id: 'director-kyc',
       title: 'Director KYC with Digilocker',
-      icon: imgLock,
+      icon: Lock,
       isActive: currentStep === 'director-kyc',
       isCompleted: currentStepIndex > 4
     }
@@ -88,23 +82,23 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
 
   const verificationSteps = [
     {
-      icon: imgInfo,
+      icon: Info,
       title: 'Provide your basic details'
     },
     {
-      icon: imgBusiness,
+      icon: Building2,
       title: 'Tell us about your Business'
     },
     {
-      icon: imgBuilding,
+      icon: Building,
       title: 'Provide your business PAN'
     },
     {
-      icon: imgCreditCard,
+      icon: CreditCard,
       title: 'Provide your GSTIN number'
     },
     {
-      icon: imgLock,
+      icon: Lock,
       title: 'Verify Aadhaar via Digilocker'
     }
   ]
@@ -121,7 +115,7 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
             // Stepper Mode
             <div className="flex gap-4 grow items-start min-h-px min-w-px relative shrink-0 w-[824px]">
               {/* Left Sidebar - Progress */}
-              <StepperProgress currentStep={currentStep} steps={stepperSteps} />
+              <StepperProgress steps={stepperSteps} />
               
               {/* Right Panel - Step Form */}
               <StepForm 
@@ -154,11 +148,7 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
                   <div className="flex flex-col gap-2 items-start relative shrink-0 w-full">
                     {verificationSteps.map((step, index) => (
                       <div key={index} className="flex gap-2 items-center px-3 py-1.5 relative rounded shrink-0 w-full">
-                        <div className="overflow-clip relative shrink-0 size-4">
-                          <div className="absolute inset-[8.333%]">
-                            <img alt="" className="block max-w-none size-full" src={step.icon} />
-                          </div>
-                        </div>
+                        <step.icon className="size-4 text-[#9296a0]" />
                         <p className="font-medium leading-[1.4] not-italic relative shrink-0 text-xs text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
                           {step.title}
                         </p>
@@ -169,9 +159,7 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
 
                 {/* Info section */}
                 <div className="flex gap-2 items-start px-0 py-2 relative shrink-0 w-full">
-                  <div className="relative shrink-0 size-6">
-                    <img alt="" className="block max-w-none size-full" src="http://localhost:3845/assets/463a235a3b145b1e261f1f8355514bd3a62d825f.svg" />
-                  </div>
+                  <Info className="size-6 text-[#9296a0]" />
                   <p className="font-normal leading-[1.4] text-xs text-[#9296a0] tracking-[-0.12px]">
                     Finish these steps to verify your business and get dashboard access. Details are required for compliance.
                   </p>
@@ -197,11 +185,7 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
                           <p className="font-bold leading-4 relative text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
                             Start Verification
                           </p>
-                          <div className="overflow-clip relative shrink-0 size-4">
-                            <div className="absolute inset-[29.17%_16.67%]">
-                              <img alt="" className="block max-w-none size-full" src="http://localhost:3845/assets/e0bf1f6ea3a5839cca531ea155e3190f150682fe.svg" />
-                            </div>
-                          </div>
+                          <ArrowRight className="size-4 text-[#0019ff]" />
                         </>
                       )}
                     </button>
