@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Dialog, DialogContent } from '../ui/dialog'
+import { Dialog, DialogContent } from '../../ui/dialog'
 import { ModalHeader, StepperProgress, StepForm } from './components'
 
 // Image assets from Figma

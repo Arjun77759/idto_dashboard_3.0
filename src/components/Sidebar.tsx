@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import SwitchToProductionModal from './modals/SwitchToProductionModal'
+import SwitchToProductionModal from './modals/switchToProductionModal/SwitchToProductionModal'
 
 interface MenuItem {
   name: string

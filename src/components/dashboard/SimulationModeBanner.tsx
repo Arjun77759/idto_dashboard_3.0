@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
-import SwitchToProductionModal from '../modals/SwitchToProductionModal'
+import SwitchToProductionModal from '../modals/switchToProductionModal/SwitchToProductionModal'
 
 // Image assets from Figma
 const imgAlert = "http://localhost:3845/assets/fe0a734bc63c35d83adad3514cf4a7dfbb17408b.svg"
