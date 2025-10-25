@@ -1,5 +1,4 @@
-// Image assets from Figma
-const imgCopy = "http://localhost:3845/assets/e1073cf8fbc2aaf8b5b207843936bedf5f904d5d.svg"
+import { Copy } from 'lucide-react'
 
 interface Transaction {
   id: string
@@ -81,11 +80,7 @@ const TransactionsTable = ({ transactions, onViewDetails }: TransactionsTablePro
                   <p className="font-normal leading-6 text-[14px] text-[#9296a0] text-nowrap tracking-[-0.084px] whitespace-pre">
                     {transaction.id}
                   </p>
-                  <div className="overflow-hidden relative shrink-0 size-4">
-                    <div className="absolute inset-[5.208%]">
-                      <img alt="" className="block max-w-none size-full" src={imgCopy} />
-                    </div>
-                  </div>
+                  <Copy className="size-4 text-[#9296a0]" />
                 </div>
                 <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
               </div>

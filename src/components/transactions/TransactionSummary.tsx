@@ -1,5 +1,4 @@
-// Image assets from Figma
-const imgCopy = "http://localhost:3845/assets/6689c1dbb78d9982e644ecefee929c1c3cd8b776.svg"
+import { Copy } from 'lucide-react'
 
 interface TransactionSummaryProps {
   id: string
@@ -33,11 +32,9 @@ const TransactionSummary = ({
               </p>
               <button 
                 onClick={onCopyId}
-                className="overflow-hidden relative shrink-0 size-4 hover:opacity-70 transition-opacity"
+                className="shrink-0 size-4 hover:opacity-70 transition-opacity"
               >
-                <div className="absolute inset-[5.208%]">
-                  <img alt="" className="block max-w-none size-full" src={imgCopy} />
-                </div>
+                <Copy className="size-4 text-[#9296a0]" />
               </button>
             </div>
           </div>

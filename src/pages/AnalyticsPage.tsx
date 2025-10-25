@@ -6,9 +6,7 @@ import MonthlyTransactionsChart from '@/components/analytics/MonthlyTransactions
 import AnalyticsPieChart from '@/components/analytics/AnalyticsPieChart'
 import BarChart from '@/components/analytics/BarChart'
 import AnalyticsLineChart from '@/components/analytics/AnalyticsLineChart'
-
-// Image assets from Figma
-const imgChartRing = "http://localhost:3845/assets/65ad86f14bec2788ead5714d2696244a5c8ed4b3.svg"
+import { BarChart3 } from 'lucide-react'
 
 const AnalyticsPage = () => {
   return (
@@ -20,11 +18,7 @@ const AnalyticsPage = () => {
     >
       {/* Analytics Header */}
       <div className="flex gap-2 items-center px-3 py-1.5 relative rounded w-full">
-        <div className="overflow-hidden relative shrink-0 size-6">
-          <div className="absolute inset-[5.208%]">
-            <img alt="" className="block max-w-none size-full" src={imgChartRing} />
-          </div>
-        </div>
+        <BarChart3 className="size-6 text-[#131b31]" />
         <p className="font-medium leading-[1.4] relative text-[20px] text-[#131b31] text-nowrap tracking-[-0.2px] whitespace-pre">
           Analytics
         </p>
