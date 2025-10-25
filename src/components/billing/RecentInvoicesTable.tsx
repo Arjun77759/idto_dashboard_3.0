@@ -36,15 +36,15 @@ const RecentInvoicesTable = () => {
       transition={{ duration: 0.3, delay: 0.4 }}
       className="bg-white border border-[#e7e8ea] border-solid grow min-h-0 min-w-px relative rounded-2xl shrink-0 w-full"
     >
-      <div className="flex flex-col gap-6 items-start overflow-hidden p-6 relative rounded-[inherit] w-full">
+      <div className="flex flex-col gap-4 sm:gap-6 items-start overflow-hidden p-4 sm:p-6 relative rounded-[inherit] w-full">
         <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] tracking-[-0.12px] w-full">
           Recent Invoices
         </p>
 
         {/* Search and Action Bar */}
-        <div className="flex items-center justify-between p-0 relative rounded shrink-0 w-full">
-          <div className="flex flex-row items-center self-stretch">
-            <div className="bg-white border border-[#e7e8ea] border-solid flex h-full items-center justify-between px-4 py-2 relative rounded-lg shrink-0 w-[500px]">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-0 relative rounded shrink-0 w-full">
+          <div className="flex flex-row items-center self-stretch w-full sm:w-auto">
+            <div className="bg-white border border-[#e7e8ea] border-solid flex h-full items-center justify-between px-4 py-2 relative rounded-lg shrink-0 w-full sm:w-[500px]">
               <div className="flex gap-2 items-center relative shrink-0">
                 <p className="font-normal leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
                   Search for Id, name product etc
@@ -53,11 +53,11 @@ const RecentInvoicesTable = () => {
               <Search className="size-6 text-[#9296a0]" />
             </div>
           </div>
-          <div className="flex gap-3 items-center relative shrink-0">
-            <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid relative rounded-lg shrink-0">
+          <div className="flex flex-wrap gap-2 sm:gap-3 items-center relative shrink-0 w-full sm:w-auto">
+            <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid relative rounded-lg shrink-0 flex-1 sm:flex-none">
               <button
                 onClick={handleExportCSV}
-                className="flex gap-2 items-center justify-center overflow-hidden px-3 py-3.5 relative rounded-[inherit]"
+                className="flex gap-2 items-center justify-center overflow-hidden px-3 py-3.5 relative rounded-[inherit] w-full"
               >
                 <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
                   Export CSV
@@ -65,11 +65,11 @@ const RecentInvoicesTable = () => {
                 <FileSpreadsheet className="size-4 text-[#0019ff]" />
               </button>
             </div>
-            <div className="flex flex-row items-center self-stretch">
-              <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid h-full relative rounded-lg shrink-0">
+            <div className="flex flex-row items-center self-stretch flex-1 sm:flex-none">
+              <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid h-full relative rounded-lg shrink-0 w-full">
                 <button
                   onClick={handleDownloadInvoice}
-                  className="flex gap-2 h-full items-center justify-center overflow-hidden px-3 py-3.5 relative rounded-[inherit]"
+                  className="flex gap-2 h-full items-center justify-center overflow-hidden px-3 py-3.5 relative rounded-[inherit] w-full"
                 >
                   <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
                     Download Invoice
@@ -82,9 +82,9 @@ const RecentInvoicesTable = () => {
         </div>
 
         {/* Filter Bar */}
-        <div className="flex h-10 items-center justify-between relative shrink-0 w-full">
-          <div className="flex gap-4 h-full items-center min-h-0 min-w-px relative shrink-0">
-            <div className="bg-white border border-[#e7e8ea] border-solid h-full relative rounded-lg shrink-0">
+        <div className="flex flex-wrap gap-2 h-auto sm:h-10 items-center justify-between relative shrink-0 w-full">
+          <div className="flex flex-wrap gap-2 h-full items-center min-h-0 min-w-px relative shrink-0">
+            <div className="bg-white border border-[#e7e8ea] border-solid h-10 relative rounded-lg shrink-0">
               <div className="flex gap-2 h-full items-center justify-center overflow-hidden px-2 py-3.5 relative rounded-[inherit]">
                 <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
                   Sep 9, 2024 - Sep 15, 2024
@@ -92,7 +92,7 @@ const RecentInvoicesTable = () => {
                 <Calendar className="size-4 text-[#9296a0]" />
               </div>
             </div>
-            <div className="bg-white border border-[#e7e8ea] border-solid h-full relative rounded-lg shrink-0">
+            <div className="bg-white border border-[#e7e8ea] border-solid h-10 relative rounded-lg shrink-0">
               <div className="flex gap-2 h-full items-center justify-center overflow-hidden px-2 py-3.5 relative rounded-[inherit]">
                 <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
                   Status
@@ -100,7 +100,7 @@ const RecentInvoicesTable = () => {
                 <ChevronDown className="size-4 text-[#9296a0]" />
               </div>
             </div>
-            <div className="bg-white border border-[#e7e8ea] border-solid h-full relative rounded-lg shrink-0">
+            <div className="bg-white border border-[#e7e8ea] border-solid h-10 relative rounded-lg shrink-0">
               <div className="flex gap-2 h-full items-center justify-center overflow-hidden px-2 py-3.5 relative rounded-[inherit]">
                 <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
                   Amount
@@ -109,7 +109,7 @@ const RecentInvoicesTable = () => {
               </div>
             </div>
           </div>
-          <div className="border border-[#e7e8ea] border-solid h-full relative rounded-lg shrink-0">
+          <div className="border border-[#e7e8ea] border-solid h-10 relative rounded-lg shrink-0">
             <div className="flex gap-1 h-full items-center justify-center overflow-hidden px-2 py-3.5 relative rounded-[inherit]">
               <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
                 Reset
@@ -120,8 +120,8 @@ const RecentInvoicesTable = () => {
         </div>
 
         {/* Invoice Table */}
-        <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-md shrink-0 w-full">
-          <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full">
+        <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-md shrink-0 w-full overflow-x-auto">
+          <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full min-w-[800px]">
             {/* Table Header */}
             <div className="bg-white flex items-start relative shrink-0 w-full">
               <div className="h-10 overflow-hidden relative shrink-0 w-12">

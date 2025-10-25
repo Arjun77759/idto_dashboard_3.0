@@ -11,9 +11,9 @@ const CurrentBalanceCard = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.1 }}
-      className="bg-white border border-[#e7e8ea] border-solid relative rounded-2xl  w-[281px] h-full"
+      className="bg-white border border-[#e7e8ea] border-solid relative rounded-2xl w-full lg:w-[281px] h-full"
     >
-      <div className="flex flex-col gap-2.5 h-full items-start overflow-hidden relative rounded-[inherit] w-[281px]">
+      <div className="flex flex-col gap-2.5 h-full items-start overflow-hidden relative rounded-[inherit] w-full">
         {/* Current Balance Section */}
         <div className="flex flex-col font-medium gap-4 items-start overflow-hidden p-6 relative shrink-0 w-full">
           <p className="leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] tracking-[-0.12px] w-full">

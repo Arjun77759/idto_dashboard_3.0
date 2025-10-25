@@ -39,9 +39,9 @@ const ApiUsageTable = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.3 }}
-      className="bg-white border border-[#e7e8ea] border-solid grow min-h-0 min-w-px relative rounded-2xl shrink-0"
+      className="bg-white border border-[#e7e8ea] border-solid grow min-h-0 min-w-px relative rounded-2xl shrink-0 w-full lg:w-auto"
     >
-      <div className="flex flex-col gap-6 items-start overflow-hidden p-6 relative rounded-[inherit] w-full">
+      <div className="flex flex-col gap-4 sm:gap-6 items-start overflow-hidden p-4 sm:p-6 relative rounded-[inherit] w-full">
         <div className="flex font-medium items-center justify-between leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] w-full whitespace-pre">
           <p className="relative shrink-0">
             API Usage
@@ -51,8 +51,8 @@ const ApiUsageTable = () => {
           </p>
         </div>
 
-        <div className="bg-[#f7f7f8] border border-[#e7e8ea] border-solid relative rounded-md shrink-0 w-full">
-          <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full">
+        <div className="bg-[#f7f7f8] border border-[#e7e8ea] border-solid relative rounded-md shrink-0 w-full overflow-x-auto">
+          <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full min-w-[500px]">
             {/* Table Header */}
             <div className="bg-white flex items-start relative shrink-0 w-full">
               <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[205px]">

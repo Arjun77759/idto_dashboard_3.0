@@ -18,9 +18,9 @@ const PaymentMethodsCard = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.2 }}
-      className="bg-white border border-[#e7e8ea] border-solid relative rounded-2xl h-full  w-[281px]"
+      className="bg-white border border-[#e7e8ea] border-solid relative rounded-2xl h-full w-full lg:w-[281px]"
     >
-      <div className="flex flex-col gap-4 h-full items-start overflow-hidden p-6 relative rounded-[inherit] w-[281px]">
+      <div className="flex flex-col gap-4 h-full items-start overflow-hidden p-6 relative rounded-[inherit] w-full">
         <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] tracking-[-0.12px] w-full">
           Payment Methods
         </p>
