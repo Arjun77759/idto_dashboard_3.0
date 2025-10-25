@@ -1,12 +1,12 @@
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel'
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 
 // Image assets from Figma
-const imgImage1 = "http://localhost:3845/assets/4a79dd95d4568ea7a4fe39738f2bb9a3aa7d4500.png"
-const imgImage2 = "http://localhost:3845/assets/5dd469830004b8c32aaadfcf5a8d880d8ee39512.png"
-const imgImage3 = "http://localhost:3845/assets/9c30684ab42445139d48cf1f86013742d36fea9d.png"
+const imgImage1 = "https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/public1.png"
+const imgImage2 = "https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/public2.png"
+const imgImage3 = "https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/public3.png"
 
 const carouselImages = [
   {
@@ -90,8 +90,8 @@ const PublicLayout = () => {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="left-4" />
-            <CarouselNext className="right-4" />
+            {/* <CarouselPrevious className="left-4" />
+            <CarouselNext className="right-4" /> */}
           </Carousel>
 
           {/* Carousel Indicators */}
