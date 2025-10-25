@@ -17,7 +17,7 @@ import UsersPage from '../pages/UsersPage'
 const publicRoutes = [
   {
     index: true,
-    element: <Navigate to="/register" replace />
+    element: <Navigate to="/login" replace />
   },
   {
     path: 'home',
