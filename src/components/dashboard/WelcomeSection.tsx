@@ -22,8 +22,8 @@ const WelcomeSection = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.1 }}
       className="border border-[#e7e8ea] border-solid min-w-[280px] relative rounded-2xl shrink-0 w-full"
-      style={{ 
-        backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 1154 344\\' preserveAspectRatio=\\'none\\'><g transform=\\'matrix(6.1241e-14 55.136 -18 1.758e-14 577 172)\\'><foreignObject x=\\'-609.06\\' y=\\'-609.06\\' width=\\\'1218.1\\' height=\\\'1218.1\\'><div xmlns=\\'http://www.w3.org/1999/xhtml\\' style=\\'background-image: conic-gradient(from 90deg, rgba(230, 232, 255, 1) 0%, rgba(168, 176, 255, 1) 67.605%, rgba(138, 149, 255, 1) 100%); opacity:1; height: 100%; width: 100%;\\'></div></foreignObject></g></svg>')" 
+      style={{
+        backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 1154 344\\' preserveAspectRatio=\\'none\\'><g transform=\\'matrix(6.1241e-14 55.136 -18 1.758e-14 577 172)\\'><foreignObject x=\\'-609.06\\' y=\\'-609.06\\' width=\\\'1218.1\\' height=\\\'1218.1\\'><div xmlns=\\'http://www.w3.org/1999/xhtml\\' style=\\'background-image: conic-gradient(from 90deg, rgba(230, 232, 255, 1) 0%, rgba(168, 176, 255, 1) 67.605%, rgba(138, 149, 255, 1) 100%); opacity:1; height: 100%; width: 100%;\\'></div></foreignObject></g></svg>')"
       }}
     >
       <div className="flex flex-col gap-4 items-end justify-center min-w-inherit overflow-hidden p-8 relative rounded-[inherit] w-full">

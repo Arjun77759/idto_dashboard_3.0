@@ -1,7 +1,8 @@
+import { ArrowRight } from "lucide-react"
+
 // Image assets from Figma
 const imgEzgif1460026A0F79D71 = "http://localhost:3845/assets/e079d388aa72d204e17bbcacdaeb96ba1b848a0b.png"
 const imgShield = "http://localhost:3845/assets/9ad6eee4ff79d554dff12952c828890e36f16b0d.svg"
-const imgArrow = "http://localhost:3845/assets/e0bf1f6ea3a5839cca531ea155e3190f150682fe.svg"
 
 interface DirectorKYCFormProps {
   onNext: () => void
@@ -33,13 +34,13 @@ const DirectorKYCForm = ({ onNext, isLoading = false }: DirectorKYCFormProps) =>
         <div className="grow flex flex-col gap-4 items-center min-h-px min-w-px relative shrink-0 w-full">
           {/* Digilocker Image */}
           <div className="h-[213px] relative rounded-3xl shrink-0 w-[212px]">
-            <img 
-              alt="" 
-              className="absolute inset-0 max-w-none object-50%-50% object-cover pointer-events-none rounded-3xl size-full" 
-              src={imgEzgif1460026A0F79D71} 
+            <img
+              alt=""
+              className="absolute inset-0 max-w-none object-50%-50% object-cover pointer-events-none rounded-3xl size-full"
+              src={imgEzgif1460026A0F79D71}
             />
           </div>
-          
+
           {/* Security Badge */}
           <div className="flex gap-1 items-center relative shrink-0">
             <div className="overflow-clip relative shrink-0 size-5">
@@ -73,11 +74,7 @@ const DirectorKYCForm = ({ onNext, isLoading = false }: DirectorKYCFormProps) =>
                   <p className="font-bold leading-4 relative text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
                     Continue
                   </p>
-                  <div className="overflow-clip relative shrink-0 size-4">
-                    <div className="absolute inset-[29.17%_16.67%]">
-                      <img alt="" className="block max-w-none size-full" src={imgArrow} />
-                    </div>
-                  </div>
+                  <ArrowRight className="size-4 text-[#0019ff]" />
                 </>
               )}
             </button>

@@ -1,14 +1,8 @@
 import { motion } from 'framer-motion'
+import { Calendar } from 'lucide-react'
 
-// Image assets from Figma
-const imgCalendar = "http://localhost:3845/assets/843b5e757f3e18c044e38bd591197daeb56b86e6.svg"
 const img11 = "http://localhost:3845/assets/1d23a3b007e445753832051adfc9f2947e69b7a6.svg"
 const img12 = "http://localhost:3845/assets/ed5bf0472cf2d7a9a3f60e7bdbe2fa928fc002e9.svg"
-const img13 = "http://localhost:3845/assets/92b5785de9a0a9eebfd27b29a82f2ba5d39bbd9e.svg"
-const img14 = "http://localhost:3845/assets/bbde813ad38227748cadc9dfd66627d696d038be.svg"
-const img15 = "http://localhost:3845/assets/81c42006e6ffa9d2bfe8a7fb99d36801352e33aa.svg"
-const img16 = "http://localhost:3845/assets/f88021b7e7386b694c603a62535a0e8776b0091d.svg"
-const img17 = "http://localhost:3845/assets/9b57db28e5b241f91bc8ae66fc6cd242eaff29a3.svg"
 const img18 = "http://localhost:3845/assets/72f9cf9a6416e01e4e43621edf733810784f001d.svg"
 const img19 = "http://localhost:3845/assets/eaa7f932bffa2e62653007615a039d39b48b724e.svg"
 const img20 = "http://localhost:3845/assets/b0b4a84f32af6cf332c83e4e7ede4dd496fe50a3.svg"
@@ -40,7 +34,7 @@ const ChartSection = () => {
                 </p>
                 <div className="overflow-hidden relative shrink-0 size-4">
                   <div className="absolute inset-[6.25%_9.38%]">
-                    <img alt="" className="block max-w-none size-full" src={imgCalendar} />
+                    <Calendar className="size-4 text-[#9296a0]" />
                   </div>
                 </div>
               </div>
@@ -63,11 +57,11 @@ const ChartSection = () => {
               <div className="absolute inset-0">
                 <div className="absolute bottom-0 left-0 right-[-0.06%] top-0">
                   <div className="absolute bottom-0 flex items-center justify-between left-0 mask-alpha mask-intersect mask-no-clip mask-no-repeat mask-position-[0px_26.947px] mask-size-[800.5px_212.841px] right-[0.06%] top-0"
-                       style={{ maskImage: `url('${img11}')` }}>
+                    style={{ maskImage: `url('${img11}')` }}>
                     {/* Grid lines */}
                     {Array.from({ length: 12 }).map((_, i) => (
                       <div key={i} className="flex h-full items-center justify-center relative shrink-0 w-[calc(1px*((var(--transform-inner-height)*1)+(var(--transform-inner-width)*0)))]"
-                           style={{ "--transform-inner-width": "0", "--transform-inner-height": "0" } as React.CSSProperties}>
+                        style={{ "--transform-inner-width": "0", "--transform-inner-height": "0" } as React.CSSProperties}>
                         <div className="flex-none h-full rotate-[90deg]">
                           <div className="h-full relative w-[240px]">
                             <img alt="" className="block max-w-none size-full" src={img12} />

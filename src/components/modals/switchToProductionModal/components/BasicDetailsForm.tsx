@@ -1,6 +1,4 @@
-// Image assets from Figma
-const imgArrow = "http://localhost:3845/assets/e0bf1f6ea3a5839cca531ea155e3190f150682fe.svg"
-const imgDropdown = "http://localhost:3845/assets/30137de378bdc963371e80b29a30f19141a6ce5a.svg"
+import { ChevronDown, ArrowRight } from "lucide-react"
 
 interface BasicDetailsFormProps {
   onNext: () => void
@@ -72,12 +70,8 @@ const BasicDetailsForm = ({ onNext, isLoading = false }: BasicDetailsFormProps) 
                     Select Entity Type
                   </p>
                 </div>
-                <div className="overflow-clip relative shrink-0 size-6">
-                  <div className="absolute bottom-[37.5%] left-1/4 right-1/4 top-[37.5%]">
-                    <div className="absolute inset-[-8.84%_-4.42%_-17.67%_-4.42%]">
-                      <img alt="" className="block max-w-none size-full" src={imgDropdown} />
-                    </div>
-                  </div>
+                <div className="relative shrink-0 size-6 flex items-center justify-center">
+                  <ChevronDown className="w-4 h-4 text-[#9296a0]" />
                 </div>
               </div>
             </div>
@@ -104,10 +98,8 @@ const BasicDetailsForm = ({ onNext, isLoading = false }: BasicDetailsFormProps) 
                   <p className="font-bold leading-4 relative text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
                     Continue
                   </p>
-                  <div className="overflow-clip relative shrink-0 size-4">
-                    <div className="absolute inset-[29.17%_16.67%]">
-                      <img alt="" className="block max-w-none size-full" src={imgArrow} />
-                    </div>
+                  <div className="relative shrink-0 size-4 flex items-center justify-center">
+                    <ArrowRight className="w-4 h-4 text-[#0019ff]" />
                   </div>
                 </>
               )}

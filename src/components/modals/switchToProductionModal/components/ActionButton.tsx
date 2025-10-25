@@ -1,7 +1,5 @@
+import { ArrowRight } from 'lucide-react'
 import React from 'react'
-
-// Image assets from Figma
-const imgArrow = "http://localhost:3845/assets/e0bf1f6ea3a5839cca531ea155e3190f150682fe.svg"
 
 interface ActionButtonProps {
   isLoading: boolean
@@ -29,11 +27,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({ isLoading, onConfirm }) => 
               <p className="font-bold leading-4 relative text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
                 Start Verification
               </p>
-              <div className="overflow-clip relative shrink-0 size-4">
-                <div className="absolute inset-[29.17%_16.67%]">
-                  <img alt="" className="block max-w-none size-full" src={imgArrow} />
-                </div>
-              </div>
+              <ArrowRight className="size-4 text-[#0019ff]" />
             </>
           )}
         </button>
