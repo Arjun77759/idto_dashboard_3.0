@@ -12,14 +12,14 @@ const TransactionHeader = ({ onBack, onExportCsv, onDownloadReport }: Transactio
     <>
       {/* Transactions Header */}
       <div className="flex gap-2 items-center px-3 py-1.5 relative rounded w-full">
-        <Receipt className="size-6 text-[#131b31]" />
-        <p className="font-medium leading-[1.4] relative text-[20px] text-[#131b31] text-nowrap tracking-[-0.2px] whitespace-pre">
+        <Receipt className="size-5 sm:size-6 text-[#131b31]" />
+        <p className="font-medium leading-[1.4] relative text-lg sm:text-[20px] text-[#131b31] text-nowrap tracking-[-0.2px] whitespace-pre">
           Transactions
         </p>
       </div>
 
       {/* Back and Export Controls */}
-      <div className="flex items-center justify-between relative shrink-0 w-full">
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between relative shrink-0 w-full">
         <div className="flex gap-2 items-center px-3 py-1.5 relative rounded">
           <ArrowLeft className="size-4 text-[#9296a0]" />
           <button 
@@ -30,10 +30,10 @@ const TransactionHeader = ({ onBack, onExportCsv, onDownloadReport }: Transactio
           </button>
         </div>
         
-        <div className="flex gap-3 items-center relative shrink-0">
+        <div className="flex flex-wrap gap-2 sm:gap-3 items-center relative shrink-0 w-full sm:w-auto">
           <Button 
             onClick={onExportCsv}
-            className="bg-[#e6e8ff] hover:bg-[#d0d4ff] text-[#0019ff] border-0 px-2 py-3.5 h-auto rounded-lg"
+            className="bg-[#e6e8ff] hover:bg-[#d0d4ff] text-[#0019ff] border-0 px-2 py-3.5 h-auto rounded-lg flex-1 sm:flex-none"
           >
             <p className="font-medium leading-[1.4] text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre">
               Export CSV
@@ -43,7 +43,7 @@ const TransactionHeader = ({ onBack, onExportCsv, onDownloadReport }: Transactio
           
           <Button 
             onClick={onDownloadReport}
-            className="bg-[#e6e8ff] hover:bg-[#d0d4ff] text-[#0019ff] border-0 px-2 py-3.5 h-auto rounded-lg"
+            className="bg-[#e6e8ff] hover:bg-[#d0d4ff] text-[#0019ff] border-0 px-2 py-3.5 h-auto rounded-lg flex-1 sm:flex-none"
           >
             <p className="font-medium leading-[1.4] text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre">
               Download Report

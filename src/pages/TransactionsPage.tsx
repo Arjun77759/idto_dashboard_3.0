@@ -103,14 +103,14 @@ const TransactionsPage = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-[#f7f7f8] flex flex-col gap-5 items-start overflow-hidden p-6 relative rounded-2xl w-full"
+      className="bg-[#f7f7f8] flex flex-col gap-4 sm:gap-5 items-start overflow-hidden p-4 sm:p-6 relative rounded-2xl w-full"
     >
       <TransactionsPageHeader />
       <TransactionsStatsGrid />
 
       {/* Table Container */}
       <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-2xl shrink-0 w-full">
-        <div className="flex flex-col gap-6 items-start overflow-hidden p-6 relative rounded-[inherit] w-full">
+        <div className="flex flex-col gap-4 sm:gap-6 items-start overflow-hidden p-4 sm:p-6 relative rounded-[inherit] w-full">
           <TransactionsFilters 
             onExportCsv={handleExportCsv}
             onDownloadReport={handleDownloadReport}

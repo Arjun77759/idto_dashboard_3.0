@@ -15,8 +15,8 @@ interface TransactionsTableProps {
 
 const TransactionsTable = ({ transactions, onViewDetails }: TransactionsTableProps) => {
   return (
-    <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-md shrink-0 w-full">
-      <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full">
+    <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-md shrink-0 w-full overflow-x-auto">
+      <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full min-w-[800px]">
         
         {/* Table Header */}
         <div className="bg-white flex items-start relative shrink-0 w-full">

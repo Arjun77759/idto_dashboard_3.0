@@ -11,9 +11,9 @@ const AnalyticsFilters = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.1 }}
-      className="flex h-10 items-center justify-between relative shrink-0 w-full"
+      className="hidden md:flex flex-wrap gap-2 h-auto items-center justify-between relative shrink-0 w-full"
     >
-      <div className="flex gap-4 h-full items-center min-h-0 min-w-px relative shrink-0">
+      <div className="flex flex-wrap gap-2 h-full items-center min-h-0 min-w-px relative shrink-0">
         {/* Date Range Filter */}
         <div className="bg-white border border-[#e7e8ea] border-solid h-full relative rounded-lg shrink-0">
           <div className="flex gap-2 h-full items-center justify-center overflow-hidden px-2 py-3.5 relative rounded-[inherit]">

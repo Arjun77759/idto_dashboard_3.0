@@ -25,14 +25,16 @@ const AnalyticsStatsGrid = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.2 }}
-      className="bg-white border border-[#e7e8ea] border-solid h-[125px] relative rounded-2xl shrink-0 w-full"
+      className="bg-white border border-[#e7e8ea] border-solid h-auto sm:h-[125px] relative rounded-2xl shrink-0 w-full"
     >
-      <div className="grid grid-cols-4 h-[125px] overflow-hidden relative rounded-[inherit] w-full">
+      <div className="grid grid-cols-2 sm:grid-cols-4 h-auto sm:h-[125px] overflow-hidden relative rounded-[inherit] w-full">
         {stats.map((stat, index) => (
           <div
             key={stat.label}
             className={`border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid relative shrink-0 ${
-              index === stats.length - 1 ? '' : 'border-r'
+              index % 2 === 1 ? 'border-r-0' : 'border-r'
+            } sm:border-r ${
+              index === stats.length - 1 ? 'sm:border-r-0' : ''
             }`}
           >
             <div className="flex flex-col font-medium gap-4 items-start overflow-hidden p-6 relative rounded-[inherit] size-full">

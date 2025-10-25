@@ -15,13 +15,13 @@ const BarChart = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.6 }}
-      className="bg-white border border-[#e7e8ea] border-solid h-[245px] min-w-[280px] relative rounded-2xl shrink-0 w-[411px]"
+      className="bg-white border border-[#e7e8ea] border-solid h-[245px] min-w-[280px] relative rounded-2xl shrink-0 w-full max-w-[411px]"
     >
-      <div className="flex flex-col h-[245px] items-start justify-between min-w-inherit overflow-hidden p-4 relative rounded-[inherit] w-[411px]">
+      <div className="flex flex-col h-[245px] items-start justify-between min-w-inherit overflow-hidden p-4 relative rounded-[inherit] w-full">
         <div className="flex flex-col gap-4 grow items-start min-h-0 min-w-px relative shrink-0 w-full">
           {/* Header */}
           <div className="flex items-center justify-between relative shrink-0 w-full">
-            <div className="flex flex-wrap gap-2 items-center relative rounded shrink-0 w-[238px]">
+            <div className="flex flex-wrap gap-2 items-center relative rounded shrink-0 w-full max-w-[238px]">
               <div className="flex flex-col items-start justify-center relative rounded shrink-0">
                 <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#616675] tracking-[-0.12px] w-full">
                   Bar Chart Title

@@ -63,7 +63,7 @@ const TransactionDetailPage = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-[#f7f7f8] flex flex-col gap-5 items-start overflow-hidden p-6 relative rounded-2xl w-full"
+      className="bg-[#f7f7f8] flex flex-col gap-4 sm:gap-5 items-start overflow-hidden p-4 sm:p-6 relative rounded-2xl w-full"
     >
       <TransactionHeader
         onBack={handleBack}
@@ -80,8 +80,8 @@ const TransactionDetailPage = () => {
         onCopyId={handleCopyTransactionId}
       />
 
-      {/* Two Column Layout */}
-      <div className="flex gap-5 h-[360px] items-start relative shrink-0 w-full">
+      {/* Two Column Layout - Responsive */}
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-5 h-auto lg:h-[360px] items-start relative shrink-0 w-full">
         <TransactionDetailsTable details={transactionData.details} />
         <JsonPreview
           jsonData={transactionData.jsonData}

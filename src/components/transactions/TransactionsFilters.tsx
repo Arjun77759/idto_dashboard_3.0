@@ -11,9 +11,9 @@ const TransactionsFilters = ({ onExportCsv, onDownloadReport, onReset }: Transac
   return (
     <>
       {/* Search and Export Header */}
-      <div className="flex items-center justify-between relative rounded shrink-0 w-full">
-        <div className="flex flex-row items-center self-stretch">
-          <div className="border border-[#e7e8ea] border-solid flex h-full items-center justify-between px-4 py-2 relative rounded-lg shrink-0 w-[500px]">
+      <div className="hidden md:flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between relative rounded shrink-0 w-full">
+        <div className="flex flex-row items-center self-stretch w-full sm:w-auto">
+          <div className="border border-[#e7e8ea] border-solid flex h-full items-center justify-between px-4 py-2 relative rounded-lg shrink-0 w-full sm:w-[500px]">
             <div className="flex gap-2 items-center relative shrink-0">
               <p className="font-normal leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
                 Search for Id, name product etc
@@ -23,10 +23,10 @@ const TransactionsFilters = ({ onExportCsv, onDownloadReport, onReset }: Transac
           </div>
         </div>
         
-        <div className="flex gap-3 items-center relative shrink-0">
+        <div className="flex flex-wrap gap-2 sm:gap-3 items-center relative shrink-0 w-full sm:w-auto">
           <Button 
             onClick={onExportCsv}
-            className="bg-[#e6e8ff] hover:bg-[#d0d4ff] text-[#0019ff] border-0 px-2 py-3.5 h-auto rounded-lg"
+            className="bg-[#e6e8ff] hover:bg-[#d0d4ff] text-[#0019ff] border-0 px-2 py-3.5 h-auto rounded-lg flex-1 sm:flex-none"
           >
             <p className="font-medium leading-[1.4] text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre">
               Export CSV
@@ -36,7 +36,7 @@ const TransactionsFilters = ({ onExportCsv, onDownloadReport, onReset }: Transac
           
           <Button 
             onClick={onDownloadReport}
-            className="bg-[#e6e8ff] hover:bg-[#d0d4ff] text-[#0019ff] border-0 px-2 py-3.5 h-auto rounded-lg"
+            className="bg-[#e6e8ff] hover:bg-[#d0d4ff] text-[#0019ff] border-0 px-2 py-3.5 h-auto rounded-lg flex-1 sm:flex-none"
           >
             <p className="font-medium leading-[1.4] text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre">
               Download Report
@@ -47,30 +47,30 @@ const TransactionsFilters = ({ onExportCsv, onDownloadReport, onReset }: Transac
       </div>
 
       {/* Filter Controls */}
-      <div className="flex h-10 items-center justify-between relative shrink-0 w-full">
-        <div className="flex gap-4 grow h-full items-center min-h-0 min-w-0 relative shrink-0">
-          <Button variant="outline" className="border-[#e7e8ea] h-full rounded-lg">
+      <div className="flex flex-wrap gap-2 h-auto sm:h-10 items-center justify-between relative shrink-0 w-full">
+        <div className="flex flex-wrap gap-2 grow h-full items-center min-h-0 min-w-0 relative shrink-0">
+          <Button variant="outline" className="border-[#e7e8ea] h-10 rounded-lg">
             <p className="font-medium leading-[1.4] text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
               Sep 9, 2024 - Sep 15, 2024
             </p>
             <Calendar className="size-4 ml-2 text-[#9296a0]" />
           </Button>
           
-          <Button variant="outline" className="border-[#e7e8ea] h-full rounded-lg">
+          <Button variant="outline" className="border-[#e7e8ea] h-10 rounded-lg">
             <p className="font-medium leading-[1.4] text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
               Document Type
             </p>
             <ChevronDown className="size-4 ml-2 text-[#9296a0]" />
           </Button>
           
-          <Button variant="outline" className="border-[#e7e8ea] h-full rounded-lg">
+          <Button variant="outline" className="border-[#e7e8ea] h-10 rounded-lg">
             <p className="font-medium leading-[1.4] text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
               Status
             </p>
             <ChevronDown className="size-4 ml-2 text-[#9296a0]" />
           </Button>
           
-          <Button variant="outline" className="border-[#e7e8ea] h-full rounded-lg">
+          <Button variant="outline" className="border-[#e7e8ea] h-10 rounded-lg">
             <p className="font-medium leading-[1.4] text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
               Location
             </p>
@@ -81,7 +81,7 @@ const TransactionsFilters = ({ onExportCsv, onDownloadReport, onReset }: Transac
         <Button 
           onClick={onReset}
           variant="outline" 
-          className="border-[#e7e8ea] h-full rounded-lg"
+          className="border-[#e7e8ea] h-10 rounded-lg"
         >
           <p className="font-medium leading-[1.4] text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
             Reset
