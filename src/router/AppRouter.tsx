@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import PrivateLayout from '../layouts/PrivateLayout'
 import PublicLayout from '../layouts/PublicLayout'
 import AnalyticsPage from '../pages/AnalyticsPage'
@@ -13,91 +13,106 @@ import TransactionDetailPage from '../pages/TransactionDetailPage'
 import TransactionsPage from '../pages/TransactionsPage'
 import UsersPage from '../pages/UsersPage'
 
+// Refactored route configuration for better readability and maintainability
+const publicRoutes = [
+  {
+    index: true,
+    element: <Navigate to="/register" replace />
+  },
+  {
+    path: 'home',
+    element: <HomePage />
+  },
+  {
+    path: 'login',
+    element: <LoginPage />
+  },
+  {
+    path: 'register',
+    element: <RegisterPage />
+  }
+]
+
+const billingRoutes = [
+  {
+    index: true,
+    element: <BillingPage />
+  }
+]
+
+const analyticsRoutes = [
+  {
+    index: true,
+    element: <AnalyticsPage />
+  }
+]
+
+const dashboardRoutes = [
+  {
+    index: true,
+    element: <DashboardPage />
+  },
+  {
+    path: 'users',
+    element: <UsersPage />
+  },
+  {
+    path: 'settings',
+    element: <SettingsPage />
+  }
+]
+
+const apiTestingRoutes = [
+  {
+    index: true,
+    element: <ApiTestingPage />
+  }
+]
+
+const transactionsRoutes = [
+  {
+    index: true,
+    element: <TransactionsPage />
+  },
+  {
+    path: ':id',
+    element: <TransactionDetailPage />
+  }
+]
+
 const router = createBrowserRouter([
   {
     path: '/',
     element: <PublicLayout />,
-    children: [
-      {
-        index: true,
-        element: <HomePage />
-      },
-      {
-        path: 'login',
-        element: <LoginPage />
-      },
-      {
-        path: 'register',
-        element: <RegisterPage />
-      }
-    ]
+    children: publicRoutes,
   },
   {
     path: '/billing',
     element: <PrivateLayout />,
-    children: [
-      {
-        index: true,
-        element: <BillingPage />
-      },
-    ]
+    children: billingRoutes,
   },
   {
     path: '/analytics',
     element: <PrivateLayout />,
-    children: [
-      {
-        index: true,
-        element: <AnalyticsPage />
-      },
-    ]
+    children: analyticsRoutes,
   },
   {
     path: '/dashboard',
     element: <PrivateLayout />,
-    children: [
-      {
-        index: true,
-        element: <DashboardPage />
-      },
-      {
-        path: 'users',
-        element: <UsersPage />
-      },
-      {
-        path: 'settings',
-        element: <SettingsPage />
-      }
-    ]
+    children: dashboardRoutes,
   },
   {
     path: '/api-testing',
     element: <PrivateLayout />,
-    children: [
-      {
-        index: true,
-        element: <ApiTestingPage />
-      }
-    ]
+    children: apiTestingRoutes,
   },
   {
     path: '/transactions',
     element: <PrivateLayout />,
-    children: [
-      {
-        index: true,
-        element: <TransactionsPage />
-      },
-      {
-        path: ':id',
-        element: <TransactionDetailPage />
-      }
-    ]
+    children: transactionsRoutes,
   }
 ])
 
-const AppRouter = () => {
-  return <RouterProvider router={router} />
-}
+const AppRouter = () => <RouterProvider router={router} />
 
 export default AppRouter

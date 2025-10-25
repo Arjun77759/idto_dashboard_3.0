@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 // Image assets from Figma
 const imgGroup = "http://localhost:3845/assets/562a7c59aabc101ea749df73fab58615d54ff213.svg"
@@ -12,10 +13,12 @@ const imgMicrosoftIconStreamlineSvgLogos = "http://localhost:3845/assets/2a1be36
 
 const RegisterPage = () => {
   const [email, setEmail] = useState('')
+  const navigate = useNavigate()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     console.log('Registration attempt:', email)
+    navigate('/dashboard')
   }
 
   const handleGoogleSignup = () => {

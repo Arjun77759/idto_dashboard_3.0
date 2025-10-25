@@ -9,6 +9,11 @@ interface DirectorKYCFormProps {
 }
 
 const DirectorKYCForm = ({ onNext, isLoading = false }: DirectorKYCFormProps) => {
+  const handleContinue = () => {
+    window.open('https://digilocker.idto.ai/digilocker?client_id=325425&redirect_uri=34433', '_blank')
+    onNext()
+  }
+
   return (
     <div className="bg-white border border-[#e7e8ea] border-solid grow h-full min-h-px min-w-px relative rounded shrink-0">
       <div className="flex flex-col gap-4 items-start p-6 relative rounded-[inherit] size-full">
@@ -52,7 +57,7 @@ const DirectorKYCForm = ({ onNext, isLoading = false }: DirectorKYCFormProps) =>
         <div className="flex gap-10 items-center justify-end relative shrink-0 w-full">
           <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid relative rounded-lg shrink-0">
             <button
-              onClick={onNext}
+              onClick={handleContinue}
               disabled={isLoading}
               className="flex gap-2 items-center justify-center px-8 py-3.5 relative rounded-[inherit] disabled:opacity-50 disabled:cursor-not-allowed"
             >
