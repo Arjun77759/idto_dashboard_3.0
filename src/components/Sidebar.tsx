@@ -3,8 +3,8 @@ import {
   ArrowRight,
   BarChart3,
   BookOpen,
+  Receipt,
   CreditCard,
-  DollarSign,
   FlaskConical,
   Home,
   MessageSquare,
@@ -42,13 +42,13 @@ const Sidebar = () => {
     {
       name: 'Operations',
       items: [
-        { name: 'Transactions', href: '/transactions', icon: CreditCard, isActive: location.pathname === '/transactions' }
+        { name: 'Transactions', href: '/transactions', icon: Receipt, isActive: location.pathname === '/transactions' }
       ]
     },
     {
       name: 'Account & Billing',
       items: [
-        { name: 'Billing', href: '/billing', icon: DollarSign, isActive: location.pathname === '/billing' }
+        { name: 'Billing', href: '/billing', icon: CreditCard, isActive: location.pathname === '/billing' }
       ]
     },
     {
