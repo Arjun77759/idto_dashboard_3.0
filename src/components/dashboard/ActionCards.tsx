@@ -52,7 +52,7 @@ const ActionCards = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.3 }}
-      className="flex gap-5 items-start overflow-hidden relative rounded w-full"
+      className="flex flex-col lg:flex-row gap-4 sm:gap-5 items-start overflow-hidden relative rounded w-full"
     >
       {cards.map((card, index) => (
         <motion.div
@@ -60,32 +60,32 @@ const ActionCards = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.3 + index * 0.1 }}
-          className={`h-[164px] relative rounded-2xl shrink-0 w-[314px] ${
+          className={`h-auto sm:h-[164px] relative rounded-2xl shrink-0 w-full lg:w-[314px] ${
             card.isPrimary 
               ? 'bg-[#e6e8ff] border border-[#e7e8ea] border-solid' 
               : 'bg-white border border-[#e7e8ea] border-solid'
           }`}
         >
-          <div className="flex flex-col gap-4 h-[164px] items-start p-4 relative rounded-[inherit] w-[314px]">
+          <div className="flex flex-col gap-3 sm:gap-4 h-auto sm:h-[164px] items-start p-3 sm:p-4 relative rounded-[inherit] w-full">
             <div className="flex items-start justify-between relative w-full">
-              <div className="flex flex-col gap-5 grow items-start min-h-0 min-w-0 relative self-stretch">
+              <div className="flex flex-col gap-3 sm:gap-5 grow items-start min-h-0 min-w-0 relative self-stretch">
                 <div className="flex flex-col gap-2 items-start relative w-full">
                   {card.icon && (
-                    <div className="flex items-center justify-center shrink-0 size-[35px]">
-                      <card.icon className="size-6 text-[#616675]" />
+                    <div className="flex items-center justify-center shrink-0 size-[30px] sm:size-[35px]">
+                      <card.icon className="size-5 sm:size-6 text-[#616675]" />
                     </div>
                   )}
-                  <p className="font-medium min-w-full relative text-[12px] text-[#616675] tracking-[-0.12px] w-[min-content]">
+                  <p className="font-medium min-w-full relative text-[11px] sm:text-[12px] text-[#616675] tracking-[-0.11px] sm:tracking-[-0.12px] w-[min-content]">
                     {card.title}
                   </p>
                   {card.value && (
-                    <p className="font-medium min-w-full relative text-[32px] text-[#0019ff] tracking-[-0.32px] w-[min-content]">
+                    <p className="font-medium min-w-full relative text-[24px] sm:text-[28px] lg:text-[32px] text-[#0019ff] tracking-[-0.24px] sm:tracking-[-0.28px] lg:tracking-[-0.32px] w-[min-content]">
                       {card.value}
                     </p>
                   )}
                 </div>
               </div>
-              <div className={`h-10 relative rounded-lg shrink-0 ${
+              <div className={`h-8 sm:h-10 relative rounded-lg shrink-0 ${
                 card.isPrimary 
                   ? 'bg-gradient-to-r from-[#8a95ff] to-[#8a95ff] border border-[#e7e8ea] border-solid'
                   : 'bg-[#e6e8ff]'
@@ -96,20 +96,20 @@ const ActionCards = () => {
               >
                 <button
                   onClick={card.buttonAction}
-                  className="flex gap-2 h-10 items-center justify-center px-2 py-[14px] relative rounded-[inherit]"
+                  className="flex gap-1 sm:gap-2 h-8 sm:h-10 items-center justify-center px-2 py-[10px] sm:py-[14px] relative rounded-[inherit]"
                 >
-                  <p className={`font-medium leading-[1.4] relative text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre ${
+                  <p className={`font-medium leading-[1.4] relative text-[10px] sm:text-[12px] text-nowrap tracking-[-0.1px] sm:tracking-[-0.12px] whitespace-pre ${
                     card.isPrimary ? 'text-white' : 'text-[#0019ff]'
                   }`}>
                     {card.buttonText}
                   </p>
-                  <card.buttonIcon className={`size-4 ${
+                  <card.buttonIcon className={`size-3 sm:size-4 ${
                     card.isPrimary ? 'text-white' : 'text-[#0019ff]'
                   }`} />
                 </button>
               </div>
             </div>
-            <p className="font-normal leading-[1.4] relative text-[12px] text-[#9296a0] tracking-[-0.12px] w-full">
+            <p className="font-normal leading-[1.4] relative text-[11px] sm:text-[12px] text-[#9296a0] tracking-[-0.11px] sm:tracking-[-0.12px] w-full">
               {card.description}
             </p>
           </div>

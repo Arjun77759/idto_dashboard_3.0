@@ -20,7 +20,7 @@ const ChartSection = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.4 }}
-      className="min-w-[300px] w-[411px] h-full "
+      className="min-w-[300px] w-[411px] h-full max-w-full"
     >
       <Card className="h-full rounded-2xl border-[#e7e8ea]">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 px-6 pt-6">

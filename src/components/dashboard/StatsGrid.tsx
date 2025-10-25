@@ -49,29 +49,32 @@ const StatsGrid = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.2 }}
-      className="bg-white border border-[#e7e8ea] border-solid h-[125px] relative rounded-2xl w-full"
+      className="bg-white border border-[#e7e8ea] border-solid h-auto sm:h-[125px] relative rounded-2xl w-full"
     >
-      <div className="grid grid-cols-4 h-[125px] overflow-hidden relative rounded-[inherit] w-full">
+      <div className="grid grid-cols-2 lg:grid-cols-4 h-auto sm:h-[125px] overflow-hidden relative rounded-[inherit] w-full">
         {stats.map((stat, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: 0.2 + index * 0.1 }}
-            className={`border-r border-[#e7e8ea] border-solid relative shrink-0 ${index === stats.length - 1 ? 'border-r-0' : ''
-              }`}
+            className={`border-r border-b sm:border-b-0 border-[#e7e8ea] border-solid relative shrink-0 ${
+              index === stats.length - 1 ? 'border-r-0' : ''
+            } ${index >= stats.length - 2 ? 'lg:border-r-0' : ''} ${
+              index % 2 === 1 ? 'sm:border-r-0' : ''
+            }`}
           >
-            <div className="flex flex-col gap-4 items-start p-6 relative rounded-[inherit] size-full">
-              <p className="font-medium leading-[1.4] relative text-[12px] text-[#9296a0] tracking-[-0.12px] w-full">
+            <div className="flex flex-col gap-2 sm:gap-4 items-start p-3 sm:p-6 relative rounded-[inherit] size-full min-h-[100px] sm:min-h-0">
+              <p className="font-medium leading-[1.4] relative text-[10px] sm:text-[12px] text-[#9296a0] tracking-[-0.1px] sm:tracking-[-0.12px] w-full">
                 {stat.title}
               </p>
               <div className="flex items-center justify-between relative w-full">
-                <p className="font-medium leading-[1.24] relative text-[32px] text-[#131b31] text-nowrap tracking-[-0.32px] whitespace-pre">
+                <p className="font-medium leading-[1.24] relative text-[20px] sm:text-[24px] lg:text-[32px] text-[#131b31] text-nowrap tracking-[-0.2px] sm:tracking-[-0.24px] lg:tracking-[-0.32px] whitespace-pre">
                   {stat.value}
                 </p>
                 <div className="flex flex-col items-end relative">
                   <div className="flex gap-0.5 items-center relative">
-                    <div className="overflow-hidden relative shrink-0 size-5">
+                    <div className="overflow-hidden relative shrink-0 size-4 sm:size-5">
                       <div className="absolute flex inset-[30%_14.62%_22.91%_10%] items-center justify-center">
                         <div className="flex-none h-1.5 rotate-[345deg] w-3.5">
                           <div className="relative size-full -top-1">
@@ -80,11 +83,11 @@ const StatsGrid = () => {
                         </div>
                       </div>
                     </div>
-                    <p className="font-bold leading-[1.4] relative text-[12px] text-[#09de13] text-nowrap whitespace-pre">
+                    <p className="font-bold leading-[1.4] relative text-[10px] sm:text-[12px] text-[#09de13] text-nowrap whitespace-pre">
                       {stat.change}
                     </p>
                   </div>
-                  <p className="font-normal leading-[1.4] relative text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
+                  <p className="font-normal leading-[1.4] relative text-[10px] sm:text-[12px] text-[#9296a0] text-nowrap tracking-[-0.1px] sm:tracking-[-0.12px] whitespace-pre">
                     {stat.description}
                   </p>
                 </div>
