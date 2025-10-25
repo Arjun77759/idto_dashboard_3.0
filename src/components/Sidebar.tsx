@@ -20,6 +20,8 @@ interface MenuItem {
   href: string
   icon: React.ComponentType<{ className?: string }>
   isActive?: boolean
+  isExternal?: boolean
+  isDisabled?: boolean
 }
 
 interface Category {
@@ -55,14 +57,14 @@ const Sidebar = () => {
       name: 'Developer Tools',
       items: [
         { name: 'API Testing', href: '/api-testing', icon: FlaskConical, isActive: location.pathname === '/api-testing' },
-        { name: 'API Documentation', href: '/api-docs', icon: BookOpen, isActive: location.pathname === '/api-docs' }
+        { name: 'API Documentation', href: 'https://idtoai.readme.io/reference/idtoai-verification-apis', icon: BookOpen, isActive: false, isExternal: true }
       ]
     },
     {
       name: 'Administration',
       items: [
-        { name: 'Settings', href: '/settings', icon: Settings, isActive: location.pathname === '/settings' },
-        { name: 'Feedback', href: '/feedback', icon: MessageSquare, isActive: location.pathname === '/feedback' }
+        { name: 'Settings', href: '/settings', icon: Settings, isActive: location.pathname === '/settings', isDisabled: true },
+        { name: 'Feedback', href: '/feedback', icon: MessageSquare, isActive: location.pathname === '/feedback', isDisabled: true }
       ]
     }
   ]
@@ -118,6 +120,46 @@ const Sidebar = () => {
             {/* Menu Items */}
             {category.items.map((item, itemIndex) => {
               const IconComponent = item.icon
+
+              if (item.isDisabled) {
+                return (
+                  <div
+                    key={itemIndex}
+                    className="flex gap-2 items-center px-3 py-1.5 mt-2 relative rounded w-full opacity-50 cursor-not-allowed"
+                  >
+                    <div className="overflow-hidden relative shrink-0 size-4">
+                      <IconComponent className="w-4 h-4 text-[#9296a0]" />
+                    </div>
+                    <p className="font-medium leading-[1.4] relative text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre text-[#9296a0]">
+                      {item.name}
+                    </p>
+                  </div>
+                )
+              }
+
+              if (item.isExternal) {
+                return (
+                  <a
+                    key={itemIndex}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex gap-2 items-center px-3 py-1.5 mt-2 relative rounded w-full ${item.isActive
+                      ? 'bg-[#e6fcf5]'
+                      : 'hover:bg-gray-50'
+                      }`}
+                  >
+                    <div className="overflow-hidden relative shrink-0 size-4">
+                      <IconComponent className={`w-4 h-4 ${item.isActive ? 'text-[#0019ff]' : 'text-[#616675]'
+                        }`} />
+                    </div>
+                    <p className={`font-medium leading-[1.4] relative text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre ${item.isActive ? 'text-[#0019ff]' : 'text-[#616675]'
+                      }`}>
+                      {item.name}
+                    </p>
+                  </a>
+                )
+              }
 
               return (
                 <Link

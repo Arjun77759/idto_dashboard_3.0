@@ -36,7 +36,7 @@ const AnalyticsLineChart = () => {
         </CardHeader>
         <CardContent className="h-[172px] p-0 px-6 pb-6">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+            <LineChart data={chartData} margin={{ top: 10, right: 15, left: 15, bottom: 20 }}>
               <CartesianGrid 
                 strokeDasharray="3 3" 
                 stroke="#f0f0f0" 
@@ -48,6 +48,7 @@ const AnalyticsLineChart = () => {
                 tickLine={false}
                 tick={{ fontSize: 12, fill: '#616675' }}
                 interval={0}
+                padding={{ left: 10, right: 10 }}
               />
               <YAxis 
                 hide

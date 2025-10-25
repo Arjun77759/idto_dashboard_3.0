@@ -82,7 +82,7 @@ const ApiResponseModal = ({ isOpen, onClose, response }: ApiResponseModalProps) 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden p-0">
+      <DialogContent className="max-w-4xl max-h-[80vh] h-[468px] w-[776px] overflow-hidden p-0">
         <div className="bg-white border border-gray-200 rounded-2xl w-full h-full">
           <div className="flex flex-col gap-2.5 p-4 h-full">
             {/* Header with tabs - removed custom close button */}

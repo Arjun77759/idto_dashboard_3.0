@@ -36,24 +36,24 @@ const ChartSection = () => {
         </CardHeader>
         <CardContent className="h-[200px] p-0 px-6 pb-6 relative top-5">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-              <CartesianGrid 
-                strokeDasharray="3 3" 
-                stroke="#f0f0f0" 
+            <LineChart data={chartData} margin={{ top: 10, right: 15, left: 15, bottom: 20 }}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#f0f0f0"
                 vertical={false}
               />
-              {/* <XAxis 
-                dataKey="month" 
+              <XAxis
+                dataKey="month"
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 12, fill: '#616675' }}
                 interval={0}
                 className='text-[#616675] text-xs'
-              /> */}
-              <YAxis 
+              />
+              <YAxis
                 hide
               />
-              <Tooltip 
+              <Tooltip
                 contentStyle={{
                   backgroundColor: 'white',
                   border: '1px solid #e7e8ea',
@@ -63,10 +63,10 @@ const ChartSection = () => {
                 }}
                 labelStyle={{ color: '#616675', fontSize: '12px' }}
               />
-              <Line 
-                type="monotone" 
-                dataKey="volume" 
-                stroke="#3b82f6" 
+              <Line
+                type="monotone"
+                dataKey="volume"
+                stroke="#3b82f6"
                 strokeWidth={2}
                 dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
