@@ -1,18 +1,9 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
-
-// Image assets from Figma
-const imgVisaIncLogoSvg = "http://localhost:3845/assets/ee687c1cd732e9d3de025c64303253277d85f6c5.svg"
-const imgEdit = "http://localhost:3845/assets/1b0258a2d19a34c50713f3c3d72fa433899049a0.svg"
-const imgToggleOn = "http://localhost:3845/assets/35a819250a419045542d34f13a38cb74c4c7db97.svg"
-const imgPlus = "http://localhost:3845/assets/159cf5ad90ce0de038b333a6e8361c10004c921e.svg"
+import { CreditCard, Edit, Plus } from 'lucide-react'
 
 const PaymentMethodsCard = () => {
   const [autoPayEnabled, setAutoPayEnabled] = useState(true)
-
-  const handleEditPayment = () => {
-    console.log('Edit payment method')
-  }
 
   const handleAddPaymentMethod = () => {
     console.log('Add payment method')
@@ -39,20 +30,20 @@ const PaymentMethodsCard = () => {
           <div className="flex flex-col gap-2 items-start overflow-hidden px-0 py-3.5 relative rounded-[inherit] w-full">
             <div className="flex items-center justify-between relative shrink-0 w-[217px]">
               <div className="flex gap-2 items-center relative shrink-0">
-                <div className="h-2.5 relative shrink-0 w-8">
-                  <img alt="" className="block max-w-none size-full" src={imgVisaIncLogoSvg} />
-                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="10" viewBox="0 0 32 10" fill="none">
+                  <path d="M20.8494 0C18.5803 0 16.5429 1.14118 16.5429 3.23529C16.5429 5.64706 20.1418 5.81176 20.1418 7.01176C20.1418 7.51765 19.5318 7.97647 18.5071 7.97647C17.0431 7.97647 15.9451 7.34118 15.9451 7.34118L15.4815 9.45882C15.4815 9.45882 16.7381 10 18.4217 10C20.9104 10 22.8624 8.81176 22.8624 6.67059C22.8624 4.12941 19.2512 3.96471 19.2512 2.84706C19.2512 2.44706 19.7514 2.01176 20.7762 2.01176C21.9352 2.01176 22.8868 2.47059 22.8868 2.47059L23.3504 0.423529C23.3382 0.423529 22.3012 0 20.8494 0ZM0.0609989 0.152941L0 0.458824C0 0.458824 0.951582 0.623529 1.81777 0.964706C2.92795 1.35294 3.00114 1.57647 3.19634 2.27059L5.2337 9.83529H7.96645L12.151 0.152941H9.43042L6.73427 6.74118L5.63629 1.15294C5.5387 0.517647 5.02631 0.152941 4.39192 0.152941H0.0609989ZM13.249 0.152941L11.114 9.83529H13.7125L15.8353 0.152941H13.249ZM27.7179 0.152941C27.0957 0.152941 26.7663 0.470588 26.5223 1.03529L22.716 9.83529H25.4365L25.9611 8.36471H29.2795L29.5966 9.83529H32L29.9138 0.152941H27.7179ZM28.0717 2.77647L28.8769 6.41176H26.7175L28.0717 2.77647Z" fill="url(#paint0_linear_265_11770)" />
+                  <defs>
+                    <linearGradient id="paint0_linear_265_11770" x1="0" y1="5" x2="32" y2="5" gradientUnits="userSpaceOnUse">
+                      <stop stop-color="#0019FF" />
+                      <stop offset="1" stop-color="#3B5397" />
+                    </linearGradient>
+                  </defs>
+                </svg>
                 <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
                   ending in 1234
                 </p>
               </div>
-              <div className="overflow-hidden relative shrink-0 size-4">
-                <div className="absolute inset-[8.33%_8.33%_8.33%_8.34%]">
-                  <div className="absolute inset-[-5.63%_-5.63%_-5.62%_-5.63%]">
-                    <img alt="" className="block max-w-none size-full" src={imgEdit} />
-                  </div>
-                </div>
-              </div>
+              <Edit className="size-4 text-[#9296a0]" />
             </div>
             <p className="font-normal leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
               Expires 01/05/2025
@@ -71,11 +62,11 @@ const PaymentMethodsCard = () => {
           </p>
           <button
             onClick={toggleAutoPay}
-            className="overflow-hidden relative shrink-0 size-6"
+            className={`relative shrink-0 w-11 h-6 rounded-full transition-colors ${autoPayEnabled ? 'bg-[#0019ff]' : 'bg-gray-300'
+              }`}
           >
-            <div className="absolute inset-[21.88%_5.21%]">
-              <img alt="" className="block max-w-none size-full" src={imgToggleOn} />
-            </div>
+            <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${autoPayEnabled ? 'translate-x-5' : 'translate-x-0.5'
+              }`} />
           </button>
         </div>
 
@@ -88,15 +79,7 @@ const PaymentMethodsCard = () => {
             <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
               Add Payment Method
             </p>
-            <div className="flex h-[calc(1px*((var(--transform-inner-width)*1)+(var(--transform-inner-height)*0)))] items-center justify-center relative shrink-0 w-[calc(1px*((var(--transform-inner-height)*1)+(var(--transform-inner-width)*0)))]" style={{ "--transform-inner-width": "0", "--transform-inner-height": "0" } as React.CSSProperties}>
-              <div className="flex-none rotate-[90deg]">
-                <div className="overflow-hidden relative size-4">
-                  <div className="absolute inset-[16.667%]">
-                    <img alt="" className="block max-w-none size-full" src={imgPlus} />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <Plus className="size-4 text-[#0019ff]" />
           </button>
         </div>
       </div>

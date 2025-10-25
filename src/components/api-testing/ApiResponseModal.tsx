@@ -3,11 +3,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { CodeXml, Copy, List } from 'lucide-react'
 import { useState } from 'react'
 
-// Image assets from Figma
-const imgTable = "http://localhost:3845/assets/a776b04a533136015a8e8cd21e74ea1cf5c6470b.svg"
-const imgCode = "http://localhost:3845/assets/7a106c03d4acf90bfecb3285ddda4d26f02d1135.svg"
-const imgCopy = "http://localhost:3845/assets/7649c02804e3c6bd420488f606b380e01bda90c4.svg"
-
 interface ApiResponseModalProps {
   isOpen: boolean
   onClose: () => void
@@ -118,7 +113,7 @@ const ApiResponseModal = ({ isOpen, onClose, response }: ApiResponseModalProps) 
                     }`}
                 >
                   <div className="w-4 h-4 flex items-center justify-center">
-                  <CodeXml className={`${activeTab === 'json' ? 'text-blue-600' : 'text-gray-400'} w-4 h-4 ml-[2px]`} />
+                    <CodeXml className={`${activeTab === 'json' ? 'text-blue-600' : 'text-gray-400'} w-4 h-4 ml-[2px]`} />
                   </div>
                   <p className={`text-xs font-medium whitespace-nowrap ${activeTab === 'json'
                     ? 'text-blue-600'
