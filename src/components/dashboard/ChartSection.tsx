@@ -34,7 +34,7 @@ const ChartSection = () => {
             <Calendar className="h-4 w-4" />
           </Badge>
         </CardHeader>
-        <CardContent className="h-[200px] p-0 px-6 pb-6 relative top-5">
+        <CardContent className="h-[220px] p-0 px-6 pb-6 relative top-5">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 10, right: 15, left: 15, bottom: 20 }}>
               <CartesianGrid
