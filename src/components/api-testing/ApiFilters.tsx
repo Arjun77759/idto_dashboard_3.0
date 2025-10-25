@@ -1,9 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-
-// Image assets from Figma
-const imgSearch = "http://localhost:3845/assets/dd51b8c4adb7c8615abf036bb45f6c82ed4a7815.svg"
-const imgArrowDown = "http://localhost:3845/assets/ff0fc17489d3d953c2fc499240c7f604473bcade.svg"
+import { Search, ChevronDown } from 'lucide-react'
 
 interface ApiFiltersProps {
   onSearch?: (query: string) => void
@@ -33,11 +30,7 @@ const ApiFilters = ({ onSearch, onFilterChange }: ApiFiltersProps) => {
     <div className="flex flex-col gap-4 w-full">
       {/* Search Field */}
       <div className="bg-white border border-[#e7e8ea] border-solid flex gap-2 h-[45px] items-center px-4 py-2 relative rounded-lg shrink-0 w-full">
-        <div className="relative shrink-0 size-6">
-          <div className="absolute inset-[16.67%_20.83%_20.83%_16.67%]">
-            <img alt="" className="block max-w-none size-full" src={imgSearch} />
-          </div>
-        </div>
+        <Search className="size-6 text-[#9296a0]" />
         <input
           type="text"
           placeholder="Search for Id, name product etc"
@@ -61,15 +54,7 @@ const ApiFilters = ({ onSearch, onFilterChange }: ApiFiltersProps) => {
           <p className="font-medium leading-[1.4] text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
             Solution
           </p>
-          <div className="flex items-center justify-center relative shrink-0 size-4 ml-1">
-            <div className="flex-none rotate-180">
-              <div className="overflow-hidden relative size-4">
-                <div className="absolute inset-[37.5%_25%]">
-                  <img alt="" className="block max-w-none size-full" src={imgArrowDown} />
-                </div>
-              </div>
-            </div>
-          </div>
+          <ChevronDown className="size-4 ml-1 text-[#9296a0]" />
         </Button>
 
         <Button
@@ -80,15 +65,7 @@ const ApiFilters = ({ onSearch, onFilterChange }: ApiFiltersProps) => {
           <p className="font-medium leading-[1.4] text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
             Type
           </p>
-          <div className="flex items-center justify-center relative shrink-0 size-4 ml-1">
-            <div className="flex-none rotate-180">
-              <div className="overflow-hidden relative size-4">
-                <div className="absolute inset-[37.5%_25%]">
-                  <img alt="" className="block max-w-none size-full" src={imgArrowDown} />
-                </div>
-              </div>
-            </div>
-          </div>
+          <ChevronDown className="size-4 ml-1 text-[#9296a0]" />
         </Button>
       </div>
     </div>

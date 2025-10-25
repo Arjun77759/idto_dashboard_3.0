@@ -1,7 +1,5 @@
 import { motion } from 'framer-motion'
-
-// Image assets from Figma
-const imgCalendar = "http://localhost:3845/assets/843b5e757f3e18c044e38bd591197daeb56b86e6.svg"
+import { Calendar } from 'lucide-react'
 
 const BarChart = () => {
   const categories = [
@@ -35,11 +33,7 @@ const BarChart = () => {
                 <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
                   Jan 2025 - Aug 2025
                 </p>
-                <div className="overflow-hidden relative shrink-0 size-4">
-                  <div className="absolute inset-[6.25%_9.38%]">
-                    <img alt="" className="block max-w-none size-full" src={imgCalendar} />
-                  </div>
-                </div>
+                <Calendar className="size-4 text-[#9296a0]" />
               </div>
             </div>
           </div>

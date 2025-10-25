@@ -1,10 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-
-// Image assets from Figma
-const imgSettings = "http://localhost:3845/assets/25c7ec0455d00369417cec8ff0cc5186058be49c.svg"
-const imgCommandLine = "http://localhost:3845/assets/d6f6921db4f47d6ffd7a168b170c0e941a28ef03.svg"
+import { Settings, Terminal } from 'lucide-react'
 
 interface ApiConfigurationProps {
   selectedApi: string | null
@@ -110,11 +106,7 @@ const ApiConfiguration = ({ selectedApi, onApiRun }: ApiConfigurationProps) => {
         {/* Header */}
         <div className="flex items-center justify-between overflow-hidden p-1 relative rounded shrink-0 w-full">
           <div className="flex gap-2 items-center relative shrink-0">
-            <div className="overflow-hidden relative shrink-0 size-6">
-              <div className="absolute inset-[9.38%_5.21%]">
-                <img alt="" className="block max-w-none size-full" src={imgSettings} />
-              </div>
-            </div>
+            <Settings className="size-6 text-[#0019ff]" />
             <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
               API Configuration
             </p>
@@ -127,11 +119,7 @@ const ApiConfiguration = ({ selectedApi, onApiRun }: ApiConfigurationProps) => {
             <p className="font-medium leading-[1.4] text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre">
               {isLoading ? 'Running...' : 'Run API'}
             </p>
-            <div className="relative shrink-0 size-4 ml-2">
-              <div className="absolute inset-[13.54%_17.71%]">
-                <img alt="" className="block max-w-none size-full" src={imgCommandLine} />
-              </div>
-            </div>
+            <Terminal className="size-4 ml-2" />
           </Button>
         </div>
 

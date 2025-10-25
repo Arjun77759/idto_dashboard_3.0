@@ -1,8 +1,5 @@
 import { useState } from 'react'
-
-// Image assets from Figma
-const imgFlash = "http://localhost:3845/assets/79e02c9dfa552c506852f2e767cccc6c1004ef31.svg"
-const imgSparkles = "http://localhost:3845/assets/1218014ddb10196a9531d7508588a579e587f952.svg"
+import { Zap, Sparkles } from 'lucide-react'
 
 interface ApiItem {
   id: string
@@ -69,7 +66,7 @@ const ApiList = ({ selectedApi, onApiSelect }: ApiListProps) => {
   return (
     <div className="border border-[#e7e8ea] border-solid flex flex-col items-start overflow-hidden relative rounded-lg shrink-0 w-full flex-1">
       <div className="flex flex-col items-start overflow-hidden relative rounded-lg w-full h-full">
-        {apis.map((api, index) => (
+        {apis.map((api) => (
           <div
             key={api.id}
             className={`border-b border-[#e7e8ea] border-solid flex items-center justify-between p-4 relative shrink-0 w-full cursor-pointer ${
@@ -89,22 +86,14 @@ const ApiList = ({ selectedApi, onApiSelect }: ApiListProps) => {
             <div className="flex gap-1 items-center relative shrink-0">
               {selectedApi === api.id ? (
                 <>
-                  <div className="overflow-hidden relative shrink-0 size-4">
-                    <div className="absolute inset-[5.208%]">
-                      <img alt="" className="block max-w-none size-full" src={imgSparkles} />
-                    </div>
-                  </div>
+                  <Sparkles className="size-4 text-[#0019ff]" />
                   <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
                     Selected
                   </p>
                 </>
               ) : (
                 <>
-                  <div className="overflow-hidden relative shrink-0 size-4">
-                    <div className="absolute inset-[5.21%_16.67%]">
-                      <img alt="" className="block max-w-none size-full" src={imgFlash} />
-                    </div>
-                  </div>
+                  <Zap className="size-4 text-[#9296a0]" />
                   <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
                     {api.credits} Credits
                   </p>
