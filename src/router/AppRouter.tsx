@@ -8,6 +8,8 @@ import HomePage from '../pages/HomePage'
 import LoginPage from '../pages/LoginPage'
 import RegisterPage from '../pages/RegisterPage'
 import SettingsPage from '../pages/SettingsPage'
+import TransactionDetailPage from '../pages/TransactionDetailPage'
+import TransactionsPage from '../pages/TransactionsPage'
 import UsersPage from '../pages/UsersPage'
 
 const router = createBrowserRouter([
@@ -64,6 +66,20 @@ const router = createBrowserRouter([
       {
         path: 'settings',
         element: <SettingsPage />
+      }
+    ]
+  },
+  {
+    path: '/transactions',
+    element: <PrivateLayout />,
+    children: [
+      {
+        index: true,
+        element: <TransactionsPage />
+      },
+      {
+        path: ':id',
+        element: <TransactionDetailPage />
       }
     ]
   }

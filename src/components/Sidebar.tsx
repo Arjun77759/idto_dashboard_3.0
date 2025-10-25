@@ -1,20 +1,18 @@
 import { motion } from 'framer-motion'
+import {
+  ArrowRight,
+  BarChart3,
+  BookOpen,
+  CreditCard,
+  DollarSign,
+  Home,
+  MessageSquare,
+  Settings,
+  TestTube,
+  User
+} from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { 
-  ChevronDown, 
-  ChevronUp, 
-  Home, 
-  BarChart3, 
-  CreditCard, 
-  DollarSign, 
-  TestTube, 
-  BookOpen, 
-  Settings, 
-  MessageSquare, 
-  ArrowRight, 
-  User 
-} from 'lucide-react'
 
 interface MenuItem {
   name: string
@@ -82,10 +80,10 @@ const Sidebar = () => {
       {/* Environment Header */}
       <div className="flex items-start justify-between px-0 py-1.5 relative w-full">
         <div className="flex gap-4 items-center relative">
-          <div className="rounded w-[34px] h-[34px] shrink-0" 
-               style={{ 
-                 backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 34 34\\' preserveAspectRatio=\\'none\\'><g transform=\\'matrix(-1.0409e-16 -1.7 1.7 -1.0409e-16 17 17)\\'><foreignObject x=\\'-190\\' y=\\'-190\\' width=\\'380\\' height=\\'380\\'><div xmlns=\\'http://www.w3.org/1999/xhtml\\' style=\\'background-image: conic-gradient(from 90deg, rgba(84, 238, 190, 1) 0%, rgba(63, 185, 206, 1) 25%, rgba(42, 132, 223, 1) 50%, rgba(32, 105, 231, 1) 62.5%, rgba(21, 78, 239, 1) 75%, rgba(11, 52, 247, 1) 87.5%, rgba(0, 25, 255, 1) 100%); opacity:1; height: 100%; width: 100%;\\'></div></foreignObject></g></svg>')" 
-               }} />
+          <div className="rounded w-[34px] h-[34px] shrink-0"
+            style={{
+              backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 34 34\\' preserveAspectRatio=\\'none\\'><g transform=\\'matrix(-1.0409e-16 -1.7 1.7 -1.0409e-16 17 17)\\'><foreignObject x=\\'-190\\' y=\\'-190\\' width=\\'380\\' height=\\'380\\'><div xmlns=\\'http://www.w3.org/1999/xhtml\\' style=\\'background-image: conic-gradient(from 90deg, rgba(84, 238, 190, 1) 0%, rgba(63, 185, 206, 1) 25%, rgba(42, 132, 223, 1) 50%, rgba(32, 105, 231, 1) 62.5%, rgba(21, 78, 239, 1) 75%, rgba(11, 52, 247, 1) 87.5%, rgba(0, 25, 255, 1) 100%); opacity:1; height: 100%; width: 100%;\\'></div></foreignObject></g></svg>')"
+            }} />
           <div className="flex flex-col items-start relative">
             <p className="font-medium leading-[1.4] relative text-[12px] text-[#131b31] tracking-[-0.12px]">
               Sandbox
@@ -94,18 +92,6 @@ const Sidebar = () => {
               Simulated Data
             </p>
           </div>
-        </div>
-        <div className="relative w-[11px] h-[11px]">
-          <button
-            onClick={() => setIsEnvironmentOpen(!isEnvironmentOpen)}
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[11px] h-[11px]"
-          >
-            {isEnvironmentOpen ? (
-              <ChevronUp className="w-3 h-3 text-[#616675]" />
-            ) : (
-              <ChevronDown className="w-3 h-3 text-[#616675]" />
-            )}
-          </button>
         </div>
       </div>
 
@@ -131,20 +117,17 @@ const Sidebar = () => {
                 <Link
                   key={itemIndex}
                   to={item.href}
-                  className={`flex gap-2 items-center px-3 py-1.5 mt-2 relative rounded w-full ${
-                    item.isActive 
-                      ? 'bg-[#e6fcf5]' 
-                      : 'hover:bg-gray-50'
-                  }`}
+                  className={`flex gap-2 items-center px-3 py-1.5 mt-2 relative rounded w-full ${item.isActive
+                    ? 'bg-[#e6fcf5]'
+                    : 'hover:bg-gray-50'
+                    }`}
                 >
                   <div className="overflow-hidden relative shrink-0 size-4">
-                    <IconComponent className={`w-4 h-4 ${
-                      item.isActive ? 'text-[#0019ff]' : 'text-[#616675]'
-                    }`} />
+                    <IconComponent className={`w-4 h-4 ${item.isActive ? 'text-[#0019ff]' : 'text-[#616675]'
+                      }`} />
                   </div>
-                  <p className={`font-medium leading-[1.4] relative text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre ${
-                    item.isActive ? 'text-[#0019ff]' : 'text-[#616675]'
-                  }`}>
+                  <p className={`font-medium leading-[1.4] relative text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre ${item.isActive ? 'text-[#0019ff]' : 'text-[#616675]'
+                    }`}>
                     {item.name}
                   </p>
                 </Link>

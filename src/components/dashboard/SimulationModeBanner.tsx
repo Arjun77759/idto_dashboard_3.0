@@ -14,7 +14,7 @@ const SimulationModeBanner = () => {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="bg-[#fff7ea] flex items-center justify-between overflow-hidden px-4 py-2 relative rounded-[50px] shrink-0 w-full"
+      className="bg-[#fff7ea] flex items-center justify-between overflow-hidden px-4 py-2 relative rounded-[50px] shrink-0 w-fit gap-[50px]"
     >
       <div className="flex gap-2.5 items-center relative">
         <div className="overflow-hidden relative shrink-0 size-4">
