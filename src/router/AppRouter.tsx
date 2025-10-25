@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import PrivateLayout from '../layouts/PrivateLayout'
 import PublicLayout from '../layouts/PublicLayout'
 import AnalyticsPage from '../pages/AnalyticsPage'
+import ApiTestingPage from '../pages/ApiTestingPage'
 import BillingPage from '../pages/BillingPage'
 import DashboardPage from '../pages/DashboardPage'
 import HomePage from '../pages/HomePage'
@@ -66,6 +67,16 @@ const router = createBrowserRouter([
       {
         path: 'settings',
         element: <SettingsPage />
+      }
+    ]
+  },
+  {
+    path: '/api-testing',
+    element: <PrivateLayout />,
+    children: [
+      {
+        index: true,
+        element: <ApiTestingPage />
       }
     ]
   },

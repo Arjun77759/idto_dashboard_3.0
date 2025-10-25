@@ -1,9 +1,9 @@
-import { motion } from 'framer-motion'
-import { useParams, useNavigate } from 'react-router-dom'
+import JsonPreview from '@/components/transactions/JsonPreview'
+import TransactionDetailsTable from '@/components/transactions/TransactionDetailsTable'
 import TransactionHeader from '@/components/transactions/TransactionHeader'
 import TransactionSummary from '@/components/transactions/TransactionSummary'
-import TransactionDetailsTable from '@/components/transactions/TransactionDetailsTable'
-import JsonPreview from '@/components/transactions/JsonPreview'
+import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 
 // Sample transaction data
 const transactionData = {
@@ -65,7 +65,7 @@ const TransactionDetailPage = () => {
       transition={{ duration: 0.5 }}
       className="bg-[#f7f7f8] flex flex-col gap-5 items-start overflow-hidden p-6 relative rounded-2xl w-full"
     >
-      <TransactionHeader 
+      <TransactionHeader
         onBack={handleBack}
         onExportCsv={handleExportCsv}
         onDownloadReport={handleDownloadReport}
@@ -83,7 +83,7 @@ const TransactionDetailPage = () => {
       {/* Two Column Layout */}
       <div className="flex gap-5 h-[360px] items-start relative shrink-0 w-full">
         <TransactionDetailsTable details={transactionData.details} />
-        <JsonPreview 
+        <JsonPreview
           jsonData={transactionData.jsonData}
           onCopy={handleCopyJson}
         />
