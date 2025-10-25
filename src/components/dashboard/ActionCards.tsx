@@ -1,12 +1,5 @@
 import { motion } from 'framer-motion'
-
-// Image assets from Figma
-const imgEllipse6 = "http://localhost:3845/assets/9987d23bd2395aee51819b8949b957d64fc37122.svg"
-const imgPlus = "http://localhost:3845/assets/9c20498018dd0400bf2e895d39386c52a08d840a.svg"
-const imgApi = "http://localhost:3845/assets/ceee1ee818b84b59060ff8470a5adbdb86cc4c95.svg"
-const imgCode = "http://localhost:3845/assets/a0e85ea45e28b6a1b206e7e200e7f92e988b24c5.svg"
-const imgDocs = "http://localhost:3845/assets/cb6d156cf746e25da83eee26b4920cbe91ea0c59.svg"
-const imgBook = "http://localhost:3845/assets/a9dc09d4e335baede349ada31f74d3fd3064d6ea.svg"
+import { Plus, Zap, Code, FileText, BookOpen } from 'lucide-react'
 
 const ActionCards = () => {
   const handleRecharge = () => {
@@ -27,7 +20,7 @@ const ActionCards = () => {
       value: '11,758',
       description: 'Add funds to your account to continue using verification services without interruptions.',
       buttonText: 'Recharge Now',
-      buttonIcon: imgPlus,
+      buttonIcon: Plus,
       buttonAction: handleRecharge,
       isPrimary: true,
       icon: null
@@ -37,20 +30,20 @@ const ActionCards = () => {
       value: null,
       description: 'Run and validate your integrations in the sandbox environment—risk-free.',
       buttonText: 'Start Testing',
-      buttonIcon: imgCode,
+      buttonIcon: Code,
       buttonAction: handleStartTesting,
       isPrimary: false,
-      icon: imgApi
+      icon: Zap
     },
     {
       title: 'API Documentation',
       value: null,
       description: 'Run and validate your integrations in the sandbox environment—risk-free.',
       buttonText: 'Open Doc',
-      buttonIcon: imgBook,
+      buttonIcon: BookOpen,
       buttonAction: handleOpenDocs,
       isPrimary: false,
-      icon: imgDocs
+      icon: FileText
     }
   ]
 
@@ -78,12 +71,8 @@ const ActionCards = () => {
               <div className="flex flex-col gap-5 grow items-start min-h-0 min-w-0 relative self-stretch">
                 <div className="flex flex-col gap-2 items-start relative w-full">
                   {card.icon && (
-                    <div className="overflow-hidden relative shrink-0 size-[35px]">
-                      <div className="absolute inset-[12.5%_8.33%]">
-                        <div className="absolute inset-[-3.81%_-3.43%]">
-                          <img alt="" className="block max-w-none size-full" src={card.icon} />
-                        </div>
-                      </div>
+                    <div className="flex items-center justify-center shrink-0 size-[35px]">
+                      <card.icon className="size-6 text-[#616675]" />
                     </div>
                   )}
                   <p className="font-medium min-w-full relative text-[12px] text-[#616675] tracking-[-0.12px] w-[min-content]">
@@ -94,11 +83,6 @@ const ActionCards = () => {
                       {card.value}
                     </p>
                   )}
-                  <div className="absolute left-[96px] size-[112px] top-[77px]">
-                    <div className="absolute inset-[-122.321%]">
-                      <img alt="" className="block max-w-none size-full" src={imgEllipse6} />
-                    </div>
-                  </div>
                 </div>
               </div>
               <div className={`h-10 relative rounded-lg shrink-0 ${
@@ -119,16 +103,9 @@ const ActionCards = () => {
                   }`}>
                     {card.buttonText}
                   </p>
-                  <div className="flex h-[calc(1px*((var(--transform-inner-width)*1)+(var(--transform-inner-height)*0)))] items-center justify-center relative shrink-0 w-[calc(1px*((var(--transform-inner-height)*1)+(var(--transform-inner-width)*0)))]"
-                       style={{ "--transform-inner-width": "0", "--transform-inner-height": "0" } as React.CSSProperties}>
-                    <div className="flex-none rotate-[90deg]">
-                      <div className="overflow-hidden relative size-4">
-                        <div className="absolute inset-[16.667%]">
-                          <img alt="" className="block max-w-none size-full" src={card.buttonIcon} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <card.buttonIcon className={`size-4 ${
+                    card.isPrimary ? 'text-white' : 'text-[#0019ff]'
+                  }`} />
                 </button>
               </div>
             </div>
