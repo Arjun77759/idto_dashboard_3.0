@@ -1,12 +1,5 @@
 import { motion } from 'framer-motion'
-
-// Image assets from Figma
-const imgSearch = "http://localhost:3845/assets/dd51b8c4adb7c8615abf036bb45f6c82ed4a7815.svg"
-const imgFileExport = "http://localhost:3845/assets/4a2a492bece68dc111390e7a429ebb7e89431612.svg"
-const imgDownload = "http://localhost:3845/assets/f9e6384c3bac5c329a9ff7c481f9c5e9d9752dc7.svg"
-const imgCalendar = "http://localhost:3845/assets/843b5e757f3e18c044e38bd591197daeb56b86e6.svg"
-const imgArrow = "http://localhost:3845/assets/0767fe49935de804ac4d4ed37fa4a369cccdeb5e.svg"
-const imgRestart = "http://localhost:3845/assets/5c48ecd60b568c24fe6f0982e01796d95745aaf4.svg"
+import { Search, FileSpreadsheet, Download, Calendar, ChevronDown, RotateCcw } from 'lucide-react'
 
 const RecentInvoicesTable = () => {
   const invoiceData = [
@@ -57,11 +50,7 @@ const RecentInvoicesTable = () => {
                   Search for Id, name product etc
                 </p>
               </div>
-              <div className="relative shrink-0 size-6">
-                <div className="absolute inset-[16.67%_20.83%_20.83%_16.67%]">
-                  <img alt="" className="block max-w-none size-full" src={imgSearch} />
-                </div>
-              </div>
+              <Search className="size-6 text-[#9296a0]" />
             </div>
           </div>
           <div className="flex gap-3 items-center relative shrink-0">
@@ -73,11 +62,7 @@ const RecentInvoicesTable = () => {
                 <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
                   Export CSV
                 </p>
-                <div className="overflow-hidden relative shrink-0 size-4">
-                  <div className="absolute inset-[5.21%_7.29%]">
-                    <img alt="" className="block max-w-none size-full" src={imgFileExport} />
-                  </div>
-                </div>
+                <FileSpreadsheet className="size-4 text-[#0019ff]" />
               </button>
             </div>
             <div className="flex flex-row items-center self-stretch">
@@ -89,11 +74,7 @@ const RecentInvoicesTable = () => {
                   <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
                     Download Invoice
                   </p>
-                  <div className="overflow-hidden relative shrink-0 size-4">
-                    <div className="absolute inset-[18.75%_20.83%]">
-                      <img alt="" className="block max-w-none size-full" src={imgDownload} />
-                    </div>
-                  </div>
+                  <Download className="size-4 text-[#0019ff]" />
                 </button>
               </div>
             </div>
@@ -108,11 +89,7 @@ const RecentInvoicesTable = () => {
                 <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
                   Sep 9, 2024 - Sep 15, 2024
                 </p>
-                <div className="overflow-hidden relative shrink-0 size-4">
-                  <div className="absolute inset-[6.25%_9.38%]">
-                    <img alt="" className="block max-w-none size-full" src={imgCalendar} />
-                  </div>
-                </div>
+                <Calendar className="size-4 text-[#9296a0]" />
               </div>
             </div>
             <div className="bg-white border border-[#e7e8ea] border-solid h-full relative rounded-lg shrink-0">
@@ -120,17 +97,7 @@ const RecentInvoicesTable = () => {
                 <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
                   Status
                 </p>
-                <div className="flex h-[calc(1px*((var(--transform-inner-width)*1)+(var(--transform-inner-height)*0)))] items-center justify-center relative shrink-0 w-[calc(1px*((var(--transform-inner-height)*1)+(var(--transform-inner-width)*0)))]" style={{ "--transform-inner-width": "0", "--transform-inner-height": "0" } as React.CSSProperties}>
-                  <div className="flex-none rotate-[90deg]">
-                    <div className="overflow-hidden relative size-4">
-                      <div className="absolute bottom-1/4 left-[37.5%] right-[37.5%] top-1/4">
-                        <div className="absolute inset-[-6.63%_-26.52%_-6.63%_-13.26%]">
-                          <img alt="" className="block max-w-none size-full" src={imgArrow} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <ChevronDown className="size-4 text-[#9296a0]" />
               </div>
             </div>
             <div className="bg-white border border-[#e7e8ea] border-solid h-full relative rounded-lg shrink-0">
@@ -138,17 +105,7 @@ const RecentInvoicesTable = () => {
                 <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
                   Amount
                 </p>
-                <div className="flex h-[calc(1px*((var(--transform-inner-width)*1)+(var(--transform-inner-height)*0)))] items-center justify-center relative shrink-0 w-[calc(1px*((var(--transform-inner-height)*1)+(var(--transform-inner-width)*0)))]" style={{ "--transform-inner-width": "0", "--transform-inner-height": "0" } as React.CSSProperties}>
-                  <div className="flex-none rotate-[90deg]">
-                    <div className="overflow-hidden relative size-4">
-                      <div className="absolute bottom-1/4 left-[37.5%] right-[37.5%] top-1/4">
-                        <div className="absolute inset-[-6.63%_-26.52%_-6.63%_-13.26%]">
-                          <img alt="" className="block max-w-none size-full" src={imgArrow} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <ChevronDown className="size-4 text-[#9296a0]" />
               </div>
             </div>
           </div>
@@ -157,11 +114,7 @@ const RecentInvoicesTable = () => {
               <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
                 Reset
               </p>
-              <div className="overflow-hidden relative shrink-0 size-4">
-                <div className="absolute inset-[11.6%_16.67%]">
-                  <img alt="" className="block max-w-none size-full" src={imgRestart} />
-                </div>
-              </div>
+              <RotateCcw className="size-4 text-[#9296a0]" />
             </div>
           </div>
         </div>
