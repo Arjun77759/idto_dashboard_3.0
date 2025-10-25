@@ -1,12 +1,21 @@
 import { motion } from 'framer-motion'
+import { useState } from 'react'
+import SwitchToProductionModal from '../modals/SwitchToProductionModal'
 
 // Image assets from Figma
 const imgAlert = "http://localhost:3845/assets/fe0a734bc63c35d83adad3514cf4a7dfbb17408b.svg"
 const imgArrow = "http://localhost:3845/assets/1004fe7ff2c1e756e0c1c289091cfefc35a00158.svg"
 
 const SimulationModeBanner = () => {
+  const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false)
+
   const handleSwitchToProduction = () => {
-    console.log('Switch to production')
+    setIsSwitchModalOpen(true)
+  }
+
+  const handleConfirmSwitch = () => {
+    console.log('Confirmed switch to production')
+    // Add your production switch logic here
   }
 
   return (
@@ -43,6 +52,13 @@ const SimulationModeBanner = () => {
           </div>
         </button>
       </div>
+
+      {/* Switch to Production Modal */}
+      <SwitchToProductionModal
+        isOpen={isSwitchModalOpen}
+        onClose={() => setIsSwitchModalOpen(false)}
+        onConfirm={handleConfirmSwitch}
+      />
     </motion.div>
   )
 }

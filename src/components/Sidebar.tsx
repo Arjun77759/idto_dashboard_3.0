@@ -9,11 +9,11 @@ import {
   Home,
   MessageSquare,
   Settings,
-  TestTube,
   User
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import SwitchToProductionModal from './modals/SwitchToProductionModal'
 
 interface MenuItem {
   name: string
@@ -29,7 +29,7 @@ interface Category {
 
 const Sidebar = () => {
   const location = useLocation()
-  const [isEnvironmentOpen, setIsEnvironmentOpen] = useState(false)
+  const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false)
 
   const categories: Category[] = [
     {
@@ -68,7 +68,12 @@ const Sidebar = () => {
   ]
 
   const handleSwitchToProduction = () => {
-    console.log('Switch to production')
+    setIsSwitchModalOpen(true)
+  }
+
+  const handleConfirmSwitch = () => {
+    console.log('Confirmed switch to production')
+    // Add your production switch logic here
   }
 
   return (
@@ -169,6 +174,13 @@ const Sidebar = () => {
           </div>
         </div>
       </div>
+
+      {/* Switch to Production Modal */}
+      <SwitchToProductionModal
+        isOpen={isSwitchModalOpen}
+        onClose={() => setIsSwitchModalOpen(false)}
+        onConfirm={handleConfirmSwitch}
+      />
     </motion.div>
   )
 }
