@@ -41,14 +41,14 @@ const ApiFilters = ({ onSearch, onFilterChange }: ApiFiltersProps) => {
       </div>
 
       {/* Filter Controls */}
-      <div className="flex gap-2 items-center p-0 relative rounded shrink-0 w-full">
+      <div className="flex flex-wrap gap-2 items-center p-0 relative rounded shrink-0 w-full">
         <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
           Filters :
         </p>
         
         <Button
           variant="outline"
-          className="border-[#e7e8ea] h-auto px-2 py-3.5 rounded-lg"
+          className="border-[#e7e8ea] h-auto px-2 py-3.5 rounded-lg flex-1 sm:flex-none"
           onClick={() => handleFilterChange('solution', filters.solution === 'Solution' ? 'All' : 'Solution')}
         >
           <p className="font-medium leading-[1.4] text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
@@ -59,7 +59,7 @@ const ApiFilters = ({ onSearch, onFilterChange }: ApiFiltersProps) => {
 
         <Button
           variant="outline"
-          className="border-[#e7e8ea] h-auto px-2 py-3.5 rounded-lg"
+          className="border-[#e7e8ea] h-auto px-2 py-3.5 rounded-lg flex-1 sm:flex-none"
           onClick={() => handleFilterChange('type', filters.type === 'Type' ? 'All' : 'Type')}
         >
           <p className="font-medium leading-[1.4] text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">

@@ -1,4 +1,5 @@
 import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { CodeXml, Copy, List } from 'lucide-react'
 import { useState } from 'react'
@@ -80,140 +81,158 @@ const ApiResponseModal = ({ isOpen, onClose, response }: ApiResponseModalProps) 
     navigator.clipboard.writeText(JSON.stringify(actualResponse, null, 2))
   }
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] h-[468px] w-[776px] overflow-hidden p-0">
-        <div className="bg-white border border-gray-200 rounded-2xl w-full h-full">
-          <div className="flex flex-col gap-2.5 p-4 h-full">
-            {/* Header with tabs - removed custom close button */}
-            <div className="flex items-center justify-between w-full">
-              <div className="flex gap-2.5 items-start">
-                <button
-                  onClick={() => setActiveTab('table')}
-                  className={`flex gap-4 items-center px-4 py-2 rounded-2xl ${activeTab === 'table'
-                    ? 'bg-blue-50'
-                    : 'bg-gray-50'
-                    }`}
-                >
-                  <div className="w-4 h-4 flex items-center justify-center">
-                    <List className={`${activeTab === 'table' ? 'text-blue-600' : 'text-gray-400'} w-4 h-4 ml-[2px]`} />
-                  </div>
-                  <p className={`text-xs font-medium whitespace-nowrap ${activeTab === 'table'
-                    ? 'text-blue-600'
-                    : 'text-gray-400'
-                    }`}>
-                    Table Output
-                  </p>
-                </button>
-                <button
-                  onClick={() => setActiveTab('json')}
-                  className={`flex gap-4 items-center px-4 py-2 rounded-2xl ${activeTab === 'json'
-                    ? 'bg-blue-50'
-                    : 'bg-gray-50'
-                    }`}
-                >
-                  <div className="w-4 h-4 flex items-center justify-center">
-                    <CodeXml className={`${activeTab === 'json' ? 'text-blue-600' : 'text-gray-400'} w-4 h-4 ml-[2px]`} />
-                  </div>
-                  <p className={`text-xs font-medium whitespace-nowrap ${activeTab === 'json'
-                    ? 'text-blue-600'
-                    : 'text-gray-400'
-                    }`}>
-                    JSON
-                  </p>
-                </button>
-              </div>
+  const ModalContent = () => (
+    <div className="flex flex-col gap-2.5 p-4 h-full">
+      {/* Header with tabs */}
+      <div className="flex items-center justify-between w-full">
+        <div className="flex gap-2.5 items-start">
+          <button
+            onClick={() => setActiveTab('table')}
+            className={`flex gap-4 items-center px-4 py-2 rounded-2xl ${activeTab === 'table'
+              ? 'bg-blue-50'
+              : 'bg-gray-50'
+              }`}
+          >
+            <div className="w-4 h-4 flex items-center justify-center">
+              <List className={`${activeTab === 'table' ? 'text-blue-600' : 'text-gray-400'} w-4 h-4 ml-[2px]`} />
             </div>
+            <p className={`text-xs font-medium whitespace-nowrap ${activeTab === 'table'
+              ? 'text-blue-600'
+              : 'text-gray-400'
+              }`}>
+              Table Output
+            </p>
+          </button>
+          <button
+            onClick={() => setActiveTab('json')}
+            className={`flex gap-4 items-center px-4 py-2 rounded-2xl ${activeTab === 'json'
+              ? 'bg-blue-50'
+              : 'bg-gray-50'
+              }`}
+          >
+            <div className="w-4 h-4 flex items-center justify-center">
+              <CodeXml className={`${activeTab === 'json' ? 'text-blue-600' : 'text-gray-400'} w-4 h-4 ml-[2px]`} />
+            </div>
+            <p className={`text-xs font-medium whitespace-nowrap ${activeTab === 'json'
+              ? 'text-blue-600'
+              : 'text-gray-400'
+              }`}>
+              JSON
+            </p>
+          </button>
+        </div>
+      </div>
 
-            {/* Content based on active tab */}
-            {activeTab === 'table' ? (
-              /* Table using shadcn components */
-              <div className="bg-white border border-gray-200 rounded-2xl flex-1 overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-white">
-                      <TableHead className="w-[205px] text-sm font-normal text-gray-800">
-                        Field
-                      </TableHead>
-                      <TableHead className="w-[194px] text-sm font-normal text-gray-800">
-                        Value
-                      </TableHead>
-                      <TableHead className="text-sm font-normal text-gray-800">
-                        Description
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {tableData.map((row, index) => (
-                      <TableRow key={index} className="bg-gray-50">
-                        <TableCell className="w-[205px] text-sm font-normal text-gray-400">
-                          {row.field}
-                        </TableCell>
-                        <TableCell className={`w-[194px] text-sm font-normal ${row.valueColor}`}>
-                          {row.value}
-                        </TableCell>
-                        <TableCell className="text-sm font-normal text-gray-400">
-                          {row.description}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              /* JSON view */
-              <div className="bg-gray-50 border border-gray-200 rounded-2xl flex-1 overflow-hidden">
-                <div className="flex flex-col h-full p-4">
-                  {/* Copy button */}
-                  <div className="flex justify-end mb-4">
-                    <button
-                      onClick={handleCopyJson}
-                      className="bg-white border border-gray-200 rounded px-4 py-2 flex items-center gap-1"
-                    >
-                      <span className="text-xs font-medium text-gray-400">Copy</span>
-                      <div className="w-4 h-4 flex items-center justify-center">
-                        <Copy className="w-4 h-4 text-gray-400 ml-[2px]" />
-                      </div>
-                    </button>
-                  </div>
-
-                  {/* JSON content */}
-                  <div className="flex-1 font-mono text-sm text-gray-400 leading-6 overflow-auto">
-                    <pre className="whitespace-pre-wrap">
-                      <span className="text-gray-400">{"{ "}</span>
-                      <br />
-                      <span className="text-gray-400">  "status": "</span><span className="text-green-600">success</span><span className="text-gray-400">", </span>
-                      <br />
-                      <span className="text-gray-400">  "message": "Verification Successful", </span>
-                      <br />
-                      <span className="text-gray-400">  "data": {"{ "}</span>
-                      <br />
-                      <span className="text-gray-400">    "full_name": "John Doe", </span>
-                      <br />
-                      <span className="text-gray-400">    "pan_number": "ABCDE1234F", </span>
-                      <br />
-                      <span className="text-gray-400">    "gender": "Male", </span>
-                      <br />
-                      <span className="text-gray-400">    "date_of_birth": "1980-01-01", </span>
-                      <br />
-                      <span className="text-gray-400">    "category": "Individual", </span>
-                      <br />
-                      <span className="text-gray-400">    "verified_on": "2025-09-24T14:48:00Z", </span>
-                      <br />
-                      <span className="text-gray-400">    "verification_status": "</span><span className="text-green-600">KYC Completed</span><span className="text-gray-400">" </span>
-                      <br />
-                      <span className="text-gray-400">  {"} "}</span>
-                      <br />
-                      <span className="text-gray-400">{"} "}</span>
-                    </pre>
-                  </div>
-                </div>
-              </div>
-            )}
+      {/* Content based on active tab */}
+      {activeTab === 'table' ? (
+        /* Table using shadcn components */
+        <div className="bg-white border border-gray-200 rounded-2xl flex-1 overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-white">
+                  <TableHead className="w-[120px] sm:w-[205px] text-sm font-normal text-gray-800">
+                    Field
+                  </TableHead>
+                  <TableHead className="w-[100px] sm:w-[194px] text-sm font-normal text-gray-800">
+                    Value
+                  </TableHead>
+                  <TableHead className="text-sm font-normal text-gray-800">
+                    Description
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tableData.map((row, index) => (
+                  <TableRow key={index} className="bg-gray-50">
+                    <TableCell className="w-[120px] sm:w-[205px] text-sm font-normal text-gray-400">
+                      {row.field}
+                    </TableCell>
+                    <TableCell className={`w-[100px] sm:w-[194px] text-sm font-normal ${row.valueColor}`}>
+                      {row.value}
+                    </TableCell>
+                    <TableCell className="text-sm font-normal text-gray-400">
+                      {row.description}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      ) : (
+        /* JSON view */
+        <div className="bg-gray-50 border border-gray-200 rounded-2xl flex-1 overflow-hidden">
+          <div className="flex flex-col h-full p-4">
+            {/* Copy button */}
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={handleCopyJson}
+                className="bg-white border border-gray-200 rounded px-4 py-2 flex items-center gap-1"
+              >
+                <span className="text-xs font-medium text-gray-400">Copy</span>
+                <div className="w-4 h-4 flex items-center justify-center">
+                  <Copy className="w-4 h-4 text-gray-400 ml-[2px]" />
+                </div>
+              </button>
+            </div>
+
+            {/* JSON content */}
+            <div className="flex-1 font-mono text-xs sm:text-sm text-gray-400 leading-6 overflow-auto">
+              <pre className="whitespace-pre-wrap">
+                <span className="text-gray-400">{"{ "}</span>
+                <br />
+                <span className="text-gray-400">  "status": "</span><span className="text-green-600">success</span><span className="text-gray-400">", </span>
+                <br />
+                <span className="text-gray-400">  "message": "Verification Successful", </span>
+                <br />
+                <span className="text-gray-400">  "data": {"{ "}</span>
+                <br />
+                <span className="text-gray-400">    "full_name": "John Doe", </span>
+                <br />
+                <span className="text-gray-400">    "pan_number": "ABCDE1234F", </span>
+                <br />
+                <span className="text-gray-400">    "gender": "Male", </span>
+                <br />
+                <span className="text-gray-400">    "date_of_birth": "1980-01-01", </span>
+                <br />
+                <span className="text-gray-400">    "category": "Individual", </span>
+                <br />
+                <span className="text-gray-400">    "verified_on": "2025-09-24T14:48:00Z", </span>
+                <br />
+                <span className="text-gray-400">    "verification_status": "</span><span className="text-green-600">KYC Completed</span><span className="text-gray-400">" </span>
+                <br />
+                <span className="text-gray-400">  {"} "}</span>
+                <br />
+                <span className="text-gray-400">{"} "}</span>
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+
+  return (
+    <>
+      {/* Desktop Modal */}
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl max-h-[80vh] h-[468px] w-[776px] overflow-hidden p-0 hidden sm:block">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full h-full">
+            <ModalContent />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Mobile Bottom Sheet */}
+      <Sheet open={isOpen} onOpenChange={onClose}>
+        <SheetContent side="bottom" className="h-[80vh] p-0 sm:hidden">
+          <div className="bg-white border border-gray-200 rounded-t-2xl w-full h-full">
+            <ModalContent />
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
   )
 }
 

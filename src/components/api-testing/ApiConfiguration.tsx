@@ -101,10 +101,10 @@ const ApiConfiguration = ({ selectedApi, onApiRun }: ApiConfigurationProps) => {
   }
 
   return (
-    <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-2xl shrink-0 h-full flex-1">
+    <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-2xl shrink-0 h-full flex-1 w-full">
       <div className="flex flex-col gap-4 items-start overflow-hidden p-4 relative rounded-2xl w-full h-full">
         {/* Header */}
-        <div className="flex items-center justify-between overflow-hidden p-1 relative rounded shrink-0 w-full">
+        <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center justify-between overflow-hidden p-1 relative rounded shrink-0 w-full">
           <div className="flex gap-2 items-center relative shrink-0">
             <Settings className="size-6 text-[#0019ff]" />
             <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
@@ -114,7 +114,7 @@ const ApiConfiguration = ({ selectedApi, onApiRun }: ApiConfigurationProps) => {
           <Button
             onClick={handleRunApi}
             disabled={isLoading || !selectedApi}
-            className="bg-gradient-to-r from-[#e6e8ff] to-[#e6e8ff] hover:from-[#d0d4ff] hover:to-[#d0d4ff] text-[#0019ff] border-0 px-4 py-2 h-auto rounded-lg"
+            className="bg-gradient-to-r from-[#e6e8ff] to-[#e6e8ff] hover:from-[#d0d4ff] hover:to-[#d0d4ff] text-[#0019ff] border-0 px-4 py-2 h-auto rounded-lg w-full sm:w-auto"
           >
             <p className="font-medium leading-[1.4] text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre">
               {isLoading ? 'Running...' : 'Run API'}
@@ -128,7 +128,7 @@ const ApiConfiguration = ({ selectedApi, onApiRun }: ApiConfigurationProps) => {
           <p className="font-normal leading-[1.4] min-w-full relative shrink-0 text-[12px] text-[#9296a0] tracking-[-0.12px]">
             {getInputLabel()}
           </p>
-          <div className="border border-[#e7e8ea] border-solid flex gap-2 h-10 items-center px-4 py-2 relative rounded-lg shrink-0 w-[274px]">
+          <div className="border border-[#e7e8ea] border-solid flex gap-2 h-10 items-center px-4 py-2 relative rounded-lg shrink-0 w-full max-w-[274px]">
             <div className="flex gap-2 items-center relative shrink-0">
               <p className="font-normal leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
                 {panNumber}
