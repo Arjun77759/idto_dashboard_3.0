@@ -2,7 +2,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { CodeXml, Copy, List } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface ApiResponseModalProps {
   isOpen: boolean
@@ -12,6 +12,18 @@ interface ApiResponseModalProps {
 
 const ApiResponseModal = ({ isOpen, onClose, response }: ApiResponseModalProps) => {
   const [activeTab, setActiveTab] = useState<'table' | 'json'>('table')
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 640) // sm breakpoint
+    }
+    
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+    
+    return () => window.removeEventListener('resize', checkIsMobile)
+  }, [])
 
   // Sample JSON response based on the Figma design
   const jsonResponse = {
@@ -215,23 +227,25 @@ const ApiResponseModal = ({ isOpen, onClose, response }: ApiResponseModalProps) 
 
   return (
     <>
-      {/* Desktop Modal */}
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[80vh] h-[468px] w-[776px] overflow-hidden p-0 hidden sm:block">
-          <div className="bg-white border border-gray-200 rounded-2xl w-full h-full">
-            <ModalContent />
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Mobile Bottom Sheet */}
-      <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent side="bottom" className="h-[80vh] p-0 sm:hidden">
-          <div className="bg-white border border-gray-200 rounded-t-2xl w-full h-full">
-            <ModalContent />
-          </div>
-        </SheetContent>
-      </Sheet>
+      {isMobile ? (
+        /* Mobile Bottom Sheet */
+        <Sheet open={isOpen} onOpenChange={onClose}>
+          <SheetContent side="bottom" className="h-[80vh] p-0">
+            <div className="bg-white border border-gray-200 rounded-t-2xl w-full h-full">
+              <ModalContent />
+            </div>
+          </SheetContent>
+        </Sheet>
+      ) : (
+        /* Desktop Modal */
+        <Dialog open={isOpen} onOpenChange={onClose}>
+          <DialogContent className="max-w-4xl max-h-[80vh] h-[468px] w-[776px] overflow-hidden p-0">
+            <div className="bg-white border border-gray-200 rounded-2xl w-full h-full">
+              <ModalContent />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   )
 }

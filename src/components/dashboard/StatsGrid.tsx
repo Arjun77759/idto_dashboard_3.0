@@ -58,12 +58,37 @@ const StatsGrid = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: 0.2 + index * 0.1 }}
-            className={`border-r border-b sm:border-b-0 border-[#e7e8ea] border-solid relative shrink-0 ${
-              index === stats.length - 1 ? 'border-r-0' : ''
-            } ${index >= stats.length - 2 ? 'lg:border-r-0' : ''} ${
-              index % 2 === 1 ? 'sm:border-r-0' : ''
-            }`}
+            className={`
+              relative shrink-0
+              border-b border-[#e7e8ea] border-solid
+              sm:border-b-0
+              ${index % 2 === 0 ? 'border-r' : ''}
+              ${index % 2 === 1 ? '' : ''}
+              ${index === stats.length - 1 ? 'border-r-0' : ''}
+              ${index === stats.length - 2 ? 'lg:border-r-0' : ''}
+            `}
           >
+            {/* Custom vertical separator for desktop */}
+            {index !== stats.length - 1 && index !== 0 && (
+              <div
+                className={
+                  `
+                  hidden lg:block absolute h-full right-0 w-px bg-[#e7e8ea]
+                  ` + (
+                    // On fourth card (last), hide the separator
+                    index === stats.length - 1 ? ' lg:hidden' : ''
+                  )
+                }
+              />
+            )}
+            {/* Custom horizontal separator for mobile/tablet */}
+            {index < stats.length - 2 && (
+              <div
+                className="
+                  block lg:hidden absolute left-6 right-6 bottom-0 h-px bg-[#e7e8ea]
+                "
+              />
+            )}
             <div className="flex flex-col gap-2 sm:gap-4 items-start p-3 sm:p-6 relative rounded-[inherit] size-full min-h-[100px] sm:min-h-0">
               <p className="font-medium leading-[1.4] relative text-[10px] sm:text-[12px] text-[#9296a0] tracking-[-0.1px] sm:tracking-[-0.12px] w-full">
                 {stat.title}
