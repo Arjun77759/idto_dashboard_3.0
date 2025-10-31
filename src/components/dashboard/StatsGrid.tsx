@@ -1,35 +1,39 @@
 import { motion } from 'framer-motion'
 import { TrendingDown, TrendingUp } from 'lucide-react'
+import { useUsageOverview } from '@/hooks/useUsageOverview'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const StatsGrid = () => {
+  const { data, loading, error } = useUsageOverview()
+
   const stats = [
     {
       title: 'Total Verifications',
-      value: '330',
+      value: data?.total ?? '-',
       change: '+12%',
       changeType: 'positive',
       description: 'From last month'
     },
     {
       title: 'Successful Verifications',
-      value: '312',
+      value: data?.success ?? '-',
       change: '+8%',
       changeType: 'positive',
       description: 'From last month'
     },
     {
       title: 'Failed Verifications',
-      value: '18',
-      change: '-7%',
-      changeType: 'negative',
+      value: data?.failed ?? '-',
+      change: data && data.failed > 0 ? '-7%' : '+0%',
+      changeType: data && data.failed > 0 ? 'negative' : 'positive',
       description: 'From last month'
     },
     {
       title: 'Monthly Spend',
-      value: '4,200',
+      value: data?.balance ?? '-',
       change: '+12%',
       changeType: 'positive',
-      description: 'From last month'
+      description: 'Current balance'
     }
   ]
 
@@ -52,6 +56,33 @@ const StatsGrid = () => {
       className="bg-white border border-[#e7e8ea] border-solid h-auto sm:h-[125px] relative rounded-2xl w-full"
     >
       <div className="grid grid-cols-2 lg:grid-cols-4 h-auto sm:h-[125px] overflow-hidden relative rounded-[inherit] w-full">
+        {loading ? (
+          Array.from({ length: 4 }).map((_, index) => (
+            <div
+              key={`skeleton-${index}`}
+              className={
+                `relative shrink-0 border-b border-[#e7e8ea] border-solid sm:border-b-0 ` +
+                `${index % 2 === 0 ? 'border-r' : ''} ` +
+                `${index === 3 ? 'border-r-0' : ''} ` +
+                `${index === 2 ? 'lg:border-r-0' : ''}`
+              }
+            >
+              <div className="flex flex-col gap-2 sm:gap-4 items-start p-3 sm:p-6 relative rounded-[inherit] size-full min-h-[100px] sm:min-h-0">
+                <Skeleton className="h-3 w-24" />
+                <div className="flex items-center justify-between relative w-full">
+                  <Skeleton className="h-7 w-20 sm:w-28 lg:w-36" />
+                  <div className="flex flex-col items-end gap-2">
+                    <Skeleton className="h-4 w-10" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        ) : null}
+        {error ? (
+          <div className="col-span-2 lg:col-span-4 p-4 text-sm text-red-600">{error}</div>
+        ) : null}
         {stats.map((stat, index) => (
           <motion.div
             key={index}

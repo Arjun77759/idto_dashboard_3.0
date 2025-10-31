@@ -2,6 +2,8 @@ import { motion } from 'framer-motion'
 import { Building2, Lock, MoveRight } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { login } from '../api/authApi'
+import { setAuth } from '../lib/auth'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -9,11 +11,39 @@ const LoginPage = () => {
     email: '',
     password: ''
   })
+  const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({})
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validate = () => {
+    const next: { email?: string; password?: string } = {}
+    if (!formData.email) {
+      next.email = 'Email is required'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      next.email = 'Enter a valid email'
+    }
+    if (!formData.password) {
+      next.password = 'Password is required'
+    }
+    setErrors(next)
+    return Object.keys(next).length === 0
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Login attempt:', formData)
-    navigate('/dashboard')
+    setErrors({})
+    if (!validate()) return
+    try {
+      setSubmitting(true)
+      const res = await login({ email: formData.email, password: formData.password })
+      setAuth({ access_token: res.access_token, user_agent: res.user_agent })
+      navigate('/dashboard')
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail
+      const message = detail || err?.response?.data?.message || 'Failed to sign in'
+      setErrors((prev) => ({ ...prev, form: message }))
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,7 +88,7 @@ const LoginPage = () => {
         </div>
 
         {/* Form Section */}
-        <div className="flex flex-col gap-4 items-center relative w-full">
+        <form className="flex flex-col gap-4 items-center relative w-full" onSubmit={handleSubmit} noValidate>
           <div className="flex flex-col gap-4 sm:gap-6 items-start relative w-full">
             {/* Email Field */}
             <div className="flex flex-col gap-1 items-start relative w-full">
@@ -84,6 +114,9 @@ const LoginPage = () => {
                   />
                 </div>
               </div>
+              {errors.email ? (
+                <p className="text-[12px] text-red-600">{errors.email}</p>
+              ) : null}
             </div>
 
             {/* Password Field */}
@@ -110,6 +143,9 @@ const LoginPage = () => {
                   />
                 </div>
               </div>
+              {errors.password ? (
+                <p className="text-[12px] text-red-600">{errors.password}</p>
+              ) : null}
             </div>
           </div>
 
@@ -134,18 +170,23 @@ const LoginPage = () => {
             </div>
           </div>
 
+          {errors.form ? (
+            <p className="text-[12px] text-red-600 w-full">{errors.form}</p>
+          ) : null}
+
           <button
-            onClick={handleSubmit}
-            className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid flex gap-2 items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 relative rounded-lg w-full h-10 sm:h-auto"
+            type="submit"
+            disabled={submitting}
+            className="bg-[#e6e8ff] disabled:opacity-70 border border-[#e7e8ea] border-solid flex gap-2 items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 relative rounded-lg w-full h-10 sm:h-auto"
           >
             <p className="font-bold leading-4 relative text-[12px] sm:text-[13px] text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
-              Sign in
+              {submitting ? 'Signing in…' : 'Sign in'}
             </p>
             <div className="overflow-hidden relative shrink-0 size-3 sm:size-4">
               <MoveRight className='size-3 sm:size-4 text-[#0019ff]' strokeWidth={2} color='#0019ff' />
             </div>
           </button>
-        </div>
+        </form>
 
         {/* Social Login Section */}
         <div className="flex flex-col gap-4 items-center relative w-full">

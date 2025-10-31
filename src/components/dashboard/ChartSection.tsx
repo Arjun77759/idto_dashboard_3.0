@@ -3,18 +3,12 @@ import { Calendar } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts'
-
-// Sample data for the chart
-const chartData = [
-  { month: 'Jan', volume: 1200 },
-  { month: 'Feb', volume: 1900 },
-  { month: 'Mar', volume: 3000 },
-  { month: 'Apr', volume: 2800 },
-  { month: 'May', volume: 1890 },
-  { month: 'Jun', volume: 2390 },
-]
+import { useUsageVolumeTimeseries } from '@/hooks/useUsageVolumeTimeseries'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const ChartSection = () => {
+  const { data, loading, error } = useUsageVolumeTimeseries('month')
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -30,13 +24,20 @@ const ChartSection = () => {
             </h3>
           </div>
           <Badge variant="outline" className="flex items-center gap-1 px-2 py-0 h-auto text-xs text-[#9296a0] font-medium tracking-[-0.12px] border-0 bg-transparent">
-            <span>Jan 2025 - Aug 2025</span>
+            <span>Last 6-12 months</span>
             <Calendar className="h-4 w-4" />
           </Badge>
         </CardHeader>
         <CardContent className="h-[220px] p-0 px-6 pb-6 relative top-5">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 10, right: 15, left: 15, bottom: 20 }}>
+          {loading ? (
+            <div className="w-full h-full flex items-center gap-4">
+              <Skeleton className="h-[180px] w-full" />
+            </div>
+          ) : error ? (
+            <div className="text-sm text-red-600 px-2">{error}</div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data} margin={{ top: 10, right: 15, left: 15, bottom: 20 }}>
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="#f0f0f0"
@@ -71,8 +72,9 @@ const ChartSection = () => {
                 dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
               />
-            </LineChart>
-          </ResponsiveContainer>
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
     </motion.div>

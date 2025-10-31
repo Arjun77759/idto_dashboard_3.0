@@ -1,23 +1,29 @@
 import { motion } from 'framer-motion'
 import { Plus, Zap, Code, FileText, BookOpen } from 'lucide-react'
+import { useUsageCredits } from '@/hooks/useUsageCredits'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useNavigate } from 'react-router-dom'
 
 const ActionCards = () => {
+  const navigate = useNavigate()
+  const { data, loading, error } = useUsageCredits()
+
   const handleRecharge = () => {
-    console.log('Recharge account')
+    navigate('/billing')
   }
 
   const handleStartTesting = () => {
-    console.log('Start API testing')
+    navigate('/api-testing')
   }
 
   const handleOpenDocs = () => {
-    console.log('Open API documentation')
+    window.open('https://idtoai.readme.io/reference/idtoai-verification-apis', '_blank', 'noopener,noreferrer')
   }
 
   const cards = [
     {
       title: 'Current Balance',
-      value: '11,758',
+      value: data?.balance || null,
       description: 'Add funds to your account to continue using verification services without interruptions.',
       buttonText: 'Recharge Now',
       buttonIcon: Plus,
@@ -78,11 +84,17 @@ const ActionCards = () => {
                   <p className="font-medium min-w-full relative text-[11px] sm:text-[12px] text-[#616675] tracking-[-0.11px] sm:tracking-[-0.12px] w-[min-content]">
                     {card.title}
                   </p>
-                  {card.value && (
-                    <p className="font-medium min-w-full relative text-[24px] sm:text-[28px] lg:text-[32px] text-[#0019ff] tracking-[-0.24px] sm:tracking-[-0.28px] lg:tracking-[-0.32px] w-[min-content]">
-                      {card.value}
-                    </p>
-                  )}
+                  {card.title === 'Current Balance' ? (
+                    loading ? (
+                      <Skeleton className="h-8 w-24" />
+                    ) : card.value ? (
+                      <p className="font-medium min-w-full relative text-[24px] sm:text-[28px] lg:text-[32px] text-[#0019ff] tracking-[-0.24px] sm:tracking-[-0.28px] lg:tracking-[-0.32px] w-[min-content]">
+                        {card.value}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-red-600">{error || 'Balance unavailable'}</p>
+                    )
+                  ) : null}
                 </div>
               </div>
               <div className={`h-8 sm:h-10 relative rounded-lg shrink-0 ${

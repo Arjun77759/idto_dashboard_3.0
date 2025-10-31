@@ -1,39 +1,18 @@
 import { motion } from 'framer-motion'
+import { useRecentInvoices } from '@/hooks/useRecentInvoices'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useNavigate } from 'react-router-dom'
 
 const InvoicesTable = () => {
-  const invoices = [
-    {
-      id: 'Inv-2023-001',
-      date: '04/17/23  16:56:07',
-      status: 'Paid',
-      amount: 'Rs 1500'
-    },
-    {
-      id: 'Inv-2023-001',
-      date: '04/17/23  16:56:07',
-      status: 'Paid',
-      amount: 'Rs 2800'
-    },
-    {
-      id: 'Inv-2023-001',
-      date: '04/17/23  16:56:07',
-      status: 'Paid',
-      amount: 'Rs 3450'
-    },
-    {
-      id: 'Inv-2023-001',
-      date: '04/17/23  16:56:07',
-      status: 'Paid',
-      amount: 'Rs 2500'
-    }
-  ]
+  const navigate = useNavigate()
+  const { data: invoices, loading, error } = useRecentInvoices(4)
 
   const handleSeeDetails = (invoiceId: string) => {
     console.log('See details for:', invoiceId)
   }
 
   const handleSeeAll = () => {
-    console.log('See all invoices')
+    navigate('/billing')
   }
 
   return (
@@ -115,7 +94,40 @@ const InvoicesTable = () => {
             </div>
             
             {/* Table Rows */}
-            {invoices.map((invoice, index) => (
+            {loading && (
+              Array.from({ length: 4 }).map((_, index) => (
+                <div key={`sk-${index}`} className={`flex items-start relative w-full ${index % 2 === 0 ? 'bg-[#f7f7f8]' : 'bg-white'}`}>
+                  <div className="grow border-r border-[#e7e8ea] border-solid h-10 min-h-0 min-w-0 relative shrink-0">
+                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-full flex items-center pl-4">
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  </div>
+                  <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[170px]">
+                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-[170px] flex items-center pl-4">
+                      <Skeleton className="h-4 w-28" />
+                    </div>
+                  </div>
+                  <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[112px]">
+                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-[112px] flex items-center pl-4">
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  </div>
+                  <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[115px]">
+                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-[115px] flex items-center pl-4">
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                  </div>
+                  <div className="h-10 overflow-hidden relative shrink-0 w-[107px] flex items-center justify-center">
+                    <Skeleton className="h-6 w-20 rounded-lg" />
+                  </div>
+                  <div className="h-10 overflow-hidden relative shrink-0 w-6"></div>
+                </div>
+              ))
+            )}
+            {error && !loading && (
+              <div className="p-3 text-sm text-red-600">{error}</div>
+            )}
+            {!loading && invoices.map((invoice, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
