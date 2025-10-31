@@ -37,3 +37,32 @@
   - Response: `[{ id: string, date: string, status: 'Paid'|'Unpaid'|'Pending', amount: string }]`
   - Status: MISSING
 
+## Monthly Usage Summary (Billing)
+- Endpoint: GET `/usage/month-summary`
+  - Purpose: Provide current month usage and total quota for progress bar
+  - Response: `{ used: number, total: number }`
+  - Status: MISSING
+
+## Payment Methods (Billing)
+- Endpoint: GET `/billing/payment-methods`
+  - Purpose: List saved payment methods and auto-pay status
+  - Response: `{ methods: [{ id, brand, last4, exp_month, exp_year, is_default }], auto_pay_enabled: boolean }`
+  - Status: MISSING
+
+## Monthly API Usage (Billing Table)
+- Endpoint: GET `/usage/monthly`
+  - Purpose: Per-API usage counts for the current month
+  - Response (existing in old dashboard): `[{ api_name: string, number_of_transactions: number }]`
+  - Enhancement (missing): Include pricing fields to compute cost
+    - Option A: Add `per_unit_cost` and `cost` to each item
+    - Option B: Provide pricing via GET `/billing/pricing` and let FE compute
+  - Status: PARTIAL (counts exist in old, pricing missing)
+- Endpoint: PATCH `/billing/auto-pay`
+  - Purpose: Enable/disable auto-pay
+  - Payload: `{ enabled: boolean }`
+  - Status: MISSING
+- Endpoint: POST `/billing/payment-methods`
+  - Purpose: Add a new payment method
+  - Payload: gateway token payload (to be defined)
+  - Status: MISSING
+
