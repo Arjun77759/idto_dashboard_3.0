@@ -1,133 +1,205 @@
 import { Copy } from 'lucide-react'
-
-interface Transaction {
-  id: string
-  type: string
-  date: string
-  status: string
-  statusColor: string
-}
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { useTransactions } from '@/hooks/useTransactions'
+import { format, isWithinInterval, parseISO } from 'date-fns'
+import { useState, useMemo } from 'react'
 
 interface TransactionsTableProps {
-  transactions: Transaction[]
   onViewDetails: (transactionId: string) => void
+  searchQuery?: string
+  dateFilter?: any
+  documentTypeFilter?: string
+  statusFilter?: string
+  locationFilter?: string
 }
 
-const TransactionsTable = ({ transactions, onViewDetails }: TransactionsTableProps) => {
-  return (
-    <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-md shrink-0 w-full overflow-x-auto">
-      <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full min-w-[800px]">
-        
-        {/* Table Header */}
-        <div className="bg-white flex items-start relative shrink-0 w-full">
-          <div className="h-10 overflow-hidden relative shrink-0 w-12">
-            <div className="absolute bg-[#f7f7f8] border border-[#131b31] border-solid left-1/2 rounded size-4 top-3 translate-x-[-50%]" />
-            <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-          </div>
-          <div className="border-r border-[#e7e8ea] border-solid grow h-10 min-h-0 min-w-0 relative shrink-0">
-            <div className="h-10 overflow-hidden relative rounded-[inherit] w-full">
-              <p className="absolute bottom-8 font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                Transaction ID
-              </p>
-              <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-            </div>
-          </div>
-          <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[252px]">
-            <div className="h-10 overflow-hidden relative rounded-[inherit] w-[252px]">
-              <p className="absolute bottom-8 font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                Type
-              </p>
-              <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-            </div>
-          </div>
-          <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[224px]">
-            <div className="h-10 overflow-hidden relative rounded-[inherit] w-[224px]">
-              <p className="absolute bottom-8 font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                Date & Time
-              </p>
-              <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-            </div>
-          </div>
-          <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[148px]">
-            <div className="h-10 overflow-hidden relative rounded-[inherit] w-[148px]">
-              <p className="absolute bottom-8 font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                Status
-              </p>
-              <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-            </div>
-          </div>
-          <div className="h-10 overflow-hidden relative shrink-0 w-[107px]">
-            <p className="absolute bottom-8 font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#131b31] text-center tracking-[-0.084px] translate-y-[100%]">
-              Actions
-            </p>
-            <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-          </div>
-          <div className="h-10 overflow-hidden relative shrink-0 w-16">
-            <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-          </div>
-        </div>
+const TransactionsTable = ({ 
+  onViewDetails, 
+  searchQuery = '',
+  dateFilter,
+  documentTypeFilter = '',
+  statusFilter = '',
+  locationFilter = ''
+}: TransactionsTableProps) => {
+  const { data: transactions, loading, error } = useTransactions()
+  const [selectedRows, setSelectedRows] = useState<number[]>([])
 
-        {/* Table Rows */}
-        {transactions.map((transaction, index) => (
-          <div key={index} className={`${index % 2 === 0 ? 'bg-[#f7f7f8]' : 'bg-white'} flex items-start relative shrink-0 w-full`}>
-            <div className="h-10 overflow-hidden relative shrink-0 w-12">
-              <div className={`absolute ${index % 2 === 0 ? 'bg-[#f7f7f8]' : 'bg-white'} border border-[#9296a0] border-solid left-1/2 rounded size-4 top-3 translate-x-[-50%]`} />
-              <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-            </div>
-            <div className="border-r border-[#e7e8ea] border-solid grow h-10 min-h-0 min-w-0 relative shrink-0">
-              <div className="h-10 overflow-hidden relative rounded-[inherit] w-full">
-                <div className="absolute flex gap-2 items-center left-4 top-2">
-                  <p className="font-normal leading-6 text-[14px] text-[#9296a0] text-nowrap tracking-[-0.084px] whitespace-pre">
-                    {transaction.id}
-                  </p>
-                  <Copy className="size-4 text-[#9296a0]" />
-                </div>
-                <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-              </div>
-            </div>
-            <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[252px]">
-              <div className="h-10 overflow-hidden relative rounded-[inherit] w-[252px]">
-                <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px]">
-                  {transaction.type}
-                </p>
-                <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-              </div>
-            </div>
-            <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[224px]">
-              <div className="h-10 overflow-hidden relative rounded-[inherit] w-[224px]">
-                <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px] whitespace-pre-wrap">
-                  {transaction.date}
-                </p>
-                <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-              </div>
-            </div>
-            <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[148px]">
-              <div className="h-10 overflow-hidden relative rounded-[inherit] w-[148px]">
-                <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] top-2 tracking-[-0.084px]" style={{ color: transaction.statusColor }}>
-                  {transaction.status}
-                </p>
-                <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-              </div>
-            </div>
-            <div className="h-10 overflow-hidden relative shrink-0 w-[107px]">
-              <button 
-                onClick={() => onViewDetails(transaction.id)}
-                className="absolute border border-[#e7e8ea] border-solid h-[29px] left-1/2 rounded-lg top-1.5 translate-x-[-50%] w-[79px] hover:bg-[#f7f7f8] transition-colors"
-              >
-                <div className="flex gap-1 h-[29px] items-center justify-center overflow-hidden px-2 py-3.5 relative rounded-[inherit] w-[79px]">
-                  <p className="font-medium leading-[1.4] text-[12px] text-[#9296a0] text-center text-nowrap tracking-[-0.12px] whitespace-pre">
-                    See details
-                  </p>
-                </div>
-              </button>
-              <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-            </div>
-            <div className="h-10 overflow-hidden relative shrink-0 w-16">
-              <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-            </div>
-          </div>
+  // Filter transactions based on all filter criteria
+  const filteredTransactions = useMemo(() => {
+    let filtered = [...transactions]
+    
+    // Search query filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(transaction =>
+        transaction.trax_id.toString().includes(query) ||
+        transaction.api_name.toLowerCase().includes(query) ||
+        transaction.status.toLowerCase().includes(query)
+      )
+    }
+    
+    // Date range filter
+    if (dateFilter?.from && dateFilter?.to) {
+      filtered = filtered.filter(transaction => {
+        try {
+          const transactionDate = parseISO(transaction.timestamp)
+          return isWithinInterval(transactionDate, {
+            start: dateFilter.from,
+            end: dateFilter.to
+          })
+        } catch {
+          return true // Keep if date parsing fails
+        }
+      })
+    }
+    
+    // Document type filter
+    if (documentTypeFilter) {
+      filtered = filtered.filter(transaction =>
+        transaction.api_name === documentTypeFilter
+      )
+    }
+    
+    // Status filter (map 'completed' to 'success')
+    if (statusFilter) {
+      const mappedStatus = statusFilter === 'completed' ? 'success' : statusFilter
+      filtered = filtered.filter(transaction =>
+        transaction.status === mappedStatus
+      )
+    }
+    
+    // Location filter (not available in current data structure, but prepared for future)
+    // if (locationFilter) {
+    //   filtered = filtered.filter(transaction =>
+    //     transaction.location?.toLowerCase() === locationFilter.toLowerCase()
+    //   )
+    // }
+    
+    return filtered
+  }, [transactions, searchQuery, dateFilter, documentTypeFilter, statusFilter, locationFilter])
+
+  const handleCopyId = (id: number) => {
+    navigator.clipboard.writeText(id.toString())
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedRows.length === filteredTransactions.length) {
+      setSelectedRows([])
+    } else {
+      setSelectedRows(filteredTransactions.map(t => t.trax_id))
+    }
+  }
+
+  const toggleSelectRow = (id: number) => {
+    setSelectedRows(prev =>
+      prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
+    )
+  }
+
+  const getStatusColor = (status: string) => {
+    return status === 'success' ? '#54eebe' : '#ff4d4f'
+  }
+
+  const formatDateTime = (timestamp: string) => {
+    try {
+      return format(new Date(timestamp), 'MMM d, yyyy h:mm a')
+    } catch {
+      return timestamp
+    }
+  }
+
+  if (error) {
+    console.error('Failed to load transactions:', error)
+  }
+
+  if (loading) {
+    return (
+      <div className="w-full space-y-2">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="h-10 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
         ))}
       </div>
+    )
+  }
+
+  return (
+    <div className="rounded-md border border-[#e7e8ea] w-full overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent">
+            <TableHead className="w-12">
+              <Checkbox
+                checked={selectedRows.length === filteredTransactions.length && filteredTransactions.length > 0}
+                onCheckedChange={toggleSelectAll}
+              />
+            </TableHead>
+            <TableHead className="text-[14px] text-[#131b31] font-normal">Transaction ID</TableHead>
+            <TableHead className="text-[14px] text-[#131b31] font-normal">Type</TableHead>
+            <TableHead className="text-[14px] text-[#131b31] font-normal">Date & Time</TableHead>
+            <TableHead className="text-[14px] text-[#131b31] font-normal">Status</TableHead>
+            <TableHead className="text-[14px] text-[#131b31] font-normal text-center">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredTransactions.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center text-[#9296a0] py-8">
+                No transactions found
+              </TableCell>
+            </TableRow>
+          ) : (
+            filteredTransactions.map((transaction, index) => (
+              <TableRow key={transaction.trax_id} className={index % 2 === 0 ? 'bg-[#f7f7f8]' : 'bg-white'}>
+                <TableCell>
+                  <Checkbox
+                    checked={selectedRows.includes(transaction.trax_id)}
+                    onCheckedChange={() => toggleSelectRow(transaction.trax_id)}
+                  />
+                </TableCell>
+                <TableCell className="font-normal text-[14px] text-[#9296a0]">
+                  <div className="flex items-center gap-2">
+                    <span>{transaction.trax_id}</span>
+                    <button onClick={() => handleCopyId(transaction.trax_id)}>
+                      <Copy className="size-4 text-[#9296a0] hover:text-[#131b31] cursor-pointer" />
+                    </button>
+                  </div>
+                </TableCell>
+                <TableCell className="font-normal text-[14px] text-[#9296a0]">
+                  {transaction.api_name}
+                </TableCell>
+                <TableCell className="font-normal text-[14px] text-[#9296a0]">
+                  {formatDateTime(transaction.timestamp)}
+                </TableCell>
+                <TableCell 
+                  className="font-normal text-[14px] capitalize"
+                  style={{ color: getStatusColor(transaction.status) }}
+                >
+                  {transaction.status}
+                </TableCell>
+                <TableCell className="text-center">
+                  <Button
+                    onClick={() => onViewDetails(transaction.trax_id.toString())}
+                    variant="outline"
+                    size="sm"
+                    className="h-[29px] px-2 border-[#e7e8ea] text-[12px] text-[#9296a0] hover:bg-[#f7f7f8]"
+                  >
+                    See details
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
     </div>
   )
 }

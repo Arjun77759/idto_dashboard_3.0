@@ -1,14 +1,39 @@
 import { motion } from 'framer-motion'
 import { Calendar } from 'lucide-react'
+import { useUsageMonthly } from '@/hooks/useUsageMonthly'
+import { useMemo } from 'react'
 
 const BarChart = () => {
-  const categories = [
-    { name: "Category 1", width: "w-[321px]" },
-    { name: "Category 2", width: "w-[257px]" },
-    { name: "Category 3", width: "w-[179px]" },
-    { name: "Category 4", width: "w-[133px]" },
-    { name: "Category 5", width: "w-[103px]" }
-  ]
+  const { data, loading, error } = useUsageMonthly()
+
+  // Get top 5 APIs by transaction count and calculate bar widths
+  const categories = useMemo(() => {
+    if (!data || data.length === 0) {
+      return []
+    }
+
+    // Sort by transaction count and take top 5
+    const sortedData = [...data]
+      .sort((a, b) => b.number_of_transactions - a.number_of_transactions)
+      .slice(0, 5)
+
+    // Calculate max for scaling bar widths
+    const maxTransactions = sortedData[0]?.number_of_transactions || 1
+    const maxWidth = 321 // pixels
+
+    return sortedData.map(item => {
+      const width = Math.max(103, (item.number_of_transactions / maxTransactions) * maxWidth)
+      return {
+        name: item.api_name,
+        width: `w-[${Math.round(width)}px]`,
+        count: item.number_of_transactions
+      }
+    })
+  }, [data])
+
+  if (error) {
+    console.error('Failed to load API usage:', error)
+  }
 
   return (
     <motion.div
@@ -24,7 +49,7 @@ const BarChart = () => {
             <div className="flex flex-wrap gap-2 items-center relative rounded shrink-0 w-full max-w-[238px]">
               <div className="flex flex-col items-start justify-center relative rounded shrink-0">
                 <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#616675] tracking-[-0.12px] w-full">
-                  Bar Chart Title
+                  Top API Usage
                 </p>
               </div>
             </div>
@@ -40,19 +65,31 @@ const BarChart = () => {
 
           {/* Bar Chart */}
           <div className="flex flex-col gap-2 items-start relative shrink-0 w-full">
-            {categories.map((category, index) => (
-              <div key={category.name} className="bg-white flex flex-col gap-2.5 h-[30px] items-start justify-center overflow-hidden relative rounded shrink-0 w-full">
-                <div className={`bg-gradient-to-r flex gap-2.5 grow items-center min-h-0 min-w-px overflow-hidden px-[18px] py-0 relative rounded shrink-0 ${category.width} ${
-                  index % 2 === 0 
-                    ? 'from-[#e6e8ff] to-[#8a95ff]' 
-                    : 'from-[#e6fcf5] to-[#54eebe]'
-                }`}>
-                  <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
-                    {category.name}
-                  </p>
-                </div>
+            {loading ? (
+              <div className="w-full space-y-2">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="h-[30px] bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+                ))}
               </div>
-            ))}
+            ) : categories.length === 0 ? (
+              <div className="text-[12px] text-[#9296a0] text-center w-full py-4">
+                No data available
+              </div>
+            ) : (
+              categories.map((category, index) => (
+                <div key={category.name} className="bg-white flex flex-col gap-2.5 h-[30px] items-start justify-center overflow-hidden relative rounded shrink-0 w-full">
+                  <div className={`bg-gradient-to-r flex gap-2.5 grow items-center min-h-0 min-w-px overflow-hidden px-[18px] py-0 relative rounded shrink-0 ${category.width} ${
+                    index % 2 === 0 
+                      ? 'from-[#e6e8ff] to-[#8a95ff]' 
+                      : 'from-[#e6fcf5] to-[#54eebe]'
+                  }`}>
+                    <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
+                      {category.name}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

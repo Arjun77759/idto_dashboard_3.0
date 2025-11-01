@@ -3,51 +3,81 @@ import TransactionDetailsTable from '@/components/transactions/TransactionDetail
 import TransactionHeader from '@/components/transactions/TransactionHeader'
 import TransactionSummary from '@/components/transactions/TransactionSummary'
 import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-
-// Sample transaction data
-const transactionData = {
-  id: '291002141554523650',
-  date: '04/17/23  16:56:07',
-  api: 'OKYC Verification',
-  status: 'Success',
-  statusColor: '#298e1c',
-  details: [
-    { field: 'Status', value: 'Success' },
-    { field: 'Full Name', value: 'John Doe' },
-    { field: 'PAN Number', value: 'ABCDE1234F' },
-    { field: 'Gender', value: 'Male' },
-    { field: 'Date of Birth', value: '01/01/1980' },
-    { field: 'Category', value: 'Individual' }
-  ],
-  jsonData: {
-    "transaction_id": "TXN-1234567890",
-    "api": "Aadhaar Verification",
-    "environment": "production",
-    "timestamp": "2025-09-17T14:32:10Z",
-    "request_source": "API_KEY_98765",
-    "input": {
-      "document_type": "Aadhaar",
-      "aadhaar_number": "1234-****-5678",
-      "name": "John Doe",
-      "dob": "1992-05-14"
-    }
-  }
-}
+import { useNavigate, useParams } from 'react-router-dom'
+import { useTransactionDetail } from '@/hooks/useTransactionDetail'
+import { format } from 'date-fns'
+import { useMemo } from 'react'
 
 const TransactionDetailPage = () => {
   const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>()
+  const { data: transaction, loading, error } = useTransactionDetail(id)
+
+  // Format transaction data for components
+  const formattedData = useMemo(() => {
+    if (!transaction) return null
+
+    const statusColor = transaction.status === 'success' ? '#54eebe' : '#ff4d4f'
+    
+    // Format date
+    let formattedDate = 'N/A'
+    try {
+      formattedDate = format(new Date(transaction.timestamp), 'MM/dd/yy  HH:mm:ss')
+    } catch {
+      formattedDate = transaction.timestamp
+    }
+
+    // Extract details from response_details
+    const details: { field: string; value: string }[] = []
+    if (transaction.response_details && typeof transaction.response_details === 'object') {
+      Object.entries(transaction.response_details).forEach(([key, value]) => {
+        // Convert snake_case to Title Case
+        const field = key.split('_').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ')
+        
+        details.push({
+          field,
+          value: String(value)
+        })
+      })
+    }
+
+    return {
+      id: transaction.trax_id.toString(),
+      date: formattedDate,
+      api: transaction.api_name,
+      status: transaction.status === 'success' ? 'Success' : 'Failed',
+      statusColor,
+      details,
+      requestData: transaction.request_details,
+      responseData: transaction.response_details
+    }
+  }, [transaction])
 
   const handleBack = () => {
     navigate('/transactions')
   }
 
   const handleCopyJson = () => {
-    navigator.clipboard.writeText(JSON.stringify(transactionData.jsonData, null, 2))
+    if (formattedData) {
+      const jsonData = {
+        transaction_id: formattedData.id,
+        api: formattedData.api,
+        timestamp: transaction?.timestamp,
+        turn_around_time: transaction?.turn_around_time,
+        status: formattedData.status,
+        request: formattedData.requestData,
+        response: formattedData.responseData
+      }
+      navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2))
+    }
   }
 
   const handleCopyTransactionId = () => {
-    navigator.clipboard.writeText(transactionData.id)
+    if (formattedData) {
+      navigator.clipboard.writeText(formattedData.id)
+    }
   }
 
   const handleExportCsv = () => {
@@ -56,6 +86,43 @@ const TransactionDetailPage = () => {
 
   const handleDownloadReport = () => {
     console.log('Download Report')
+  }
+
+  if (error) {
+    console.error('Failed to load transaction details:', error)
+  }
+
+  if (loading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-[#f7f7f8] flex flex-col gap-4 sm:gap-5 items-start overflow-hidden p-4 sm:p-6 relative rounded-2xl w-full"
+      >
+        <div className="w-full space-y-4">
+          <div className="h-12 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+          <div className="h-24 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1 h-[360px] bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+            <div className="flex-1 h-[360px] bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+          </div>
+        </div>
+      </motion.div>
+    )
+  }
+
+  if (!formattedData) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-[#f7f7f8] flex flex-col gap-4 sm:gap-5 items-center justify-center overflow-hidden p-4 sm:p-6 relative rounded-2xl w-full min-h-[400px]"
+      >
+        <p className="text-[#9296a0] text-lg">Transaction not found</p>
+      </motion.div>
+    )
   }
 
   return (
@@ -72,19 +139,27 @@ const TransactionDetailPage = () => {
       />
 
       <TransactionSummary
-        id={transactionData.id}
-        date={transactionData.date}
-        api={transactionData.api}
-        status={transactionData.status}
-        statusColor={transactionData.statusColor}
+        id={formattedData.id}
+        date={formattedData.date}
+        api={formattedData.api}
+        status={formattedData.status}
+        statusColor={formattedData.statusColor}
         onCopyId={handleCopyTransactionId}
       />
 
       {/* Two Column Layout - Responsive */}
       <div className="flex flex-col lg:flex-row gap-4 sm:gap-5 h-auto lg:h-[360px] items-start relative shrink-0 w-full">
-        <TransactionDetailsTable details={transactionData.details} />
+        <TransactionDetailsTable details={formattedData.details} />
         <JsonPreview
-          jsonData={transactionData.jsonData}
+          jsonData={{
+            transaction_id: formattedData.id,
+            api: formattedData.api,
+            timestamp: transaction?.timestamp,
+            turn_around_time: transaction?.turn_around_time,
+            status: formattedData.status,
+            request: formattedData.requestData,
+            response: formattedData.responseData
+          }}
           onCopy={handleCopyJson}
         />
       </div>

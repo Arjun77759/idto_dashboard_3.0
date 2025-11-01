@@ -3,24 +3,24 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts'
 import { Calendar } from 'lucide-react'
-
-// Sample data for the chart - based on the heights from the original design
-const chartData = [
-  { month: 'Jan', transactions: 380 },
-  { month: 'Feb', transactions: 660 },
-  { month: 'Mar', transactions: 550 },
-  { month: 'Apr', transactions: 550 },
-  { month: 'May', transactions: 420 },
-  { month: 'Jun', transactions: 780 },
-  { month: 'Jul', transactions: 840 },
-  { month: 'Aug', transactions: 340 },
-  { month: 'Sep', transactions: 800 },
-  { month: 'Oct', transactions: 710 },
-  { month: 'Nov', transactions: 930 },
-  { month: 'Dec', transactions: 1000 },
-]
+import { useUsageVolumeTimeseries } from '@/hooks/useUsageVolumeTimeseries'
+import { useMemo } from 'react'
 
 const MonthlyTransactionsChart = () => {
+  const { data: volumeData, loading, error } = useUsageVolumeTimeseries('month')
+
+  // Map volume data to transactions format
+  const chartData = useMemo(() => 
+    volumeData.map(item => ({ 
+      month: item.month, 
+      transactions: item.volume 
+    })),
+    [volumeData]
+  )
+
+  if (error) {
+    console.error('Failed to load monthly transactions:', error)
+  }
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -41,8 +41,13 @@ const MonthlyTransactionsChart = () => {
           </Badge>
         </CardHeader>
         <CardContent className="h-[172px] p-0 relative -left-5 top-5">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="w-full h-32 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
               <defs>
                 <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#54eebe" />
@@ -88,6 +93,7 @@ const MonthlyTransactionsChart = () => {
               />
             </BarChart>
           </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
     </motion.div>

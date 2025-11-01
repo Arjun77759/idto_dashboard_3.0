@@ -3,18 +3,14 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts'
 import { Calendar } from 'lucide-react'
-
-// Sample data for the chart
-const chartData = [
-  { month: 'Jan', volume: 1200 },
-  { month: 'Feb', volume: 1900 },
-  { month: 'Mar', volume: 3000 },
-  { month: 'Apr', volume: 2800 },
-  { month: 'May', volume: 1890 },
-  { month: 'Jun', volume: 2390 },
-]
+import { useUsageVolumeTimeseries } from '@/hooks/useUsageVolumeTimeseries'
 
 const AnalyticsLineChart = () => {
+  const { data, loading, error } = useUsageVolumeTimeseries('month')
+
+  if (error) {
+    console.error('Failed to load verification volume:', error)
+  }
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -35,8 +31,13 @@ const AnalyticsLineChart = () => {
           </Badge>
         </CardHeader>
         <CardContent className="h-[220px] p-0 px-6 pb-6">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 10, right: 15, left: 15, bottom: 20 }}>
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="w-full h-32 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data} margin={{ top: 10, right: 15, left: 15, bottom: 20 }}>
               <CartesianGrid 
                 strokeDasharray="3 3" 
                 stroke="#f0f0f0" 
@@ -73,6 +74,7 @@ const AnalyticsLineChart = () => {
               />
             </LineChart>
           </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
     </motion.div>
