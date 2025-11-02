@@ -4,9 +4,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { login } from '../api/authApi'
 import { setAuth } from '../lib/auth'
+import { useToast } from '@/hooks/use-toast'
 
 const LoginPage = () => {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -36,11 +38,20 @@ const LoginPage = () => {
       setSubmitting(true)
       const res = await login({ email: formData.email, password: formData.password })
       setAuth({ access_token: res.access_token, user_agent: res.user_agent })
+      toast({
+        title: "Login successful",
+        description: "Welcome back! Redirecting to dashboard...",
+      })
       navigate('/dashboard')
     } catch (err: any) {
       const detail = err?.response?.data?.detail
       const message = detail || err?.response?.data?.message || 'Failed to sign in'
       setErrors((prev) => ({ ...prev, form: message }))
+      toast({
+        title: "Login failed",
+        description: message,
+        variant: "destructive",
+      })
     } finally {
       setSubmitting(false)
     }
@@ -166,9 +177,6 @@ const LoginPage = () => {
             </div>
           </div>
 
-          {errors.form ? (
-            <p className="text-[12px] text-red-600 w-full">{errors.form}</p>
-          ) : null}
 
           <button
             type="submit"

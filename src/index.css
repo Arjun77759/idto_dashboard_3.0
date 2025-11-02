@@ -1,10 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 @layer base {
   :root {
-    --radius: 0.5rem
-  ;
+    --radius: 0.5rem;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -12,7 +12,9 @@
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%}
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+  
   .dark {
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -21,8 +23,65 @@
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
+}
+
+/* Dark mode styles */
+.dark {
+  color-scheme: dark;
+  background-color: #0f0f0f;
+  color: white;
+}
+
+.dark .bg-\[--f7f7f8\],
+.dark [class*="bg-[#f7f7f8]"] {
+  background-color: #1a1a1a !important;
+}
+
+.dark .bg-white {
+  background-color: #1e1e1e !important;
+}
+
+.dark .border-\[--e7e8ea\],
+.dark [class*="border-[#e7e8ea]"] {
+  border-color: #2a2a2a !important;
+}
+
+.dark .text-\[--131b31\],
+.dark [class*="text-[#131b31]"] {
+  color: white !important;
+}
+
+.dark .text-\[--616675\],
+.dark [class*="text-[#616675]"] {
+  color: #9ca3af !important;
+}
+
+.dark .text-\[--9296a0\],
+.dark [class*="text-[#9296a0]"] {
+  color: #6b7280 !important;
+}
+
+.dark .bg-gray-50 {
+  background-color: #1a1a1a !important;
+}
+
+.dark .hover\:bg-gray-50:hover {
+  background-color: #252525 !important;
+}
+
+/* Scrollbar dark mode */
+.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+.dark * {
+  scrollbar-color: #4b5563 transparent;
 }
 
 /* Custom thin scrollbar */
