@@ -4,6 +4,76 @@
 
 ---
 
+## 👥 User Management APIs
+
+> **⚠️ ADMIN ONLY** - All user management endpoints require Admin role authentication
+
+### Get Users List
+- **Endpoint**: `GET /users`
+- **Authorization**: Admin role required
+- **Purpose**: Retrieve list of users with filtering and pagination
+- **Query Parameters**:
+  - `search` (optional): Search by name or email
+  - `role` (optional): Filter by role (Admin/Moderator/User)
+  - `status` (optional): Filter by status (Active/Inactive)
+  - `limit` (optional): Number of results per page
+  - `offset` (optional): Pagination offset
+- **Response**: `{ users: [{ user_id, name, email, role, status, last_login, created_at, phone, company }], total, limit, offset }`
+- **Error Responses**:
+  - `401 Unauthorized` - Not authenticated
+  - `403 Forbidden` - Not admin role
+- **Status**: ❌ MISSING
+
+### Get User Details
+- **Endpoint**: `GET /users/{user_id}`
+- **Authorization**: Admin role required
+- **Purpose**: Get detailed information for a specific user
+- **Response**: `{ user_id, name, email, role, status, last_login, created_at, phone, company }`
+- **Error Responses**:
+  - `401 Unauthorized` - Not authenticated
+  - `403 Forbidden` - Not admin role
+  - `404 Not Found` - User not found
+- **Status**: ❌ MISSING
+
+### Create User
+- **Endpoint**: `POST /users`
+- **Authorization**: Admin role required
+- **Purpose**: Create a new user account
+- **Payload**: `{ name: string, email: string, password: string, role?: 'Admin' | 'Moderator' | 'User' }`
+- **Response**: `{ user_id, name, email, role, status, created_at }`
+- **Error Responses**:
+  - `401 Unauthorized` - Not authenticated
+  - `403 Forbidden` - Not admin role
+  - `400 Bad Request` - Invalid payload or email already exists
+- **Status**: ❌ MISSING
+
+### Update User
+- **Endpoint**: `PATCH /users/{user_id}`
+- **Authorization**: Admin role required
+- **Purpose**: Update user information (role, status, profile)
+- **Payload**: `{ name?: string, email?: string, role?: string, status?: string }`
+- **Response**: `{ user_id, name, email, role, status, last_login, created_at }`
+- **Error Responses**:
+  - `401 Unauthorized` - Not authenticated
+  - `403 Forbidden` - Not admin role
+  - `404 Not Found` - User not found
+  - `400 Bad Request` - Invalid payload
+- **Status**: ❌ MISSING
+
+### Delete User
+- **Endpoint**: `DELETE /users/{user_id}`
+- **Authorization**: Admin role required
+- **Purpose**: Delete a user account (soft delete recommended)
+- **Response**: `{ message: "User deleted successfully" }`
+- **Error Responses**:
+  - `401 Unauthorized` - Not authenticated
+  - `403 Forbidden` - Not admin role
+  - `404 Not Found` - User not found
+  - `400 Bad Request` - Cannot delete own account
+- **Status**: ❌ MISSING
+
+---
+
 ## 🔐 Authentication APIs
 
 ### Signup
@@ -16,6 +86,25 @@
 - **Start**: `GET /auth/google` (redirect to Google OAuth)
 - **Callback**: `GET /auth/google/callback`
 - **Response**: Should issue session/JWT and redirect with token, or set httpOnly cookie
+- **Status**: ❌ MISSING
+
+### Get Current User Profile
+- **Endpoint**: `GET /me`
+- **Authorization**: Required
+- **Purpose**: Get current authenticated user's profile information
+- **Response**: 
+  ```typescript
+  {
+    user_id: string,
+    name: string,
+    email: string,
+    company_name: string,
+    role: 'admin' | 'user',
+    status: 'sandbox' | 'production',
+    created_at: string
+  }
+  ```
+- **Note**: Used in sidebar, header, and profile sections to display user info
 - **Status**: ❌ MISSING
 
 ---
@@ -93,88 +182,291 @@
 - **Note**: Currently using mock data in frontend (TransactionDetailPage)
 - **Status**: ❌ MISSING
 
----
-
-## 🧪 API Testing - Verification APIs
-
-### All Verification Endpoints
-All these endpoints are POST requests that require authentication. Based on old dashboard pattern.
-
-1. **PAN Verification** - `POST /verify/pan_verification`
-2. **Bank Account Verification** - `POST /verify/bank_verification`
-3. **Bank Verification (Pennyless)** - `POST /verify/bank_verification/pennyless`
-4. **CIN MCA Verification** - `POST /verify/cin_mca_verification`
-5. **GST Verification** - `POST /verify/gst_verification`
-6. **GST Verification Basic** - `POST /verify/gst_verification_basic`
-7. **GST Advance** - `POST /verify/gst_advance`
-8. **UAN Verification** - `POST /verify/uan_verification`
-9. **Voter Verification** - `POST /verify/voter_verification`
-10. **Driving Licence** - `POST /verify/driving_licence`
-11. **Passport** - `POST /verify/passport`
-12. **Face Match** - `POST /verify/face_match` (multipart/form-data)
-13. **OCR** - `POST /verify/ocr` (multipart/form-data)
-14. **Name Match** - `POST /verify/name_match`
-15. **PAN All In One** - `POST /verify/pan_all_in_one`
-16. **Business PAN** - `POST /verify/business_pan`
-17. **PAN Detailed** - `POST /verify/pan_detailed`
-18. **PAN NSDL** - `POST /verify/pan_nsdl`
-19. **Mobile To PAN** - `POST /verify/mobile_to_pan`
-20. **Mobile To GST** - `POST /verify/mobile_to_gst`
-21. **PAN To GST** - `POST /verify/pan_to_gst`
-22. **Mobile Profile** - `POST /verify/mobile_profile`
-23. **Mobile Profile Advance** - `POST /verify/mobile_profile_advance`
-24. **Mobile Profile Address Intelligence** - `POST /verify/mobile_profile/address_intelligence`
-25. **Vehicle RC** - `POST /verify/vehicle_rc`
-26. **DigiLocker Initiate Session** - `POST /verify/digilocker/initiate_session`
-27. **DigiLocker Get Reference** - `POST /verify/digilocker/get_reference`
-28. **DigiLocker User Details** - `POST /verify/digilocker/user_details`
-29. **DigiLocker Fetch Aadhaar** - `POST /verify/digilocker/fetch_aadhaar`
-30. **DigiLocker Fetch PAN** - `POST /verify/digilocker/fetch_pan`
-31. **DigiLocker Issued Docs** - `POST /verify/digilocker/issued_docs`
-32. **DigiLocker Get Issued Docs** - `POST /verify/digilocker/get_issued_docs`
-33. **DigiLocker Get Issued Docs XML** - `POST /verify/digilocker/get_issued_docs_xml`
-
-**Status**: ❌ All 33 verification APIs are MISSING in new backend
-
-**Note**: All APIs follow the same pattern from old dashboard. See `src/config/apiEndpoints.ts` for detailed input/output structure.
 
 ---
 
-## 📈 Analytics APIs
+## 🏢 KYB / Switch to Production APIs
 
-### Average Verification Time
-- **Endpoint**: `GET /analytics/avg-verification-time`
-- **Purpose**: Aggregate average verification time metric
-- **Query Parameters**:
-  - `start_date` (optional): Filter start date
-  - `end_date` (optional): Filter end date
-  - `region` (optional): Filter by region
-  - `verification_type` (optional): Filter by verification type
-  - `device_type` (optional): Filter by device type
-- **Response**: `{ avg_time: string, unit: 'ms' | 's' }`
-- **Example**: `{ avg_time: "2.1", unit: "s" }`
-- **Note**: Individual transactions have `turn_around_time` but no aggregate average provided
+> **Purpose**: APIs for business onboarding and production environment activation
+
+### Step 1: Submit Basic Details
+- **Endpoint**: `POST /onboard/basic-details`
+- **Authorization**: Required
+- **Purpose**: Submit basic business information (Step 1 of KYB flow)
+- **Payload**:
+  ```typescript
+  {
+    brand_name: string,
+    website_url: string,
+    entity_type: string  // e.g., "Private Limited", "LLP", "Proprietorship"
+  }
+  ```
+- **Response**: `{ success: boolean, message: string, step_completed: 1 }`
 - **Status**: ❌ MISSING
 
-### Filter Options (Regions & Device Types)
-- **Endpoint**: `GET /analytics/filters/options`
-- **Purpose**: Available filter options for regions and device types
-- **Response**: `{ regions: string[], device_types: string[] }`
-- **Example**: `{ regions: ["North", "South", "East", "West"], device_types: ["Mobile", "Desktop", "Tablet"] }`
-- **Note**: Verification types are extracted from `/usage/monthly` endpoint (api_name field)
+### Step 2: Submit Business Information
+- **Endpoint**: `POST /onboard/business-info`
+- **Authorization**: Required
+- **Purpose**: Submit detailed business information (Step 2 of KYB flow)
+- **Payload**:
+  ```typescript
+  {
+    registered_name: string,
+    authorized_email: string,
+    authorized_mobile: string,  // 10-digit Indian mobile number
+    office_address: string,
+    pin_code: string  // 6-digit Indian PIN code
+  }
+  ```
+- **Response**: `{ success: boolean, message: string, step_completed: 2 }`
+- **Validation**: Email format, 10-digit mobile, 6-digit PIN code
+- **Status**: ❌ MISSING
+
+### Step 3: Verify Business PAN
+- **Endpoint**: `POST /onboard/verify-pan`
+- **Authorization**: Required
+- **Purpose**: Submit and verify business PAN (Step 3 of KYB flow)
+- **Payload**:
+  ```typescript
+  {
+    pan_number: string  // Format: ABCDE1234F
+  }
+  ```
+- **Response**: 
+  ```typescript
+  {
+    success: boolean,
+    message: string,
+    step_completed: 3,
+    pan_details: {
+      name: string,
+      pan_number: string,
+      status: 'Valid' | 'Invalid'
+    }
+  }
+  ```
+- **Validation**: PAN format - 5 letters, 4 digits, 1 letter (e.g., ABCDE1234F)
+- **Status**: ❌ MISSING
+
+### Step 4: Verify GSTIN
+- **Endpoint**: `POST /onboard/verify-gstin`
+- **Authorization**: Required
+- **Purpose**: Submit and verify GSTIN (Step 4 of KYB flow)
+- **Payload**:
+  ```typescript
+  {
+    gst_number: string  // Format: 22AAAAA0000A1Z5
+  }
+  ```
+- **Response**:
+  ```typescript
+  {
+    success: boolean,
+    message: string,
+    step_completed: 4,
+    gst_details: {
+      legal_name: string,
+      trade_name: string,
+      gst_number: string,
+      status: 'Active' | 'Inactive',
+      registration_date: string,
+      state: string
+    }
+  }
+  ```
+- **Validation**: GSTIN format - 15 characters (2 digits + 10 char PAN + 1 digit + 1 letter + 1 alphanumeric)
+- **Status**: ❌ MISSING
+
+### Get KYB Status
+- **Endpoint**: `GET /onboard/status`
+- **Authorization**: Required
+- **Purpose**: Get current KYB onboarding progress and status
+- **Response**:
+  ```typescript
+  {
+    current_step: number,
+    completed_steps: number[],
+    status: 'pending' | 'in_progress' | 'under_review' | 'approved' | 'rejected',
+    environment: 'sandbox' | 'production',
+    submitted_at?: string,
+    approved_at?: string
+  }
+  ```
+- **Status**: ❌ MISSING
+
+---
+
+## 🔐 DigiLocker APIs (Director KYC - Step 5)
+
+> **Purpose**: Director KYC verification using DigiLocker integration
+
+### Initiate DigiLocker Session
+- **Endpoint**: `POST /verify/digilocker/initiate_session`
+- **Authorization**: Required
+- **Purpose**: Initialize a DigiLocker verification session for director KYC
+- **Payload**:
+  ```typescript
+  {
+    consent_purpose: string,  // e.g., "Identity verification for account opening"
+    redirect_url: string,     // Frontend callback URL (e.g., "https://dashboard.idto.ai/kyc-callback")
+    redirect_to_signup: boolean,
+    consent: boolean
+  }
+  ```
+- **Response**:
+  ```typescript
+  {
+    status: "success",
+    code: 1000,
+    url: string  // DigiLocker authentication URL to redirect user to
+  }
+  ```
+- **Flow**: 
+  1. Frontend calls this API
+  2. Backend returns DigiLocker URL with embedded client_id and redirect_uri
+  3. Frontend redirects user to this URL
+  4. User authenticates on DigiLocker
+  5. DigiLocker redirects back to `redirect_url` with `code` and `code_verifier`
+- **Status**: ❌ MISSING
+
+### Get DigiLocker Reference Key
+- **Endpoint**: `POST /verify/digilocker/get_reference`
+- **Authorization**: Required
+- **Purpose**: Exchange authorization code for reference key (callback handler)
+- **Payload**:
+  ```typescript
+  {
+    code: string,           // Authorization code from DigiLocker redirect
+    code_verifier: string   // Code verifier for PKCE authentication flow
+  }
+  ```
+- **Response**:
+  ```typescript
+  {
+    status: "success",
+    reference_key: string,    // Use this to fetch documents/details
+    expires_at: string        // ISO timestamp
+  }
+  ```
+- **Note**: This API is called after DigiLocker redirects back with `code` in URL params
+- **Status**: ❌ MISSING
+
+### Get DigiLocker User Details
+- **Endpoint**: `POST /verify/digilocker/user_details`
+- **Authorization**: Required
+- **Purpose**: Fetch user profile details from DigiLocker using reference key
+- **Payload**:
+  ```typescript
+  {
+    reference_key: string
+  }
+  ```
+- **Response**:
+  ```typescript
+  {
+    status: "success",
+    user: {
+      digilockerid: string,
+      name: string,
+      dob: string,
+      gender: string,
+      eaadhaar: string,
+      reference_key: string,
+      mobile: string,
+      picture: string,
+      email: string
+    }
+  }
+  ```
+- **Status**: ❌ MISSING
+
+### Fetch Aadhaar from DigiLocker
+- **Endpoint**: `POST /verify/digilocker/fetch_aadhaar`
+- **Authorization**: Required
+- **Purpose**: Retrieve Aadhaar document from DigiLocker
+- **Payload**:
+  ```typescript
+  {
+    reference_key: string
+  }
+  ```
+- **Response**: Aadhaar document data (format TBD - likely XML or PDF)
+- **Status**: ❌ MISSING
+
+### Fetch PAN from DigiLocker
+- **Endpoint**: `POST /verify/digilocker/fetch_pan`
+- **Authorization**: Required
+- **Purpose**: Retrieve PAN document from DigiLocker
+- **Payload**:
+  ```typescript
+  {
+    reference_key: string
+  }
+  ```
+- **Response**: PAN document data (format TBD)
+- **Status**: ❌ MISSING
+
+### Get Issued Documents List
+- **Endpoint**: `POST /verify/digilocker/issued_docs`
+- **Authorization**: Required
+- **Purpose**: Get list of all documents issued to the user in DigiLocker
+- **Payload**:
+  ```typescript
+  {
+    reference_key: string
+  }
+  ```
+- **Response**: Array of document objects with metadata
+- **Status**: ❌ MISSING
+
+### Complete KYB Flow
+- **Endpoint**: `POST /onboard/complete`
+- **Authorization**: Required
+- **Purpose**: Mark KYB onboarding as complete and submit for approval
+- **Payload**:
+  ```typescript
+  {
+    digilocker_reference_key: string,
+    director_details: {
+      name: string,
+      aadhaar_verified: boolean,
+      pan_verified: boolean
+    }
+  }
+  ```
+- **Response**:
+  ```typescript
+  {
+    success: boolean,
+    message: string,
+    status: 'under_review' | 'approved',
+    review_time_estimate: string  // e.g., "2-3 business days"
+  }
+  ```
 - **Status**: ❌ MISSING
 
 ---
 
 ## 📊 Summary
 
-**Total Missing APIs**: 51
-- Authentication: 2
+**Total Missing APIs**: 32
+- User Management: 5
+- Authentication: 3
 - Dashboard: 2
 - Billing: 5
 - Transactions: 2
-- Verification/Testing: 33
-- Analytics: 2
+- KYB/Production Switch: 6
+- DigiLocker (Director KYC): 7
+- Complete KYB Flow: 1
 
-**Priority**: HIGH - These APIs are required for full dashboard functionality
+**Priority**: 
+- **CRITICAL**: KYB/DigiLocker APIs (required for production switch feature)
+- **HIGH**: User Management, Authentication, Dashboard, Billing, Transactions APIs
+
+**Implementation Order Recommendation**:
+1. Authentication APIs (signup, SSO, /me)
+2. KYB Basic Flow (Steps 1-4: basic-details, business-info, verify-pan, verify-gstin)
+3. DigiLocker Integration (Director KYC - Step 5)
+4. User Management & Dashboard APIs
+5. Billing & Transactions APIs
 

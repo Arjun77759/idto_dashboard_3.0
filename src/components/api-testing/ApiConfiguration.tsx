@@ -81,6 +81,14 @@ const ApiConfiguration = ({ selectedApi, onApiRun, loading: pageLoading = false 
     setInputValues(prev => ({ ...prev, [key]: value }))
   }
 
+  // Handle Enter key press to run API
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !isLoading && selectedApi) {
+      e.preventDefault()
+      handleRunApi()
+    }
+  }
+
   if (pageLoading) {
     return (
       <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-2xl shrink-0 h-full flex-1 w-full">
@@ -185,6 +193,7 @@ const ApiConfiguration = ({ selectedApi, onApiRun, loading: pageLoading = false 
                   type={field.type === 'number' ? 'number' : field.type === 'email' ? 'email' : field.type === 'date' ? 'date' : 'text'}
                   value={inputValues[key] || ''}
                   onChange={(e) => handleInputChange(key, e.target.value)}
+                  onKeyDown={handleKeyPress}
                   placeholder={String(field.example)}
                   className="w-full max-w-md border-[#e7e8ea] h-10"
                 />

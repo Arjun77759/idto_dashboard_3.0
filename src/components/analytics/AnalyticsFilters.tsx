@@ -31,6 +31,14 @@ const AnalyticsFilters = () => {
   const [verificationType, setVerificationType] = useState<string>('')
   const [deviceType, setDeviceType] = useState<string>('')
 
+  // Transform snake_case to Title Case
+  const formatApiName = (name: string): string => {
+    return name
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+  }
+
   // Extract unique verification types from API data
   const verificationTypes = useMemo(() => {
     if (!usageData || usageData.length === 0) return []
@@ -113,7 +121,7 @@ const AnalyticsFilters = () => {
             ) : (
               verificationTypes.map((type) => (
                 <SelectItem key={type} value={type}>
-                  {type}
+                  {formatApiName(type)}
                 </SelectItem>
               ))
             )}

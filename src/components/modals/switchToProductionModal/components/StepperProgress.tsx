@@ -14,9 +14,9 @@ interface StepperProgressProps {
 
 const StepperProgress = ({ steps }: StepperProgressProps) => {
   return (
-    <div className="flex flex-col gap-4 items-start overflow-clip relative rounded shrink-0 w-[290px]">
-      <div className="bg-white border border-[#e7e8ea] border-solid relative rounded shrink-0 w-full">
-        <div className="flex flex-col gap-4 items-start p-4 relative rounded-[inherit] w-full">
+    <div className="flex flex-col gap-4 items-start overflow-hidden relative rounded shrink-0 w-[290px] h-full">
+      <div className="bg-white border border-[#e7e8ea] border-solid relative rounded shrink-0 w-full h-full flex flex-col overflow-hidden">
+        <div className="flex flex-col gap-4 items-start p-4 relative rounded-[inherit] w-full overflow-y-auto">
           {/* Progress Header */}
           <div className="flex gap-1 items-center px-0 py-1 relative shrink-0 w-full">
             <p className="font-normal leading-[1.4] relative shrink-0 text-xs text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
