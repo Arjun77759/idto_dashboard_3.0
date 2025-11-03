@@ -17,10 +17,6 @@ const RegisterPage = () => {
     console.log('Google signup')
   }
 
-  const handleMicrosoftSignup = () => {
-    console.log('Microsoft signup')
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -122,32 +118,6 @@ const RegisterPage = () => {
               </svg>
             </div>
           </button>
-
-          <div className="flex flex-col gap-4 items-center relative w-full">
-            <button
-              onClick={handleMicrosoftSignup}
-              className="bg-[#f7f7f8] border border-[#e7e8ea] border-solid flex gap-2 items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 relative rounded-lg w-full h-10 sm:h-auto"
-            >
-              <p className="font-bold leading-4 relative text-[12px] sm:text-[13px] text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
-                Signup with Microsoft
-              </p>
-              <div className="relative shrink-0 size-3 sm:size-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <g clip-path="url(#clip0_362_2675)">
-                    <path d="M7.61238 7.61214H0.166748V0.166504H7.61238V7.61214Z" fill="#F1511B" />
-                    <path d="M15.8332 7.61214H8.3877V0.166504H15.8332V7.61214Z" fill="#80CC28" />
-                    <path d="M7.6122 15.8333H0.166748V8.3877H7.6122V15.8333Z" fill="#00ADEF" />
-                    <path d="M15.8332 15.8333H8.3877V8.3877H15.8332V15.8333Z" fill="#FBBC09" />
-                  </g>
-                  <defs>
-                    <clipPath id="clip0_362_2675">
-                      <rect width="16" height="16" fill="white" />
-                    </clipPath>
-                  </defs>
-                </svg>
-              </div>
-            </button>
-          </div>
         </div>
 
         {/* Terms and Privacy */}

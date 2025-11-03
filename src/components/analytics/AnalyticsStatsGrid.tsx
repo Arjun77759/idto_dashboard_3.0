@@ -1,24 +1,37 @@
 import { motion } from 'framer-motion'
+import { useUsageOverview } from '@/hooks/useUsageOverview'
 
 const AnalyticsStatsGrid = () => {
+  const { data, loading, error } = useUsageOverview()
+
+  // Calculate stats from API data
   const stats = [
     {
       label: "Total Verifications",
-      value: "330"
+      value: (data?.total || 0).toString()
     },
     {
       label: "Successful Rate",
-      value: "95%"
+      value: data && data.total > 0 
+        ? `${Math.round((data.success / data.total) * 100)}%` 
+        : "0%"
     },
     {
       label: "Failed Rate",
-      value: "5%"
+      value: data && data.total > 0 
+        ? `${Math.round((data.failed / data.total) * 100)}%` 
+        : "0%"
     },
     {
       label: "Avg. Verification Time",
-      value: "15s"
+      value: "--" // API not available yet - see API_Gaps.md
     }
   ]
+
+  // Show error state if needed
+  if (error) {
+    console.error('Failed to load analytics stats:', error)
+  }
 
   return (
     <motion.div
@@ -41,9 +54,13 @@ const AnalyticsStatsGrid = () => {
               <p className="leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] tracking-[-0.12px] w-full">
                 {stat.label}
               </p>
-              <p className="leading-[1.24] relative shrink-0 text-[32px] text-[#131b31] tracking-[-0.32px] w-full">
-                {stat.value}
-              </p>
+              {loading ? (
+                <div className="w-20 h-8 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+              ) : (
+                <p className="leading-[1.24] relative shrink-0 text-[32px] text-[#131b31] tracking-[-0.32px] w-full">
+                  {stat.value}
+                </p>
+              )}
             </div>
           </div>
         ))}

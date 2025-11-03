@@ -51,13 +51,19 @@ const dashboardRoutes = [
   {
     index: true,
     element: <DashboardPage />
-  },
+  }
+]
+
+const usersRoutes = [
   {
-    path: 'users',
+    index: true,
     element: <UsersPage />
-  },
+  }
+]
+
+const settingsRoutes = [
   {
-    path: 'settings',
+    index: true,
     element: <SettingsPage />
   }
 ]
@@ -100,6 +106,16 @@ const router = createBrowserRouter([
     path: '/dashboard',
     element: <PrivateLayout />,
     children: dashboardRoutes,
+  },
+  {
+    path: '/users',
+    element: <PrivateLayout />,
+    children: usersRoutes,
+  },
+  {
+    path: '/settings',
+    element: <PrivateLayout />,
+    children: settingsRoutes,
   },
   {
     path: '/api-testing',

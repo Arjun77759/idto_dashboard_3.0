@@ -7,6 +7,14 @@ const ApiUsageTable = () => {
   const { data, loading, error } = useUsageMonthly()
   const [showAll, setShowAll] = useState(false)
 
+  // Transform snake_case to Title Case
+  const formatApiName = (name: string): string => {
+    return name
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -102,7 +110,7 @@ const ApiUsageTable = () => {
                 <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[205px]">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-[205px]">
                     <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px]">
-                      {row.api_name}
+                      {formatApiName(row.api_name)}
                     </p>
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>

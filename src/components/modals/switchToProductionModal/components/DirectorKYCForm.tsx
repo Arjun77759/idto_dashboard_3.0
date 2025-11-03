@@ -1,15 +1,53 @@
-import { ArrowRight } from "lucide-react"
-
+import { useState } from 'react'
+import { ArrowRight, AlertCircle, ArrowLeft } from "lucide-react"
+import http from '../../../../api/axiosInstance'
 
 interface DirectorKYCFormProps {
   onNext: () => void
+  onPrevious?: () => void
+  showPrevious?: boolean
   isLoading?: boolean
 }
 
-const DirectorKYCForm = ({ onNext, isLoading = false }: DirectorKYCFormProps) => {
-  const handleContinue = () => {
-    window.open('https://digilocker.idto.ai/digilocker?client_id=325425&redirect_uri=34433', '_blank')
-    onNext()
+const DirectorKYCForm = ({ onNext, onPrevious, showPrevious = false, isLoading: externalLoading = false }: DirectorKYCFormProps) => {
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleContinue = async () => {
+    try {
+      setIsLoading(true)
+      setError('')
+
+      // Get current domain for redirect URL
+      const redirectUrl = `${window.location.origin}/kyc-callback`
+
+      // Call DigiLocker initiate session API
+      const response = await http.post('/verify/digilocker/initiate_session', {
+        consent_purpose: 'Director KYC verification for production environment activation',
+        redirect_url: redirectUrl,
+        redirect_to_signup: false,
+        consent: true
+      })
+
+      // Check if response is successful
+      if (response.data && response.data.url) {
+        // Redirect to DigiLocker authentication URL
+        window.location.href = response.data.url
+        
+        // Note: User will be redirected away, so we don't call onNext() here
+        // The callback page will handle the next step
+      } else {
+        throw new Error('Invalid response from server')
+      }
+    } catch (err: any) {
+      console.error('DigiLocker initiation error:', err)
+      setError(
+        err?.response?.data?.message || 
+        err?.message || 
+        'Failed to initiate DigiLocker verification. Please try again.'
+      )
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -49,14 +87,48 @@ const DirectorKYCForm = ({ onNext, isLoading = false }: DirectorKYCFormProps) =>
               Secured by Govt. of India
             </p>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="flex gap-3 items-start p-4 bg-red-50 border border-red-200 rounded-lg w-full">
+              <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-900 mb-1">Verification Failed</p>
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Info Box */}
+          <div className="flex gap-3 items-start p-4 bg-blue-50 border border-blue-200 rounded-lg w-full">
+            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 flex-shrink-0 mt-0.5">
+              <span className="text-white text-xs font-bold">i</span>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-blue-900 mb-1">What happens next?</p>
+              <p className="text-sm text-blue-700">
+                You'll be securely redirected to DigiLocker to verify your Aadhaar. After verification, you'll return here automatically to complete your KYB application.
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Continue Button */}
-        <div className="flex gap-10 items-center justify-end relative shrink-0 w-full">
+        {/* Action Buttons */}
+        <div className="flex gap-3 items-center justify-between relative shrink-0 w-full">
+          {showPrevious && onPrevious && (
+            <button
+              onClick={onPrevious}
+              className="flex gap-2 items-center px-6 py-3 text-[#616675] hover:bg-gray-100 rounded-lg transition-colors border border-[#e7e8ea]"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="font-medium text-xs tracking-[-0.12px]">Previous</span>
+            </button>
+          )}
+          <div className="flex-1"></div>
           <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid relative rounded-lg shrink-0">
             <button
               onClick={handleContinue}
-              disabled={isLoading}
+              disabled={isLoading || externalLoading}
               className="flex gap-2 items-center justify-center px-8 py-3.5 relative rounded-[inherit] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (

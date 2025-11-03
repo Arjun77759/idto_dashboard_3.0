@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import ApiResponseModal from './ApiResponseModal'
-import { Play, Code, Code2, CodeXml, SquareTerminal } from 'lucide-react'
+import { Code2, CodeXml, SquareTerminal } from 'lucide-react'
 
 interface ApiResponseProps {
   response: any
+  loading?: boolean
 }
 
-const ApiResponse = ({ response }: ApiResponseProps) => {
+const ApiResponse = ({ response, loading = false }: ApiResponseProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const handleViewDetails = () => {
@@ -43,11 +44,53 @@ const ApiResponse = ({ response }: ApiResponseProps) => {
 
         {/* Response Content */}
         <div className="flex flex-col gap-2 grow items-center justify-center min-h-0 min-w-0 p-4 sm:p-6 relative shrink-0 w-full">
-          {response ? (
+          {loading ? (
+            // Show skeleton loader while page is loading
             <div className="flex flex-col gap-4 items-start w-full">
+              {/* Status Badges Skeleton */}
+              <div className="flex flex-wrap gap-3 items-center w-full">
+                <div className="h-8 w-24 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-lg" />
+                <div className="h-8 w-16 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-lg" />
+              </div>
+
+              {/* Response Content Skeleton */}
+              <div className="bg-gray-50 border border-[#e7e8ea] border-solid rounded-lg p-4 w-full max-h-96 overflow-hidden">
+                <div className="flex flex-col gap-2">
+                  <div className="h-3 w-full bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+                  <div className="h-3 w-5/6 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+                  <div className="h-3 w-4/5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+                  <div className="h-3 w-full bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+                  <div className="h-3 w-3/4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+                  <div className="h-3 w-5/6 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+                  <div className="h-3 w-2/3 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+                  <div className="h-3 w-4/5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+                  <div className="h-3 w-full bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+                  <div className="h-3 w-3/5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+                </div>
+              </div>
+            </div>
+          ) : response ? (
+            <div className="flex flex-col gap-4 items-start w-full">
+              {/* Status and Timing Info */}
+              <div className="flex flex-wrap gap-3 items-center w-full">
+                <div className={`px-3 py-1.5 rounded-lg ${response.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                  <span className="text-[11px] font-medium">
+                    {response.statusCode || (response.success ? '200' : '500')} {response.success ? 'Success' : 'Error'}
+                  </span>
+                </div>
+                {response.responseTime && (
+                  <div className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700">
+                    <span className="text-[11px] font-medium">
+                      {response.responseTime}ms
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Response Data */}
               <div className="bg-gray-50 border border-[#e7e8ea] border-solid rounded-lg p-4 w-full max-h-96 overflow-auto">
                 <pre className="text-[10px] sm:text-[12px] text-[#616675] font-mono leading-[1.4] tracking-[-0.12px] whitespace-pre-wrap">
-                  {JSON.stringify(response, null, 2)}
+                  {JSON.stringify(response.data || response.error || response, null, 2)}
                 </pre>
               </div>
             </div>

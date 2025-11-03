@@ -9,11 +9,21 @@ import {
   Home,
   MessageSquare,
   Settings,
-  User
+  User,
+  LogOut,
+  ChevronDown
 } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import SwitchToProductionModal from './modals/switchToProductionModal/SwitchToProductionModal'
+import { useUserProfile } from '@/hooks/useUserProfile'
+import { clearAuth } from '@/lib/auth'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface MenuItem {
   name: string
@@ -31,7 +41,14 @@ interface Category {
 
 const Sidebar = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false)
+  const { data: userProfile, loading: profileLoading } = useUserProfile()
+
+  const handleLogout = () => {
+    clearAuth()
+    navigate('/login')
+  }
 
   const categories: Category[] = [
     {
@@ -201,21 +218,41 @@ const Sidebar = () => {
       </div>
 
       {/* User Profile */}
-      <div className="flex flex-col gap-4 items-start relative w-full">
-        <div className="flex gap-2.5 items-center px-2 py-1 relative w-full">
-          <div className="overflow-hidden relative shrink-0 size-[30px] bg-[#f0f0f0] rounded-full flex items-center justify-center">
-            <User className="w-5 h-5 text-[#616675]" />
-          </div>
-          <div className="flex flex-col gap-0.5 items-start justify-center leading-[1.4] relative">
-            <p className="font-medium relative text-[12px] text-[#616675] tracking-[-0.12px]">
-              John Doe
-            </p>
-            <p className="font-normal relative text-[8px] text-[#9296a0] tracking-[-0.08px]">
-              Brightwave Solutions
-            </p>
-          </div>
-        </div>
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="flex gap-2.5 items-center justify-between px-2 py-1 relative w-full hover:bg-gray-50 rounded transition-colors cursor-pointer">
+            <div className="flex gap-2.5 items-center">
+              <div className="overflow-hidden relative shrink-0 size-[30px] bg-[#f0f0f0] rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-[#616675]" />
+              </div>
+              <div className="flex flex-col gap-0.5 items-start justify-center leading-[1.4] relative">
+                {profileLoading ? (
+                  <>
+                    <div className="h-3 w-20 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-2 w-24 bg-gray-200 rounded animate-pulse" />
+                  </>
+                ) : (
+                  <>
+                    <p className="font-medium relative text-[12px] text-[#616675] tracking-[-0.12px]">
+                      {userProfile?.name || 'User'}
+                    </p>
+                    <p className="font-normal relative text-[8px] text-[#9296a0] tracking-[-0.08px]">
+                      {userProfile?.company_name || 'Company'}
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+            <ChevronDown className="w-4 h-4 text-[#9296a0]" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent side="top" align="start" className="w-[240px]">
+          <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50">
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {/* Switch to Production Modal */}
       <SwitchToProductionModal

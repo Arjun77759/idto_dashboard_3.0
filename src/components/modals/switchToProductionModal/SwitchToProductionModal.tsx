@@ -42,6 +42,17 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
     }
   }
 
+  const handleStepPrevious = () => {
+    const currentIndex = stepOrder.indexOf(currentStep)
+    if (currentIndex > 0) {
+      // Go to previous step
+      setCurrentStep(stepOrder[currentIndex - 1])
+    } else {
+      // If on first step, go back to welcome screen
+      setIsInStepperMode(false)
+    }
+  }
+
   const stepOrder = ['basic-details', 'business-info', 'business-pan', 'gstin', 'director-kyc']
   const currentStepIndex = stepOrder.indexOf(currentStep)
 
@@ -161,28 +172,31 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
 
   // Desktop content - Original modal
   const DesktopContent = () => (
-    <div className="bg-[#f7f7f8] flex flex-col gap-4 items-start p-4 relative rounded-2xl shadow-[0px_4px_131px_0px_rgba(19,27,49,0.25)] w-full">
+    <div className="bg-[#f7f7f8] flex flex-col gap-4 items-start p-4 relative rounded-2xl shadow-[0px_4px_131px_0px_rgba(19,27,49,0.25)] w-full h-full overflow-hidden">
       {/* Header */}
       <ModalHeader />
 
-      {/* Main Content */}
-      {isInStepperMode ? (
-        // Stepper Mode
-        <div className="flex gap-4 grow items-start min-h-px min-w-px relative shrink-0 w-[824px]">
-          {/* Left Sidebar - Progress */}
-          <StepperProgress steps={stepperSteps} />
+      {/* Main Content - Scrollable */}
+      <div className="flex-1 min-h-0 overflow-auto w-full">
+        {isInStepperMode ? (
+          // Stepper Mode
+          <div className="flex gap-4 items-start relative w-full">
+            {/* Left Sidebar - Progress */}
+            <StepperProgress steps={stepperSteps} />
 
-          {/* Right Panel - Step Form */}
-          <StepForm
-            currentStep={currentStep}
-            onNext={handleStepNext}
-            isLoading={isLoading}
-          />
-        </div>
-      ) : (
-        // Initial Welcome Mode
-        <div className="border border-[#e7e8ea] border-solid flex items-start justify-between relative rounded w-full">
-          {/* Left Panel */}
+            {/* Right Panel - Step Form */}
+            <StepForm
+              currentStep={currentStep}
+              onNext={handleStepNext}
+              onPrevious={handleStepPrevious}
+              showPrevious={true}
+              isLoading={isLoading}
+            />
+          </div>
+        ) : (
+          // Initial Welcome Mode
+          <div className="border border-[#e7e8ea] border-solid flex items-start justify-between relative rounded w-full">
+            {/* Left Panel */}
           <div className="bg-white flex-1 flex flex-col gap-4 items-start p-6 relative rounded shrink-0">
             <div className="flex flex-col items-start relative shrink-0 w-full">
               <p className="font-bold leading-8 relative shrink-0 text-2xl text-[#616675] tracking-[-0.24px] w-full">
@@ -249,11 +263,12 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
           </div>
 
           {/* Right Panel - Dashboard Preview */}
-          <div className="bg-white flex-1 flex flex-col gap-4 items-start p-6 relative rounded shrink-0 h-full">
-            <img alt="" className="block max-w-none size-full" src={'https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/production_switch.png'} />
+          <div className="bg-white flex-1 flex flex-col gap-4 items-start p-6 relative rounded shrink-0">
+            <img alt="Production Switch" className="block w-full h-auto object-contain" src={'https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/production_switch.png'} />
           </div>
         </div>
-      )}
+        )}
+      </div>
     </div>
   )
 
@@ -261,13 +276,13 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
     <>
       {isMobile ? (
         <Sheet open={isOpen} onOpenChange={onClose}>
-          <SheetContent side="bottom" className="h-[70vh] p-0">
+          <SheetContent side="bottom" className="h-[70vh] p-0 flex flex-col overflow-hidden">
             <MobileContent />
           </SheetContent>
         </Sheet>
       ) : (
         <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className="max-w-6xl w-[856px] h-[610px] max-h-[90vh] overflow-hidden p-0">
+          <DialogContent className="max-w-6xl w-[856px] max-h-[90vh] overflow-hidden p-0 flex flex-col">
             <DesktopContent />
           </DialogContent>
         </Dialog>
