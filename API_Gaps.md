@@ -4,134 +4,69 @@
 
 ---
 
-## 👥 User Management APIs
-
-> **⚠️ ADMIN ONLY** - All user management endpoints require Admin role authentication
-
-### Get Users List
-- **Endpoint**: `GET /users`
-- **Authorization**: Admin role required
-- **Purpose**: Retrieve list of users with filtering and pagination
-- **Query Parameters**:
-  - `search` (optional): Search by name or email
-  - `role` (optional): Filter by role (Admin/Moderator/User)
-  - `status` (optional): Filter by status (Active/Inactive)
-  - `limit` (optional): Number of results per page
-  - `offset` (optional): Pagination offset
-- **Response**: `{ users: [{ user_id, name, email, role, status, last_login, created_at, phone, company }], total, limit, offset }`
-- **Error Responses**:
-  - `401 Unauthorized` - Not authenticated
-  - `403 Forbidden` - Not admin role
-- **Status**: ❌ MISSING
-
-### Get User Details
-- **Endpoint**: `GET /users/{user_id}`
-- **Authorization**: Admin role required
-- **Purpose**: Get detailed information for a specific user
-- **Response**: `{ user_id, name, email, role, status, last_login, created_at, phone, company }`
-- **Error Responses**:
-  - `401 Unauthorized` - Not authenticated
-  - `403 Forbidden` - Not admin role
-  - `404 Not Found` - User not found
-- **Status**: ❌ MISSING
-
-### Create User
-- **Endpoint**: `POST /users`
-- **Authorization**: Admin role required
-- **Purpose**: Create a new user account
-- **Payload**: `{ name: string, email: string, password: string, role?: 'Admin' | 'Moderator' | 'User' }`
-- **Response**: `{ user_id, name, email, role, status, created_at }`
-- **Error Responses**:
-  - `401 Unauthorized` - Not authenticated
-  - `403 Forbidden` - Not admin role
-  - `400 Bad Request` - Invalid payload or email already exists
-- **Status**: ❌ MISSING
-
-### Update User
-- **Endpoint**: `PATCH /users/{user_id}`
-- **Authorization**: Admin role required
-- **Purpose**: Update user information (role, status, profile)
-- **Payload**: `{ name?: string, email?: string, role?: string, status?: string }`
-- **Response**: `{ user_id, name, email, role, status, last_login, created_at }`
-- **Error Responses**:
-  - `401 Unauthorized` - Not authenticated
-  - `403 Forbidden` - Not admin role
-  - `404 Not Found` - User not found
-  - `400 Bad Request` - Invalid payload
-- **Status**: ❌ MISSING
-
-### Delete User
-- **Endpoint**: `DELETE /users/{user_id}`
-- **Authorization**: Admin role required
-- **Purpose**: Delete a user account (soft delete recommended)
-- **Response**: `{ message: "User deleted successfully" }`
-- **Error Responses**:
-  - `401 Unauthorized` - Not authenticated
-  - `403 Forbidden` - Not admin role
-  - `404 Not Found` - User not found
-  - `400 Bad Request` - Cannot delete own account
-- **Status**: ❌ MISSING
-
----
-
 ## 🔐 Authentication APIs
 
-### Signup
-- **Endpoint**: `POST /auth/signup`
-- **Payload**: `{ name: string, email: string, password: string }`
-- **Response**: `{ user_id: string, email: string }` or `{ access_token: string }` if auto-login
-- **Status**: ❌ MISSING
-
-### SSO - Google
-- **Start**: `GET /auth/google` (redirect to Google OAuth)
-- **Callback**: `GET /auth/google/callback`
-- **Response**: Should issue session/JWT and redirect with token, or set httpOnly cookie
-- **Status**: ❌ MISSING
-
-### Get Current User Profile
-- **Endpoint**: `GET /me`
-- **Authorization**: Required
-- **Purpose**: Get current authenticated user's profile information
-- **Response**: 
+### Resend Verification Email / Sign-in Link
+- **Endpoint**: `POST /auth/resend-email` or `POST /onboard/resend-verification`
+- **Authorization**: Not required (uses email identifier)
+- **Purpose**: Resend verification link or sign-in link to user's email
+- **Payload**:
   ```typescript
   {
-    user_id: string,
-    name: string,
-    email: string,
-    company_name: string,
-    role: 'admin' | 'user',
-    status: 'sandbox' | 'production',
-    created_at: string
+    email: string  // User's email address
   }
   ```
-- **Note**: Used in sidebar, header, and profile sections to display user info
+- **Response**:
+  ```typescript
+  {
+    success: boolean,
+    message: string  // e.g., "Verification email sent successfully"
+  }
+  ```
+- **Use Cases**:
+  - User didn't receive initial registration/signup email
+  - Email link expired
+  - User clicked "resend it" on check inbox page
+- **Note**: Currently used in `CheckInboxPage.tsx` but only shows toast notification without actual API call
 - **Status**: ❌ MISSING
 
 ---
 
-## 📊 Dashboard APIs
+## 📊 Dashboard & Analytics APIs
 
 ### Usage Trends (Period-over-Period Comparison)
-- **Endpoint**: `GET /usage/overview/compare?period=month`
+- **Endpoint**: `GET /usage/overview/compare?period={1-12}` (month number)
 - **Purpose**: Provide period-over-period deltas for dashboard cards
-- **Response**: `{ total_change_pct: number, success_change_pct: number, failed_change_pct: number, balance_change_pct: number }`
-- **Status**: ❌ MISSING
+- **Response**: See detailed structure with total_verifications, successful_verifications, failed_verifications, monthly_spend (each with count/amount and change_percent), plus period metadata
+- **Additional Field Needed**: `average_verification_time?: number` (in seconds)
+- **Status**: ⚠️ BACKEND MISSING - Frontend ready with fallback to basic overview
 
-### Recent Invoices
-- **Endpoint**: `GET /invoices/recent?limit=4`
-- **Purpose**: Get 4 most recent invoices for dashboard table
-- **Response**: `[{ invoice_id: string, date: string, amount: number, status: 'Paid' | 'Pending', description: string }]`
-- **Status**: ❌ MISSING
+### Monthly API Usage
+- **Endpoint**: `GET /usage/monthly`
+- **Purpose**: Get per-API transaction counts and costs for the current month
+- **Query Parameters** (MISSING - needed for analytics filters):
+  - `start_date` (optional): Filter start date (ISO format)
+  - `end_date` (optional): Filter end date (ISO format)
+  - `region` (optional): Filter by region ('all', 'north', 'south', 'east', 'west')
+  - `api_name` (optional): Filter by specific API/verification type
+  - `device_type` (optional): Filter by device type ('all', 'mobile', 'desktop', 'tablet')
+- **Current Response**: `[{ api_name: string, number_of_transactions: number, unit_price: number, total_cost: number }]`
+- **Status**: ⚠️ PARTIALLY IMPLEMENTED - Exists but missing filter parameters
+
+### Volume Timeseries
+- **Endpoint**: `GET /usage/volume/timeseries?start={Month Year}&end={Month Year}`
+- **Purpose**: Get verification volume over time for charts
+- **Query Parameters** (MISSING - needed for analytics filters):
+  - `region` (optional): Filter by region ('all', 'north', 'south', 'east', 'west')
+  - `api_name` (optional): Filter by specific API/verification type
+  - `device_type` (optional): Filter by device type ('all', 'mobile', 'desktop', 'tablet')
+- **Current Response**: `{ series: [{ month: string, count: number }] }`
+- **Status**: ⚠️ PARTIALLY IMPLEMENTED - Exists but missing filter parameters
+
 
 ---
 
 ## 💰 Billing APIs
-
-### Monthly Usage Summary
-- **Endpoint**: `GET /usage/month-summary`
-- **Purpose**: Current month usage and total quota for progress bar
-- **Response**: `{ used: number, total: number }`
-- **Status**: ❌ MISSING
 
 ### Payment Methods
 - **Endpoint**: `GET /billing/payment-methods`
@@ -139,11 +74,6 @@
 - **Response**: `{ methods: [{ id, brand, last4, exp_month, exp_year, is_default }], auto_pay_enabled: boolean }`
 - **Status**: ❌ MISSING
 
-### Billing Pricing Data
-- **Endpoint**: `GET /billing/pricing`
-- **Purpose**: Per-API pricing to compute cost
-- **Response**: `[{ api_name: string, per_unit_cost: number, currency: string }]`
-- **Status**: ❌ MISSING
 
 ### Auto-Pay Toggle
 - **Endpoint**: `PATCH /billing/auto-pay`
@@ -449,24 +379,29 @@
 
 ## 📊 Summary
 
-**Total Missing APIs**: 32
-- User Management: 5
-- Authentication: 3
-- Dashboard: 2
-- Billing: 5
+**Total Missing APIs**: 25
+- Authentication: 1 (resend verification email)
+- Dashboard & Analytics: 3 (1 missing, 2 partially implemented - need filter parameters)
+- Billing: 3
 - Transactions: 2
 - KYB/Production Switch: 6
 - DigiLocker (Director KYC): 7
 - Complete KYB Flow: 1
+
+**Note**: The following APIs already exist and have been removed from this document:
+- All User Management APIs (GET/POST/PATCH/DELETE `/users`)
+- Authentication: GET `/me` (user profile), POST `/auth/login`, POST `/auth/firebase`, POST `/onboard/signup`, POST `/onboard/create-password`
+- Billing: Pricing data (embedded in `/usage/monthly` response)
 
 **Priority**: 
 - **CRITICAL**: KYB/DigiLocker APIs (required for production switch feature)
 - **HIGH**: User Management, Authentication, Dashboard, Billing, Transactions APIs
 
 **Implementation Order Recommendation**:
-1. Authentication APIs (signup, SSO, /me)
-2. KYB Basic Flow (Steps 1-4: basic-details, business-info, verify-pan, verify-gstin)
-3. DigiLocker Integration (Director KYC - Step 5)
-4. User Management & Dashboard APIs
-5. Billing & Transactions APIs
+1. Authentication: Resend verification email (needed for CheckInboxPage)
+2. Analytics Filter Support (add filter parameters to /usage/monthly and /usage/volume/timeseries)
+3. KYB Basic Flow (Steps 1-4: basic-details, business-info, verify-pan, verify-gstin)
+4. DigiLocker Integration (Director KYC - Step 5)
+5. Dashboard APIs (usage comparison with average_verification_time)
+6. Billing & Transactions APIs
 

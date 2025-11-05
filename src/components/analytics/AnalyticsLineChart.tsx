@@ -4,9 +4,36 @@ import { Badge } from '@/components/ui/badge'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts'
 import { Calendar } from 'lucide-react'
 import { useUsageVolumeTimeseries } from '@/hooks/useUsageVolumeTimeseries'
+import { useAnalyticsFilters } from '@/contexts/AnalyticsFilterContext'
+import { useMemo } from 'react'
+import { format, differenceInMonths } from 'date-fns'
 
 const AnalyticsLineChart = () => {
-  const { data, loading, error } = useUsageVolumeTimeseries('month')
+  const { filters } = useAnalyticsFilters()
+  
+  // Calculate months back from date range filter (default to 6 months as per requirements)
+  const monthsBack = useMemo(() => {
+    if (filters.dateRange?.from && filters.dateRange?.to) {
+      const months = differenceInMonths(filters.dateRange.to, filters.dateRange.from)
+      return Math.max(1, Math.ceil(months))
+    }
+    return 6 // Default to 6 months as per requirements
+  }, [filters.dateRange])
+
+  // TODO: Pass additional filters to API hook when backend supports filtering
+  // const { data, loading, error } = useUsageVolumeTimeseries(monthsBack, filters)
+  const { data, loading, error } = useUsageVolumeTimeseries(monthsBack)
+
+  // Log current filter state for debugging
+  console.log('AnalyticsLineChart filters:', filters, 'monthsBack:', monthsBack)
+
+  // Format date range from filters for display
+  const dateRangeLabel = useMemo(() => {
+    if (filters.dateRange?.from && filters.dateRange?.to) {
+      return `${format(filters.dateRange.from, 'MMM yyyy')} - ${format(filters.dateRange.to, 'MMM yyyy')}`
+    }
+    return 'Jan 2025 - Aug 2025' // Fallback
+  }, [filters.dateRange])
 
   if (error) {
     console.error('Failed to load verification volume:', error)
@@ -26,7 +53,7 @@ const AnalyticsLineChart = () => {
             </h3>
           </div>
           <Badge variant="outline" className="flex items-center gap-1 px-2 py-0 h-auto text-xs text-[#9296a0] font-medium tracking-[-0.12px] border-0 bg-transparent">
-            <span>Jan 2025 - Aug 2025</span>
+            <span>{dateRangeLabel}</span>
             <Calendar className="h-4 w-4" />
           </Badge>
         </CardHeader>
@@ -63,10 +90,11 @@ const AnalyticsLineChart = () => {
                   color: '#616675'
                 }}
                 labelStyle={{ color: '#616675', fontSize: '12px' }}
+                formatter={(value: number) => [`${value}`, 'Volume']}
               />
               <Line 
                 type="monotone" 
-                dataKey="volume" 
+                dataKey="count" 
                 stroke="#3b82f6" 
                 strokeWidth={2}
                 dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}

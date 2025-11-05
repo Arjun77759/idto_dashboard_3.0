@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 const ActionCards = () => {
   const navigate = useNavigate()
   const { data, loading, error } = useUsageCredits()
+  console.log(data)
 
   const handleRecharge = () => {
     navigate('/billing')
@@ -23,7 +24,7 @@ const ActionCards = () => {
   const cards = [
     {
       title: 'Current Balance',
-      value: data?.balance || null,
+      value: data?.balance !== undefined ? `₹${data.balance.toFixed(2)}` : null,
       description: 'Add funds to your account to continue using verification services without interruptions.',
       buttonText: 'Recharge Now',
       buttonIcon: Plus,
@@ -87,12 +88,16 @@ const ActionCards = () => {
                   {card.title === 'Current Balance' ? (
                     loading ? (
                       <Skeleton className="h-8 w-24" />
+                    ) : error ? (
+                      <p className="text-sm text-red-600">
+                        {typeof error === 'string' ? error : 'Balance unavailable'}
+                      </p>
                     ) : card.value ? (
                       <p className="font-medium min-w-full relative text-[24px] sm:text-[28px] lg:text-[32px] text-[#0019ff] tracking-[-0.24px] sm:tracking-[-0.28px] lg:tracking-[-0.32px] w-[min-content]">
                         {card.value}
                       </p>
                     ) : (
-                      <p className="text-sm text-red-600">{error || 'Balance unavailable'}</p>
+                      <p className="text-sm text-gray-500">₹0.00</p>
                     )
                   ) : null}
                 </div>

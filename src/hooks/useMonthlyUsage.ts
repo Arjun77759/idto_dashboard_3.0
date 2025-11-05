@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import http from '@/api/axiosInstance'
 
 export type MonthlyUsage = {
+  balance: number
   used: number
   total: number
 }
@@ -16,15 +17,29 @@ export function useMonthlyUsage() {
     async function fetchMonthlyUsage() {
       try {
         setLoading(true)
-        const { data } = await http.get<MonthlyUsage>('/usage/month-summary')
-        if (!cancelled) setData(data)
+        const response = await http.get<MonthlyUsage>('/usage/credits/monthly')
+        if (!cancelled) setData(response.data)
       } catch (e: any) {
-        const useMocks = import.meta.env.VITE_USE_MOCKS === 'true'
-        if (!cancelled && useMocks) {
-          setData({ used: 600, total: 1000 })
-          setError(null)
-        } else if (!cancelled) {
-          setError(e?.response?.data?.detail || e?.message || 'Failed to load monthly usage')
+        if (!cancelled) {
+          // Handle different error response structures
+          let errorMessage = 'Failed to load monthly usage'
+          
+          if (e?.response?.data?.detail) {
+            const detail = e.response.data.detail
+            if (Array.isArray(detail)) {
+              errorMessage = detail.map((err: any) => err.msg || JSON.stringify(err)).join(', ')
+            } else if (typeof detail === 'object' && detail.msg) {
+              errorMessage = detail.msg
+            } else if (typeof detail === 'string') {
+              errorMessage = detail
+            } else if (typeof detail === 'object') {
+              errorMessage = JSON.stringify(detail)
+            }
+          } else if (e?.message) {
+            errorMessage = e.message
+          }
+          
+          setError(errorMessage)
         }
       } finally {
         if (!cancelled) setLoading(false)

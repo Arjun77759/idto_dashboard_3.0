@@ -2,31 +2,41 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { motion } from 'framer-motion'
 import { useUsageOverview } from '@/hooks/useUsageOverview'
 import { useMemo } from 'react'
+import { useAnalyticsFilters } from '@/contexts/AnalyticsFilterContext'
 
 const AnalyticsPieChart = () => {
+  const { filters } = useAnalyticsFilters()
+  // TODO: Pass filters to API hook when backend supports filtering
+  // const { data, loading, error } = useUsageOverview(filters)
   const { data, loading, error } = useUsageOverview()
 
+  // Log current filter state for debugging
+  console.log('AnalyticsPieChart filters:', filters)
+
   // Calculate status distribution percentages from API data
+  // API returns UsageComparisonResponse with: total_verifications, successful_verifications, failed_verifications
+  // Note: chartData is calculated correctly from API but SVG is currently static (ready for future dynamic rendering)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const chartData = useMemo(() => {
-    if (!data || data.total === 0) {
+    if (!data || !data.total_verifications || data.total_verifications.count === 0) {
       return [
         { name: 'Completed', value: 0, color: '#54eebe' },
         { name: 'Failed', value: 0, color: '#f7f7f8' },
       ]
     }
 
-    const successPercentage = Math.round((data.success / data.total) * 100)
-    const failedPercentage = Math.round((data.failed / data.total) * 100)
+    const total = data.total_verifications.count
+    const success = data.successful_verifications?.count || 0
+    const failed = data.failed_verifications?.count || 0
+
+    const successPercentage = total > 0 ? Math.round((success / total) * 100) : 0
+    const failedPercentage = total > 0 ? Math.round((failed / total) * 100) : 0
 
     return [
       { name: 'Completed', value: successPercentage, color: '#54eebe' },
       { name: 'Failed', value: failedPercentage, color: '#f7f7f8' },
     ]
   }, [data])
-
-  if (error) {
-    console.error('Failed to load status distribution:', error)
-  }
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -44,6 +54,12 @@ const AnalyticsPieChart = () => {
         <CardContent className="flex items-center justify-center h-[172px] p-0">
           {loading ? (
             <div className="w-32 h-32 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-full" />
+          ) : error ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-sm text-red-600 px-2 text-center">
+                {typeof error === 'string' ? error : 'Failed to load chart data'}
+              </div>
+            </div>
           ) : (
           <svg width="211" height="102" viewBox="0 0 211 102" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M8.37555 102C3.74986 102 -0.0366204 98.2435 0.352717 93.6343C1.24206 83.1055 3.80648 72.7578 7.96939 62.9663C13.2308 50.5911 20.9425 39.3467 30.6643 29.8751C40.386 20.4035 51.9275 12.8903 64.6296 7.76428C77.3317 2.6383 90.9457 -1.75652e-06 104.694 0C118.443 1.75652e-06 132.057 2.63831 144.759 7.76429C157.461 12.8903 169.003 20.4035 178.724 29.8751C188.446 39.3467 196.158 50.5911 201.419 62.9663C205.582 72.7578 208.147 83.1055 209.036 93.6343C209.425 98.2436 205.639 102 201.013 102C196.387 102 192.681 98.2409 192.218 93.6385C191.374 85.2548 189.264 77.0226 185.943 69.2117C181.524 58.8165 175.046 49.3712 166.88 41.4151C158.713 33.459 149.019 27.1478 138.349 22.842C127.679 18.5362 116.243 16.32 104.694 16.32C93.1455 16.32 81.7097 18.5362 71.0399 22.842C60.3702 27.1478 50.6754 33.459 42.5091 41.4151C34.3428 49.3712 27.865 58.8165 23.4454 69.2117C20.1246 77.0225 18.0147 85.2547 17.1709 93.6384C16.7076 98.2409 13.0012 102 8.37555 102Z" fill="#F7F7F8" />

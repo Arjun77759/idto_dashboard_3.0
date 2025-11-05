@@ -25,11 +25,13 @@ const RecentInvoicesTable = () => {
   }
 
   const filtered = useMemo(() => {
-    const normAmount = (amountStr: string) => {
+    const normAmount = (amountStr: string | undefined) => {
+      if (!amountStr) return 0
       const n = amountStr.replace(/[^0-9.]/g, '')
       return parseFloat(n || '0')
     }
-    const parseDate = (str: string) => {
+    const parseDate = (str: string | undefined) => {
+      if (!str) return null
       const d = Date.parse(str.replace(/\s+/g, ' '))
       return isNaN(d) ? null : new Date(d)
     }
@@ -39,7 +41,7 @@ const RecentInvoicesTable = () => {
       const amt = normAmount(inv.amount)
       if (amountMin && amt < parseFloat(amountMin)) return false
       if (amountMax && amt > parseFloat(amountMax)) return false
-      const d = parseDate(inv.date)
+      const d = parseDate(inv.date_time)
       if (d) {
         if (dateFrom) {
           const from = new Date(dateFrom)
@@ -272,7 +274,12 @@ const RecentInvoicesTable = () => {
                 <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[265px]">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-[265px]">
                     <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px] whitespace-pre-wrap">
-                      {invoice.date}
+                      {invoice.date_time ? (() => {
+                        const [date, time] = invoice.date_time.split(' ')
+                        const [year, month, day] = date.split('-')
+                        const shortYear = year.substring(2)
+                        return `${day}/${month}/${shortYear} ${time}`
+                      })() : '-'}
                     </p>
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>
@@ -288,7 +295,7 @@ const RecentInvoicesTable = () => {
                 <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[208px]">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-[208px]">
                     <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px]">
-                      {invoice.amount}
+                      {invoice.amount ? `₹${Math.round(parseFloat(invoice.amount))}` : '₹0'}
                     </p>
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>

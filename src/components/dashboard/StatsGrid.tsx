@@ -6,34 +6,49 @@ import { Skeleton } from '@/components/ui/skeleton'
 const StatsGrid = () => {
   const { data, loading, error } = useUsageOverview()
 
+  // Helper function to format change percentage
+  const formatChange = (changePercent: number | null): string => {
+    if (changePercent === null) return '+0%'
+    const sign = changePercent >= 0 ? '+' : ''
+    return `${sign}${changePercent.toFixed(2)}%`
+  }
+
+  // Helper function to determine change type
+  const getChangeType = (changePercent: number | null, isNegativeGood: boolean = false): 'positive' | 'negative' => {
+    if (changePercent === null || changePercent === 0) return 'positive'
+    const isPositive = changePercent > 0
+    // For failed verifications, negative change is good
+    return isNegativeGood ? (isPositive ? 'negative' : 'positive') : (isPositive ? 'positive' : 'negative')
+  }
+
   const stats = [
     {
       title: 'Total Verifications',
-      value: data?.total ?? '-',
-      change: '+12%',
-      changeType: 'positive',
+      value: data?.total_verifications?.count ?? '-',
+      change: formatChange(data?.total_verifications?.change_percent ?? null),
+      changeType: getChangeType(data?.total_verifications?.change_percent ?? null),
       description: 'From last month'
     },
     {
       title: 'Successful Verifications',
-      value: data?.success ?? '-',
-      change: '+8%',
-      changeType: 'positive',
+      value: data?.successful_verifications?.count ?? '-',
+      change: formatChange(data?.successful_verifications?.change_percent ?? null),
+      changeType: getChangeType(data?.successful_verifications?.change_percent ?? null),
       description: 'From last month'
     },
     {
       title: 'Failed Verifications',
-      value: data?.failed ?? '-',
-      change: data && data.failed > 0 ? '-7%' : '+0%',
-      changeType: data && data.failed > 0 ? 'negative' : 'positive',
+      value: data?.failed_verifications?.count ?? '-',
+      change: formatChange(data?.failed_verifications?.change_percent ?? null),
+      changeType: getChangeType(data?.failed_verifications?.change_percent ?? null, true),
       description: 'From last month'
     },
     {
       title: 'Monthly Spend',
-      value: data?.balance ?? '-',
-      change: '+12%',
-      changeType: 'positive',
-      description: 'Current balance'
+      value: data?.monthly_spend?.amount ? `₹${data.monthly_spend.amount.toFixed(2)}` : '-',
+      change: formatChange(data?.monthly_spend?.change_percent ?? null),
+      changeType: getChangeType(data?.monthly_spend?.change_percent ?? null),
+      description: 'From last month'
     }
   ]
 
@@ -81,9 +96,11 @@ const StatsGrid = () => {
           ))
         ) : null}
         {error ? (
-          <div className="col-span-2 lg:col-span-4 p-4 text-sm text-red-600">{error}</div>
+          <div className="col-span-2 lg:col-span-4 p-4 text-sm text-red-600">
+            {typeof error === 'string' ? error : 'An error occurred while loading statistics'}
+          </div>
         ) : null}
-        {stats.map((stat, index) => (
+        {!loading && !error && stats.map((stat, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, x: -20 }}
@@ -139,7 +156,9 @@ const StatsGrid = () => {
                         </div>
                       </div>
                     </div>
-                    <p className="font-bold leading-[1.4] relative text-[10px] sm:text-[12px] text-[#09de13] text-nowrap whitespace-pre">
+                    <p className={`font-bold leading-[1.4] relative text-[10px] sm:text-[12px] text-nowrap whitespace-pre ${
+                      stat.changeType === 'positive' ? 'text-[#09de13]' : 'text-[#ff0000]'
+                    }`}>
                       {stat.change}
                     </p>
                   </div>

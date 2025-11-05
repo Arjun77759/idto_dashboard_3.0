@@ -1,30 +1,47 @@
 import { motion } from 'framer-motion'
 import { useUsageOverview } from '@/hooks/useUsageOverview'
+import { useAnalyticsFilters } from '@/contexts/AnalyticsFilterContext'
 
 const AnalyticsStatsGrid = () => {
+  const { filters } = useAnalyticsFilters()
+  // TODO: Pass filters to API hook when backend supports filtering
+  // const { data, loading, error } = useUsageOverview(filters)
   const { data, loading, error } = useUsageOverview()
+
+  // Log current filter state for debugging
+  console.log('AnalyticsStatsGrid filters:', filters)
+
+  // Extract counts from comparison API response
+  const totalCount = data?.total_verifications?.count ?? 0
+  const successCount = data?.successful_verifications?.count ?? 0
+  const failedCount = data?.failed_verifications?.count ?? 0
+
+  // Calculate average verification time if available
+  // Note: API doesn't currently provide this metric (see API_Gaps.md)
+  // When available, it should be in the UsageComparisonResponse
+  const avgVerificationTime = data?.average_verification_time ?? null
 
   // Calculate stats from API data
   const stats = [
     {
       label: "Total Verifications",
-      value: (data?.total || 0).toString()
+      value: totalCount.toLocaleString()
     },
     {
       label: "Successful Rate",
-      value: data && data.total > 0 
-        ? `${Math.round((data.success / data.total) * 100)}%` 
+      value: totalCount > 0 
+        ? `${Math.round((successCount / totalCount) * 100)}%` 
         : "0%"
     },
     {
       label: "Failed Rate",
-      value: data && data.total > 0 
-        ? `${Math.round((data.failed / data.total) * 100)}%` 
+      value: totalCount > 0 
+        ? `${Math.round((failedCount / totalCount) * 100)}%` 
         : "0%"
     },
     {
       label: "Avg. Verification Time",
-      value: "--" // API not available yet - see API_Gaps.md
+      value: avgVerificationTime ? `${avgVerificationTime}s` : "N/A"
     }
   ]
 

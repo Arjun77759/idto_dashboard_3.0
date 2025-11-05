@@ -6,13 +6,21 @@ const TransactionsStatsGrid = () => {
 
   // Calculate success rate from API data
   const successRate = useMemo(() => {
-    if (!data || data.total === 0) return '0'
-    return Math.round((data.success / data.total) * 100).toString()
+    if (!data) return '0'
+    const total = data.total_verifications?.count ?? 0
+    const success = data.successful_verifications?.count ?? 0
+    if (total === 0) return '0'
+    return Math.round((success / total) * 100).toString()
   }, [data])
 
   // Calculate failed count
   const failedCount = useMemo(() => {
-    return data?.failed || 0
+    return data?.failed_verifications?.count ?? 0
+  }, [data])
+  
+  // Get total count
+  const totalCount = useMemo(() => {
+    return data?.total_verifications?.count ?? 0
   }, [data])
 
   if (error) {
@@ -32,7 +40,7 @@ const TransactionsStatsGrid = () => {
               <div className="h-10 w-20 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
             ) : (
               <p className="leading-[1.24] relative shrink-0 text-[32px] text-[#131b31] tracking-[-0.32px] w-full">
-                {data?.total.toLocaleString() || '0'}
+                {totalCount.toLocaleString()}
               </p>
             )}
           </div>

@@ -3,10 +3,31 @@ import http from '@/api/axiosInstance'
 
 export type UsageVolumePoint = {
   month: string
-  volume: number
+  count: number
 }
 
-export function useUsageVolumeTimeseries(period: 'month' | 'week' = 'month') {
+type TimeseriesResponse = {
+  series: UsageVolumePoint[]
+}
+
+// Helper to format date as "Month Year" (e.g., "November 2025")
+const formatMonthYear = (date: Date): string => {
+  return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+}
+
+// Helper to get start and end dates for last N months
+const getDateRange = (monthsBack: number = 5): { start: string; end: string } => {
+  const end = new Date()
+  const start = new Date()
+  start.setMonth(start.getMonth() - monthsBack)
+  
+  return {
+    start: formatMonthYear(start),
+    end: formatMonthYear(end)
+  }
+}
+
+export function useUsageVolumeTimeseries(monthsBack: number = 5) {
   const [data, setData] = useState<UsageVolumePoint[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
@@ -16,24 +37,34 @@ export function useUsageVolumeTimeseries(period: 'month' | 'week' = 'month') {
     async function fetchSeries() {
       try {
         setLoading(true)
-        const { data } = await http.get<UsageVolumePoint[]>(`/usage/volume/timeseries`, { params: { period } })
-        if (!cancelled) setData(data)
+        const { start, end } = getDateRange(monthsBack)
+        
+        const response = await http.get<TimeseriesResponse>('/usage/volume/timeseries', { 
+          params: { start, end } 
+        })
+        
+        if (!cancelled) setData(response.data.series)
       } catch (e: any) {
-        // Fallback to mock when API is missing or failing
-        const useMocks = import.meta.env.VITE_USE_MOCKS === 'true'
-        if (!cancelled && useMocks) {
-          const mock: UsageVolumePoint[] = [
-            { month: 'Jan', volume: 1200 },
-            { month: 'Feb', volume: 1900 },
-            { month: 'Mar', volume: 3000 },
-            { month: 'Apr', volume: 2800 },
-            { month: 'May', volume: 1890 },
-            { month: 'Jun', volume: 2390 }
-          ]
-          setData(mock)
-          setError(null)
-        } else if (!cancelled) {
-          setError(e?.response?.data?.detail || e?.message || 'Failed to load volume timeseries')
+        if (!cancelled) {
+          // Handle different error response structures
+          let errorMessage = 'Failed to load volume timeseries'
+          
+          if (e?.response?.data?.detail) {
+            const detail = e.response.data.detail
+            if (Array.isArray(detail)) {
+              errorMessage = detail.map((err: any) => err.msg || JSON.stringify(err)).join(', ')
+            } else if (typeof detail === 'object' && detail.msg) {
+              errorMessage = detail.msg
+            } else if (typeof detail === 'string') {
+              errorMessage = detail
+            } else if (typeof detail === 'object') {
+              errorMessage = JSON.stringify(detail)
+            }
+          } else if (e?.message) {
+            errorMessage = e.message
+          }
+          
+          setError(errorMessage)
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -43,7 +74,7 @@ export function useUsageVolumeTimeseries(period: 'month' | 'week' = 'month') {
     return () => {
       cancelled = true
     }
-  }, [period])
+  }, [monthsBack])
 
   return { data, loading, error }
 }

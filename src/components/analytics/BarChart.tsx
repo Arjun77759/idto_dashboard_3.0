@@ -2,9 +2,25 @@ import { motion } from 'framer-motion'
 import { Calendar } from 'lucide-react'
 import { useUsageMonthly } from '@/hooks/useUsageMonthly'
 import { useMemo } from 'react'
+import { useAnalyticsFilters } from '@/contexts/AnalyticsFilterContext'
+import { format } from 'date-fns'
 
 const BarChart = () => {
+  const { filters } = useAnalyticsFilters()
+  // TODO: Pass filters to API hook when backend supports filtering
+  // const { data, loading, error } = useUsageMonthly(filters)
   const { data, loading, error } = useUsageMonthly()
+
+  // Log current filter state for debugging
+  console.log('BarChart filters:', filters)
+
+  // Format date range from filters for display
+  const dateRangeLabel = useMemo(() => {
+    if (filters.dateRange?.from && filters.dateRange?.to) {
+      return `${format(filters.dateRange.from, 'MMM yyyy')} - ${format(filters.dateRange.to, 'MMM yyyy')}`
+    }
+    return 'Jan 2025 - Aug 2025' // Fallback
+  }, [filters.dateRange])
 
   // Get top 5 APIs by transaction count and calculate bar widths
   const categories = useMemo(() => {
@@ -56,7 +72,7 @@ const BarChart = () => {
             <div className="flex flex-row items-center self-stretch">
               <div className="flex gap-1 h-full items-center justify-center overflow-hidden px-2 py-0 relative rounded-lg shrink-0">
                 <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
-                  Jan 2025 - Aug 2025
+                  {dateRangeLabel}
                 </p>
                 <Calendar className="size-4 text-[#9296a0]" />
               </div>
