@@ -4,8 +4,8 @@ import http from '@/api/axiosInstance'
 export type UsageMonthlyItem = {
   api_name: string
   number_of_transactions: number
-  per_unit_cost?: number
-  cost?: number
+  unit_price: number
+  total_cost: number
 }
 
 export function useUsageMonthly() {
@@ -18,22 +18,29 @@ export function useUsageMonthly() {
     async function fetchMonthly() {
       try {
         setLoading(true)
-        const { data } = await http.get<UsageMonthlyItem[]>('/usage/monthly')
-        if (!cancelled) setData(data)
+        const response = await http.get<UsageMonthlyItem[]>('/usage/monthly')
+        if (!cancelled) setData(response.data)
       } catch (e: any) {
-        const useMocks = import.meta.env.VITE_USE_MOCKS === 'true'
-        if (!cancelled && useMocks) {
-          const mock: UsageMonthlyItem[] = [
-            { api_name: 'Digilocker Initiate Session', number_of_transactions: 6, per_unit_cost: 0, cost: 0 },
-            { api_name: 'Pan Nsdl', number_of_transactions: 8, per_unit_cost: 1, cost: 7 },
-            { api_name: 'Pan Verification', number_of_transactions: 7, per_unit_cost: 1, cost: 8 },
-            { api_name: 'Mobile Verify OTP', number_of_transactions: 11, per_unit_cost: 1.5, cost: 10.5 },
-            { api_name: 'Pan All In One', number_of_transactions: 7, per_unit_cost: 1.5, cost: 7 }
-          ]
-          setData(mock)
-          setError(null)
-        } else if (!cancelled) {
-          setError(e?.response?.data?.detail || e?.message || 'Failed to load monthly usage')
+        if (!cancelled) {
+          // Handle different error response structures
+          let errorMessage = 'Failed to load monthly usage'
+          
+          if (e?.response?.data?.detail) {
+            const detail = e.response.data.detail
+            if (Array.isArray(detail)) {
+              errorMessage = detail.map((err: any) => err.msg || JSON.stringify(err)).join(', ')
+            } else if (typeof detail === 'object' && detail.msg) {
+              errorMessage = detail.msg
+            } else if (typeof detail === 'string') {
+              errorMessage = detail
+            } else if (typeof detail === 'object') {
+              errorMessage = JSON.stringify(detail)
+            }
+          } else if (e?.message) {
+            errorMessage = e.message
+          }
+          
+          setError(errorMessage)
         }
       } finally {
         if (!cancelled) setLoading(false)

@@ -7,7 +7,19 @@ import { useUsageVolumeTimeseries } from '@/hooks/useUsageVolumeTimeseries'
 import { Skeleton } from '@/components/ui/skeleton'
 
 const ChartSection = () => {
-  const { data, loading, error } = useUsageVolumeTimeseries('month')
+  const { data, loading, error } = useUsageVolumeTimeseries(5)
+
+  // Format month labels to shorter version (e.g., "July 2025" -> "Jul '25")
+  const formatMonth = (monthYear: string) => {
+    try {
+      const [month, year] = monthYear.split(' ')
+      const shortMonth = month.substring(0, 3) // First 3 letters
+      const shortYear = year.substring(2) // Last 2 digits
+      return `${shortMonth} '${shortYear}`
+    } catch {
+      return monthYear
+    }
+  }
 
   return (
     <motion.div
@@ -34,7 +46,9 @@ const ChartSection = () => {
               <Skeleton className="h-[180px] w-full" />
             </div>
           ) : error ? (
-            <div className="text-sm text-red-600 px-2">{error}</div>
+            <div className="text-sm text-red-600 px-2">
+              {typeof error === 'string' ? error : 'Failed to load chart data'}
+            </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data} margin={{ top: 10, right: 15, left: 15, bottom: 20 }}>
@@ -47,7 +61,11 @@ const ChartSection = () => {
                 dataKey="month"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 12, fill: '#616675' }}
+                tick={{ fontSize: 11, fill: '#616675' }}
+                tickFormatter={formatMonth}
+                angle={-15}
+                textAnchor="end"
+                height={50}
                 interval={0}
                 className='text-[#616675] text-xs'
               />
@@ -66,8 +84,8 @@ const ChartSection = () => {
               />
               <Line
                 type="monotone"
-                dataKey="volume"
-                stroke="#3b82f6"
+                dataKey="count"
+                 stroke="#3b82f6"
                 strokeWidth={2}
                 dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}

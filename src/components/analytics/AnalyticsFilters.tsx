@@ -14,22 +14,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useUsageMonthly } from '@/hooks/useUsageMonthly'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
-import type { DateRange } from 'react-day-picker'
+import { useAnalyticsFilters } from '@/contexts/AnalyticsFilterContext'
 
 const AnalyticsFilters = () => {
   const { data: usageData, loading } = useUsageMonthly()
-  
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(2024, 8, 9), // Sep 9, 2024
-    to: new Date(2024, 8, 15),   // Sep 15, 2024
-  })
-  const [region, setRegion] = useState<string>('')
-  const [verificationType, setVerificationType] = useState<string>('')
-  const [deviceType, setDeviceType] = useState<string>('')
+  const { 
+    filters, 
+    setDateRange, 
+    setRegion, 
+    setVerificationType, 
+    setDeviceType, 
+    resetFilters 
+  } = useAnalyticsFilters()
 
   // Transform snake_case to Title Case
   const formatApiName = (name: string): string => {
@@ -46,14 +46,6 @@ const AnalyticsFilters = () => {
     return uniqueTypes.sort()
   }, [usageData])
 
-  const handleReset = () => {
-    setDate(undefined)
-    setRegion('')
-    setVerificationType('')
-    setDeviceType('')
-    console.log('Filters reset')
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -69,17 +61,17 @@ const AnalyticsFilters = () => {
               variant="outline"
               className={cn(
                 "h-auto px-2 py-3.5 text-[12px] font-medium border-[#e7e8ea] hover:bg-gray-50 justify-start text-left font-normal",
-                !date && "text-[#9296a0]"
+                !filters.dateRange && "text-[#9296a0]"
               )}
             >
               <CalendarIcon className="size-4 mr-2 text-[#9296a0]" />
-              {date?.from ? (
-                date.to ? (
+              {filters.dateRange?.from ? (
+                filters.dateRange.to ? (
                   <span className="text-[#9296a0] text-nowrap">
-                    {format(date.from, "MMM d, yyyy")} - {format(date.to, "MMM d, yyyy")}
+                    {format(filters.dateRange.from, "MMM d, yyyy")} - {format(filters.dateRange.to, "MMM d, yyyy")}
                   </span>
                 ) : (
-                  <span className="text-[#9296a0] text-nowrap">{format(date.from, "MMM d, yyyy")}</span>
+                  <span className="text-[#9296a0] text-nowrap">{format(filters.dateRange.from, "MMM d, yyyy")}</span>
                 )
               ) : (
                 <span className="text-[#9296a0] text-nowrap">Pick a date range</span>
@@ -89,8 +81,8 @@ const AnalyticsFilters = () => {
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="range"
-              selected={date}
-              onSelect={setDate}
+              selected={filters.dateRange}
+              onSelect={setDateRange}
               numberOfMonths={2}
               initialFocus
             />
@@ -98,11 +90,12 @@ const AnalyticsFilters = () => {
         </Popover>
 
         {/* Region Filter */}
-        <Select value={region} onValueChange={setRegion}>
+        <Select value={filters.region} onValueChange={setRegion}>
           <SelectTrigger className="h-auto w-[140px] px-2 py-3.5 text-[12px] font-medium text-[#9296a0] border-[#e7e8ea]">
             <SelectValue placeholder="Region" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="all">All Regions</SelectItem>
             <SelectItem value="north">North</SelectItem>
             <SelectItem value="south">South</SelectItem>
             <SelectItem value="east">East</SelectItem>
@@ -111,11 +104,12 @@ const AnalyticsFilters = () => {
         </Select>
 
         {/* Verification Type Filter */}
-        <Select value={verificationType} onValueChange={setVerificationType} disabled={loading}>
+        <Select value={filters.verificationType} onValueChange={setVerificationType} disabled={loading}>
           <SelectTrigger className="h-auto w-[180px] px-2 py-3.5 text-[12px] font-medium text-[#9296a0] border-[#e7e8ea]">
             <SelectValue placeholder={loading ? "Loading..." : "Verification Type"} />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
             {verificationTypes.length === 0 ? (
               <SelectItem value="none" disabled>No types available</SelectItem>
             ) : (
@@ -129,11 +123,12 @@ const AnalyticsFilters = () => {
         </Select>
 
         {/* Device Type Filter */}
-        <Select value={deviceType} onValueChange={setDeviceType}>
+        <Select value={filters.deviceType} onValueChange={setDeviceType}>
           <SelectTrigger className="h-auto w-[150px] px-2 py-3.5 text-[12px] font-medium text-[#9296a0] border-[#e7e8ea]">
             <SelectValue placeholder="Device Type" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="all">All Devices</SelectItem>
             <SelectItem value="mobile">Mobile</SelectItem>
             <SelectItem value="desktop">Desktop</SelectItem>
             <SelectItem value="tablet">Tablet</SelectItem>
@@ -144,7 +139,7 @@ const AnalyticsFilters = () => {
       {/* Reset Button */}
       <Button
         variant="outline"
-        onClick={handleReset}
+        onClick={resetFilters}
         className="h-auto px-2 py-3.5 text-[12px] font-medium text-[#9296a0] border-[#e7e8ea] hover:bg-gray-50"
       >
         <span className="text-nowrap">Reset</span>

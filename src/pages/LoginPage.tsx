@@ -2,9 +2,11 @@ import { motion } from 'framer-motion'
 import { Building2, Lock, MoveRight } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { login } from '../api/authApi'
+import { login, firebaseAuth } from '../api/authApi'
 import { setAuth } from '../lib/auth'
 import { useToast } from '@/hooks/use-toast'
+import { signInWithPopup } from 'firebase/auth'
+import { auth, googleProvider } from '../lib/firebase'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -64,8 +66,39 @@ const LoginPage = () => {
     })
   }
 
-  const handleGoogleLogin = () => {
-    console.log('Google login')
+  const handleGoogleLogin = async () => {
+    try {
+      setSubmitting(true)
+      
+      // Sign in with Firebase
+      const result = await signInWithPopup(auth, googleProvider)
+      const user = result.user
+      const idToken = await user.getIdToken()
+      
+      // Send token to backend
+      const res = await firebaseAuth({ id_token: idToken })
+      
+      // Store access token
+      setAuth({ access_token: res.access_token, user_agent: 'google' })
+      
+      toast({
+        title: "Login successful",
+        description: "Welcome! Redirecting to dashboard...",
+      })
+      
+      navigate('/dashboard')
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail
+      const message = detail || err?.message || 'Failed to sign in with Google'
+      
+      toast({
+        title: "Google sign-in failed",
+        description: message,
+        variant: "destructive",
+      })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (

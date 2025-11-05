@@ -1,12 +1,10 @@
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
-import { useUsageCredits } from '@/hooks/useUsageCredits'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useMonthlyUsage } from '@/hooks/useMonthlyUsage'
 
 const CurrentBalanceCard = () => {
-  const { data, loading, error } = useUsageCredits()
-  const { data: monthUsage, loading: usageLoading, error: usageError } = useMonthlyUsage()
+  const { data, loading, error } = useMonthlyUsage()
   const handleRechargeCredits = () => {
     console.log('Recharge credits')
   }
@@ -27,10 +25,12 @@ const CurrentBalanceCard = () => {
           {loading ? (
             <Skeleton className="h-8 w-24" />
           ) : error ? (
-            <p className="text-sm text-red-600">{error}</p>
+            <p className="text-sm text-red-600">
+              {typeof error === 'string' ? error : 'Failed to load balance'}
+            </p>
           ) : (
             <p className="leading-[1.24] relative shrink-0 text-[32px] text-[#131b31] tracking-[-0.32px] w-full">
-              Rs. {data?.balance ?? '-'}
+              ₹{data?.balance?.toFixed(2) ?? '0.00'}
             </p>
           )}
         </div>
@@ -41,23 +41,25 @@ const CurrentBalanceCard = () => {
             Usage This Month
           </p>
           <div className="h-2.5 relative rounded-[30px] shrink-0 w-full bg-gray-200">
-            {usageLoading ? (
+            {loading ? (
               <div className="absolute h-2.5 left-0 top-0 w-1/2 bg-gradient-to-r from-[#8a95ff] to-[#54eebe] rounded-[30px] animate-pulse"></div>
             ) : (
               <div
                 className="absolute h-2.5 left-0 top-0 bg-gradient-to-r from-[#8a95ff] to-[#54eebe] rounded-[30px]"
-                style={{ width: `${Math.min(100, Math.max(0, monthUsage && monthUsage.total ? (monthUsage.used / monthUsage.total) * 100 : 0))}%` }}
+                style={{ width: `${Math.min(100, Math.max(0, data && data.total ? (data.used / data.total) * 100 : 0))}%` }}
               ></div>
             )}
           </div>
           <div className="flex flex-col items-start relative shrink-0">
             <div className="flex flex-col font-normal justify-center leading-[0] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px]">
-              {usageLoading ? (
+              {loading ? (
                 <Skeleton className="h-4 w-56" />
-              ) : usageError ? (
-                <p className="leading-[1.4] text-red-600">{usageError}</p>
+              ) : error ? (
+                <p className="leading-[1.4] text-red-600">
+                  {typeof error === 'string' ? error : 'Failed to load usage'}
+                </p>
               ) : (
-                <p className="leading-[1.4] whitespace-pre">{monthUsage?.used ?? 0} credits used out of {monthUsage?.total ?? 0}</p>
+                <p className="leading-[1.4] whitespace-pre">₹{data?.used?.toFixed(2) ?? '0.00'} used out of ₹{data?.total?.toFixed(2) ?? '0.00'}</p>
               )}
             </div>
           </div>

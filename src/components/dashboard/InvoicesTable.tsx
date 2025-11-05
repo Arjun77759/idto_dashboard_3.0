@@ -15,6 +15,33 @@ const InvoicesTable = () => {
     navigate('/billing')
   }
 
+  // Format date_time from "2025-11-03 15:13:38" to readable format
+  const formatDateTime = (dateTime: string): string => {
+    if (!dateTime) return '-'
+    try {
+      // Split date and time
+      const parts = dateTime.split(' ')
+      if (parts.length !== 2) return dateTime
+      
+      const [date, time] = parts
+      const [year, month, day] = date.split('-')
+      
+      if (!year || !month || !day || !time) return dateTime
+      
+      const shortYear = year.substring(2)
+      return `${day}/${month}/${shortYear} ${time}`
+    } catch (error) {
+      console.error('Error formatting date:', error, dateTime)
+      return dateTime
+    }
+  }
+
+  // Format amount to integer with currency symbol
+  const formatAmount = (amount: string): string => {
+    const numAmount = Math.round(parseFloat(amount))
+    return `₹${numAmount}`
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -125,9 +152,16 @@ const InvoicesTable = () => {
               ))
             )}
             {error && !loading && (
-              <div className="p-3 text-sm text-red-600">{error}</div>
+              <div className="p-3 text-sm text-red-600">
+                {typeof error === 'string' ? error : 'Failed to load invoices'}
+              </div>
             )}
-            {!loading && invoices.map((invoice, index) => (
+            {!loading && !error && invoices.length === 0 && (
+              <div className="flex items-center justify-center p-8 text-sm text-[#9296a0] w-full">
+                No data available
+              </div>
+            )}
+            {!loading && !error && invoices.length > 0 && invoices.map((invoice, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
@@ -148,7 +182,7 @@ const InvoicesTable = () => {
                 <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[170px]">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-[170px]">
                     <p className="absolute font-normal leading-[24px] left-4 not-italic right-4 text-[#9296a0] text-[14px] top-2 tracking-[-0.084px] whitespace-pre-wrap">
-                      {invoice.date}
+                      {formatDateTime(invoice.date_time)}
                     </p>
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>
@@ -164,7 +198,7 @@ const InvoicesTable = () => {
                 <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[115px]">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-[115px]">
                     <p className="absolute font-normal leading-[24px] left-4 not-italic right-4 text-[#9296a0] text-[14px] top-2 tracking-[-0.084px]">
-                      {invoice.amount}
+                      {formatAmount(invoice.amount)}
                     </p>
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>

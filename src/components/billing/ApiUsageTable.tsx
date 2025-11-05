@@ -102,10 +102,17 @@ const ApiUsageTable = () => {
                 </div>
               ))
             )}
-            {error && !loading ? (
-              <div className="p-3 text-sm text-red-600">{error}</div>
-            ) : null}
-            {!loading && (showAll ? data : data.slice(0, 5)).map((row, index) => (
+            {error && !loading && (
+              <div className="p-3 text-sm text-red-600">
+                {typeof error === 'string' ? error : 'Failed to load API usage'}
+              </div>
+            )}
+            {!loading && !error && data.length === 0 && (
+              <div className="flex items-center justify-center p-8 text-sm text-[#9296a0] w-full">
+                No data available
+              </div>
+            )}
+            {!loading && !error && data.length > 0 && (showAll ? data : data.slice(0, 5)).map((row, index) => (
               <div key={index} className="bg-[#f7f7f8] flex items-start relative shrink-0 w-full">
                 <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[205px]">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-[205px]">
@@ -126,14 +133,14 @@ const ApiUsageTable = () => {
                 <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[96px]">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-[96px]">
                     <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px]">
-                      {row.per_unit_cost !== undefined ? `₹${row.per_unit_cost}` : '-'}
+                      ₹{row.unit_price.toFixed(2)}
                     </p>
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>
                 </div>
                 <div className="h-10 overflow-hidden relative shrink-0 w-[77px]">
                   <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px]">
-                    {row.cost !== undefined ? `₹${row.cost}` : '-'}
+                    ₹{row.total_cost.toFixed(2)}
                   </p>
                   <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                 </div>
