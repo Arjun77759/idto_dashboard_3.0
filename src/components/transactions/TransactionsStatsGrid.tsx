@@ -23,6 +23,23 @@ const TransactionsStatsGrid = () => {
     return data?.total_verifications?.count ?? 0
   }, [data])
 
+  // Format average verification time
+  const averageTime = useMemo(() => {
+    if (!data?.average_verification_time) return '--'
+    const timeInSeconds = data.average_verification_time
+    
+    // Format based on duration
+    if (timeInSeconds < 1) {
+      return `${Math.round(timeInSeconds * 1000)}ms`
+    } else if (timeInSeconds < 60) {
+      return `${timeInSeconds.toFixed(1)}s`
+    } else {
+      const minutes = Math.floor(timeInSeconds / 60)
+      const seconds = Math.round(timeInSeconds % 60)
+      return `${minutes}m ${seconds}s`
+    }
+  }, [data])
+
   if (error) {
     console.error('Failed to load transaction stats:', error)
   }
@@ -68,9 +85,13 @@ const TransactionsStatsGrid = () => {
             <p className="leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] tracking-[-0.12px] w-full">
               Average Time
             </p>
-            <p className="leading-[1.24] relative shrink-0 text-[32px] text-[#131b31] tracking-[-0.32px] w-full">
-              --
-            </p>
+            {loading ? (
+              <div className="h-10 w-20 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+            ) : (
+              <p className="leading-[1.24] relative shrink-0 text-[32px] text-[#131b31] tracking-[-0.32px] w-full">
+                {averageTime}
+              </p>
+            )}
           </div>
         </div>
         

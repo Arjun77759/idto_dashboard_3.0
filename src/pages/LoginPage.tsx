@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { Building2, Lock, MoveRight } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { login, firebaseAuth } from '../api/authApi'
 import { setAuth } from '../lib/auth'
 import { useToast } from '@/hooks/use-toast'
@@ -10,6 +10,7 @@ import { auth, googleProvider } from '../lib/firebase'
 
 const LoginPage = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { toast } = useToast()
   const [formData, setFormData] = useState({
     email: '',
@@ -17,6 +18,14 @@ const LoginPage = () => {
   })
   const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({})
   const [submitting, setSubmitting] = useState(false)
+
+  // Pre-fill email if passed from register page
+  useEffect(() => {
+    const stateEmail = location.state?.email
+    if (stateEmail) {
+      setFormData(prev => ({ ...prev, email: stateEmail }))
+    }
+  }, [location.state])
 
   const validate = () => {
     const next: { email?: string; password?: string } = {}

@@ -44,10 +44,7 @@ const TransactionsFilters = ({
   const { data: usageData, loading } = useUsageMonthly()
   
   const [searchQuery, setSearchQuery] = useState<string>('')
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(2024, 8, 9),
-    to: new Date(2024, 8, 15),
-  })
+  const [date, setDate] = useState<DateRange | undefined>(undefined)
   const [documentType, setDocumentType] = useState<string>('')
   const [status, setStatus] = useState<string>('')
   const [location, setLocation] = useState<string>('')
@@ -200,13 +197,12 @@ const TransactionsFilters = ({
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="success">Success</SelectItem>
               <SelectItem value="failed">Failed</SelectItem>
             </SelectContent>
           </Select>
           
-          {/* Location Filter */}
+          {/* Location Filter - Note: Backend API support pending (region parameter) */}
           <Select value={location} onValueChange={handleLocationChange}>
             <SelectTrigger className="h-10 w-[140px] px-2 py-3.5 text-[12px] font-medium text-[#9296a0] border-[#e7e8ea]">
               <SelectValue placeholder="Location" />

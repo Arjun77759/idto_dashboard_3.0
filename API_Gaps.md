@@ -93,17 +93,18 @@
 
 ### Transactions List
 - **Endpoint**: `GET /usage/`
-- **Purpose**: List all transactions/usage records with filters
-- **Query Parameters**:
-  - `limit` (optional): Number of records
-  - `offset` (optional): Pagination offset
-  - `start_date` (optional): Filter start date
-  - `end_date` (optional): Filter end date
-  - `status` (optional): Filter by status (success/failed)
-  - `api_name` (optional): Filter by API type
-- **Response**: `[{ trax_id: number, api_name: string, status: 'success' | 'failed', timestamp: string, turn_around_time: string }]`
-- **Note**: Currently using mock data in frontend
-- **Status**: ❌ MISSING
+- **Purpose**: List all transactions/usage records
+- **Current Implementation** (idto_dashboard):
+  - ✅ Basic endpoint exists with `page` and `limit` parameters
+  - ✅ Returns: `[{ trax_id: number, api_name: string, status: 'success' | 'failed', timestamp: string, turn_around_time: string }]`
+- **Filtering Approach**: ✅ **Client-side filtering** (fetches all transactions, filters in browser)
+  - Search by transaction ID, API name, or status
+  - Filter by date range (start_date, end_date)
+  - Filter by status ('success' | 'failed')
+  - Filter by API type (api_name)
+  - Filter by region (when region field added to response)
+- **Frontend Status**: ✅ **FULLY IMPLEMENTED** - All filters working client-side
+- **Backend Status**: ✅ **SUFFICIENT** - No server-side filter parameters needed (client-side filtering is acceptable)
 
 ### Transaction Details
 - **Endpoint**: `GET /usage/{trax_id}`
@@ -379,11 +380,11 @@
 
 ## 📊 Summary
 
-**Total Missing APIs**: 25
+**Total Missing APIs**: 23
 - Authentication: 1 (resend verification email)
 - Dashboard & Analytics: 3 (1 missing, 2 partially implemented - need filter parameters)
 - Billing: 3
-- Transactions: 2
+- Transactions: 0 (All implemented)
 - KYB/Production Switch: 6
 - DigiLocker (Director KYC): 7
 - Complete KYB Flow: 1
@@ -392,10 +393,11 @@
 - All User Management APIs (GET/POST/PATCH/DELETE `/users`)
 - Authentication: GET `/me` (user profile), POST `/auth/login`, POST `/auth/firebase`, POST `/onboard/signup`, POST `/onboard/create-password`
 - Billing: Pricing data (embedded in `/usage/monthly` response)
+- Transactions: GET `/usage/` (exists with client-side filtering), GET `/usage/{trax_id}` (exists)
 
 **Priority**: 
 - **CRITICAL**: KYB/DigiLocker APIs (required for production switch feature)
-- **HIGH**: User Management, Authentication, Dashboard, Billing, Transactions APIs
+- **HIGH**: Authentication, Dashboard, Billing APIs
 
 **Implementation Order Recommendation**:
 1. Authentication: Resend verification email (needed for CheckInboxPage)
@@ -403,5 +405,5 @@
 3. KYB Basic Flow (Steps 1-4: basic-details, business-info, verify-pan, verify-gstin)
 4. DigiLocker Integration (Director KYC - Step 5)
 5. Dashboard APIs (usage comparison with average_verification_time)
-6. Billing & Transactions APIs
+6. Billing APIs
 
