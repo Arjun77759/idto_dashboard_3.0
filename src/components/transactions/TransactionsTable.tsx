@@ -30,10 +30,10 @@ const TransactionsTable = ({
   statusFilter = '',
   locationFilter = ''
 }: TransactionsTableProps) => {
-  const { data: transactions, loading, error } = useTransactions()
   const [selectedRows, setSelectedRows] = useState<number[]>([])
+  const { data: transactions, loading, error } = useTransactions()
 
-  // Filter transactions based on all filter criteria
+  // Client-side filtering for all filter criteria
   const filteredTransactions = useMemo(() => {
     let filtered = [...transactions]
     
@@ -69,18 +69,18 @@ const TransactionsTable = ({
       )
     }
     
-    // Status filter (map 'completed' to 'success')
+    // Status filter
     if (statusFilter) {
-      const mappedStatus = statusFilter === 'completed' ? 'success' : statusFilter
       filtered = filtered.filter(transaction =>
-        transaction.status === mappedStatus
+        transaction.status === statusFilter
       )
     }
     
-    // Location filter (not available in current data structure, but prepared for future)
+    // Location filter (not available in current data structure)
+    // Will be supported when backend adds region field to transaction response
     // if (locationFilter) {
     //   filtered = filtered.filter(transaction =>
-    //     transaction.location?.toLowerCase() === locationFilter.toLowerCase()
+    //     transaction.region?.toLowerCase() === locationFilter.toLowerCase()
     //   )
     // }
     
@@ -115,6 +115,13 @@ const TransactionsTable = ({
     } catch {
       return timestamp
     }
+  }
+
+  const formatApiName = (apiName: string) => {
+    return apiName
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
   }
 
   if (error) {
@@ -174,7 +181,7 @@ const TransactionsTable = ({
                   </div>
                 </TableCell>
                 <TableCell className="font-normal text-[14px] text-[#9296a0]">
-                  {transaction.api_name}
+                  {formatApiName(transaction.api_name)}
                 </TableCell>
                 <TableCell className="font-normal text-[14px] text-[#9296a0]">
                   {formatDateTime(transaction.timestamp)}

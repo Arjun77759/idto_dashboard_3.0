@@ -48,16 +48,24 @@ const RegisterPage = () => {
       
       // Handle 409 Conflict - Email already exists
       if (err?.response?.status === 409) {
-        setErrors((prev) => ({ ...prev, form: 'This email is already registered. Please try logging in.' }))
+        toast({
+          title: 'Email already registered',
+          description: 'This email is already registered. Redirecting to login page...',
+        })
+        
+        // Redirect to login page with email pre-filled
+        setTimeout(() => {
+          navigate('/login', { state: { email: formData.email } })
+        }, 1500)
       } else {
         setErrors((prev) => ({ ...prev, form: message }))
+        
+        toast({
+          title: 'Registration failed',
+          description: message,
+          variant: 'destructive',
+        })
       }
-      
-      toast({
-        title: 'Registration failed',
-        description: message,
-        variant: 'destructive',
-      })
     } finally {
       setSubmitting(false)
     }
