@@ -1,24 +1,108 @@
 import { motion } from 'framer-motion'
 import { Building2, MoveRight } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useToast } from '../hooks/use-toast'
+import { register as registerUser, firebaseAuth } from '../api/authApi'
+import { signInWithPopup } from 'firebase/auth'
+import { auth, googleProvider } from '../lib/firebase'
+import { setAuth } from '../lib/auth'
 
 const RegisterPage = () => {
-  const [email, setEmail] = useState('')
   const navigate = useNavigate()
+  const { toast } = useToast()
+  const [formData, setFormData] = useState({ email: '' })
+  const [errors, setErrors] = useState<{ email?: string; form?: string }>({})
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validate = () => {
+    const next: { email?: string } = {}
+    if (!formData.email) {
+      next.email = 'Email is required'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      next.email = 'Please enter a valid email address'
+    }
+    setErrors(next)
+    return Object.keys(next).length === 0
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Registration attempt:', email)
-    navigate('/dashboard')
+    setErrors({})
+    if (!validate()) return
+    
+    try {
+      setSubmitting(true)
+      const res = await registerUser({ email: formData.email })
+      
+      toast({
+        title: 'Please verify your email',
+        description: `A verification link has been sent to ${formData.email}`,
+      })
+      
+      // Navigate to check inbox page with email
+      navigate('/check-inbox', { state: { email: formData.email } })
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail
+      const message = detail || err?.response?.data?.message || 'Failed to register'
+      
+      // Handle 409 Conflict - Email already exists
+      if (err?.response?.status === 409) {
+        setErrors((prev) => ({ ...prev, form: 'This email is already registered. Please try logging in.' }))
+      } else {
+        setErrors((prev) => ({ ...prev, form: message }))
+      }
+      
+      toast({
+        title: 'Registration failed',
+        description: message,
+        variant: 'destructive',
+      })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
-  const handleGoogleSignup = () => {
-    console.log('Google signup')
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
   }
 
-  const handleMicrosoftSignup = () => {
-    console.log('Microsoft signup')
+  const handleGoogleSignup = async () => {
+    try {
+      setSubmitting(true)
+      
+      // Sign in with Firebase
+      const result = await signInWithPopup(auth, googleProvider)
+      const user = result.user
+      const idToken = await user.getIdToken()
+      
+      // Send token to backend
+      const res = await firebaseAuth({ id_token: idToken })
+      
+      // Store access token
+      setAuth({ access_token: res.access_token, user_agent: 'google' })
+      
+      toast({
+        title: "Signup successful",
+        description: "Welcome! Redirecting to dashboard...",
+      })
+      
+      navigate('/dashboard')
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail
+      const message = detail || err?.message || 'Failed to sign up with Google'
+      
+      toast({
+        title: "Google signup failed",
+        description: message,
+        variant: "destructive",
+      })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -48,7 +132,7 @@ const RegisterPage = () => {
         </div>
 
         {/* Form Section */}
-        <div className="flex flex-col gap-4 items-center relative w-full">
+        <form className="flex flex-col gap-4 items-center relative w-full" onSubmit={handleSubmit} noValidate>
           <div className="flex flex-col gap-4 sm:gap-6 items-start relative w-full">
             <div className="flex flex-col gap-1 items-start relative w-full">
               <label className="flex gap-2.5 items-center overflow-hidden relative w-full">
@@ -65,13 +149,17 @@ const RegisterPage = () => {
                 <div className="flex gap-2 grow items-center justify-center min-h-px min-w-px relative">
                   <input
                     type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
                     placeholder="johndoe@idto.ai"
                     className="font-medium grow leading-[1.5] min-h-px min-w-px relative text-[14px] sm:text-[16px] text-[#1c252e] tracking-[-0.14px] sm:tracking-[-0.16px] bg-transparent border-none outline-none w-full"
                   />
                 </div>
               </div>
+              {errors.email ? (
+                <p className="text-[12px] text-red-600">{errors.email}</p>
+              ) : null}
             </div>
           </div>
 
@@ -80,17 +168,18 @@ const RegisterPage = () => {
           </p>
 
           <button
-            onClick={handleSubmit}
-            className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid flex gap-2 items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 relative rounded-lg w-full h-10 sm:h-auto"
+            type="submit"
+            disabled={submitting}
+            className="bg-[#e6e8ff] disabled:opacity-70 border border-[#e7e8ea] border-solid flex gap-2 items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 relative rounded-lg w-full h-10 sm:h-auto"
           >
             <p className="font-bold leading-4 relative text-[12px] sm:text-[13px] text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
-              Continue
+              {submitting ? 'Continuing...' : 'Continue'}
             </p>
             <div className="overflow-hidden relative shrink-0 size-3 sm:size-4">
               <MoveRight className='size-3 sm:size-4 text-[#0019ff]' strokeWidth={2} color='#0019ff' />
             </div>
           </button>
-        </div>
+        </form>
 
         {/* Social Login Section */}
         <div className="flex flex-col gap-4 items-center relative w-full">
@@ -122,37 +211,16 @@ const RegisterPage = () => {
               </svg>
             </div>
           </button>
-
-          <div className="flex flex-col gap-4 items-center relative w-full">
-            <button
-              onClick={handleMicrosoftSignup}
-              className="bg-[#f7f7f8] border border-[#e7e8ea] border-solid flex gap-2 items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 relative rounded-lg w-full h-10 sm:h-auto"
-            >
-              <p className="font-bold leading-4 relative text-[12px] sm:text-[13px] text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
-                Signup with Microsoft
-              </p>
-              <div className="relative shrink-0 size-3 sm:size-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <g clip-path="url(#clip0_362_2675)">
-                    <path d="M7.61238 7.61214H0.166748V0.166504H7.61238V7.61214Z" fill="#F1511B" />
-                    <path d="M15.8332 7.61214H8.3877V0.166504H15.8332V7.61214Z" fill="#80CC28" />
-                    <path d="M7.6122 15.8333H0.166748V8.3877H7.6122V15.8333Z" fill="#00ADEF" />
-                    <path d="M15.8332 15.8333H8.3877V8.3877H15.8332V15.8333Z" fill="#FBBC09" />
-                  </g>
-                  <defs>
-                    <clipPath id="clip0_362_2675">
-                      <rect width="16" height="16" fill="white" />
-                    </clipPath>
-                  </defs>
-                </svg>
-              </div>
-            </button>
-          </div>
         </div>
 
         {/* Terms and Privacy */}
         <p className="font-normal leading-[1.4] relative text-[12px] text-[#616675] text-center tracking-[-0.12px]">
           By signing-up, you agree to our <span className="font-medium text-[#8a95ff]">Terms of Service</span> and <span className="font-medium text-[#8a95ff]">Privacy Policy.</span>
+        </p>
+
+        {/* Sign in link */}
+        <p className="font-normal leading-[1.4] relative text-[12px] text-[#616675] text-center tracking-[-0.12px]">
+          Already have an account? <Link to="/login" className="font-medium text-[#8a95ff] hover:text-[#0019ff]">Sign in</Link>
         </p>
       </div>
     </motion.div>

@@ -1,90 +1,184 @@
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { CodeXml, Copy, List } from 'lucide-react'
-import { useState } from 'react'
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
+import { CodeXml, Copy, List, ExternalLink, CheckCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
 
 interface ApiResponseModalProps {
   isOpen: boolean
   onClose: () => void
-  response?: any
+  response?: {
+    success: boolean
+    data?: any
+    error?: any
+    statusCode: number
+    responseTime: number
+    message: string
+  }
 }
 
 const ApiResponseModal = ({ isOpen, onClose, response }: ApiResponseModalProps) => {
   const [activeTab, setActiveTab] = useState<'table' | 'json'>('table')
+  const [isMobile, setIsMobile] = useState(false)
 
-  // Sample JSON response based on the Figma design
-  const jsonResponse = {
-    status: "success",
-    message: "Verification Successful",
-    data: {
-      full_name: "John Doe",
-      pan_number: "ABCDE1234F",
-      gender: "Male",
-      date_of_birth: "1980-01-01",
-      category: "Individual",
-      verified_on: "2025-09-24T14:48:00Z",
-      verification_status: "KYC Completed"
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 640) // sm breakpoint
     }
+    
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+    
+    return () => window.removeEventListener('resize', checkIsMobile)
+  }, [])
+
+  const [copiedUrl, setCopiedUrl] = useState('')
+
+  // Parse response data (from old dashboard pattern)
+  const responseData = response?.success ? response.data : response?.error
+  const parsedData = typeof responseData === 'string'
+    ? (() => { try { return JSON.parse(responseData) } catch { return {} } })()
+    : responseData || {}
+
+  // Format field name (from old dashboard)
+  const formatFieldName = (key: string) => {
+    return key
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, l => l.toUpperCase())
+      .split('.')
+      .pop() || key
   }
 
-  // Use response prop if available, otherwise use sample data
-  const actualResponse = response || jsonResponse
+  // Check if value is a URL
+  const isUrl = (value: any): boolean => {
+    if (typeof value !== 'string') return false
+    return value.startsWith('http://') || value.startsWith('https://')
+  }
 
-  // Sample data structure based on the Figma design
-  const tableData = [
-    {
-      field: "Status",
-      value: "Success",
-      description: "Verification status",
-      valueColor: "text-[#298e1c]"
-    },
-    {
-      field: "Full Name",
-      value: "John Doe",
-      description: "Verified full name of the user",
-      valueColor: "text-[#9296a0]"
-    },
-    {
-      field: "PAN Number",
-      value: "ABCDE1234F",
-      description: "PAN card number verified",
-      valueColor: "text-[#9296a0]"
-    },
-    {
-      field: "Gender",
-      value: "Male",
-      description: "Gender of the user",
-      valueColor: "text-[#9296a0]"
-    },
-    {
-      field: "Date of Birth",
-      value: "01/01/1980",
-      description: "Verified date of birth",
-      valueColor: "text-[#9296a0]"
-    },
-    {
-      field: "Category",
-      value: "Individual",
-      description: "User category type",
-      valueColor: "text-[#9296a0]"
-    },
-    {
-      field: "Verified On",
-      value: "Sep 24, 2025, 2:48 PM",
-      description: "Timestamp of verification completion",
-      valueColor: "text-[#9296a0]"
-    }
-  ]
+  // Handle URL copy
+  const handleCopyUrl = (url: string) => {
+    navigator.clipboard.writeText(url)
+    setCopiedUrl(url)
+    setTimeout(() => setCopiedUrl(''), 2000)
+  }
+
+  // Recursive function to render table rows (from old dashboard OutputBox)
+  const renderTableRows = (data: any, parentKey: string = ''): React.JSX.Element[] => {
+    if (!data || typeof data !== 'object') return []
+
+    return Object.entries(data).map(([key, value]) => {
+      const fullKey = parentKey ? `${parentKey}.${key}` : key
+      const isArray = Array.isArray(value)
+      const isObject = typeof value === 'object' && value !== null && !isArray
+
+      if (isArray) {
+        return (
+          <TableRow key={fullKey} className="border-b border-gray-100">
+            <TableCell className="py-2 px-2 font-medium text-gray-700">
+              {formatFieldName(fullKey)} []
+            </TableCell>
+            <TableCell className="py-2 px-2 text-gray-600">
+              <div className="pl-4 space-y-2">
+                {value.map((item, index) => (
+                  <div key={index}>
+                    <div className="font-medium text-gray-600 mb-1 text-xs">
+                      Item {index + 1}:
+                    </div>
+                    {typeof item === 'object' && item !== null ? (
+                      <div className="border border-gray-200 rounded overflow-hidden">
+                        <Table>
+                          <TableBody>
+                            {renderTableRows(item, `${fullKey}[${index}]`)}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    ) : (
+                      <div className="pl-4 text-gray-600 text-sm">{String(item)}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </TableCell>
+          </TableRow>
+        )
+      }
+
+      if (isObject) {
+        return (
+          <TableRow key={fullKey} className="border-b border-gray-100">
+            <TableCell className="py-2 px-2 font-medium text-gray-700">
+              {formatFieldName(fullKey)}
+            </TableCell>
+            <TableCell className="py-2 px-2 text-gray-600">
+              <div className="pl-4">
+                <div className="border border-gray-200 rounded overflow-hidden">
+                  <Table>
+                    <TableBody>
+                      {renderTableRows(value, fullKey)}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </TableCell>
+          </TableRow>
+        )
+      }
+
+      if (isUrl(value)) {
+        return (
+          <TableRow key={fullKey} className="border-b border-gray-100">
+            <TableCell className="py-2 px-2 font-medium text-gray-700">
+              {formatFieldName(fullKey)}
+            </TableCell>
+            <TableCell className="py-2 px-2 text-gray-600">
+              <div className="flex items-center gap-2">
+                <span className="text-blue-600 font-mono text-xs break-all">{String(value)}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2"
+                  onClick={() => handleCopyUrl(String(value))}
+                  title="Copy URL"
+                >
+                  {copiedUrl === value ? <CheckCircle className="size-3 text-green-500" /> : <Copy className="size-3 text-gray-500" />}
+                </Button>
+                <a
+                  href={String(value)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1 hover:bg-gray-100 rounded"
+                  title="Open URL"
+                >
+                  <ExternalLink className="size-3 text-gray-500" />
+                </a>
+              </div>
+            </TableCell>
+          </TableRow>
+        )
+      }
+
+      return (
+        <TableRow key={fullKey} className="border-b border-gray-100">
+          <TableCell className="py-2 px-2 font-medium text-gray-700">
+            {formatFieldName(fullKey)}
+          </TableCell>
+          <TableCell className="py-2 px-2 text-gray-600 text-sm">
+            {String(value)}
+          </TableCell>
+        </TableRow>
+      )
+    })
+  }
 
   const handleCopyJson = () => {
-    navigator.clipboard.writeText(JSON.stringify(actualResponse, null, 2))
+    navigator.clipboard.writeText(JSON.stringify(parsedData, null, 2))
   }
 
   const ModalContent = () => (
-    <div className="flex flex-col gap-2.5 p-4 h-full">
-      {/* Header with tabs */}
-      <div className="flex items-center justify-between w-full">
+    <div className="flex flex-col gap-2.5 h-full">
+      {/* Header with tabs - Fixed at top */}
+      <div className="flex items-center justify-between w-full px-4 pt-4">
         <div className="flex gap-2.5 items-start">
           <button
             onClick={() => setActiveTab('table')}
@@ -123,89 +217,71 @@ const ApiResponseModal = ({ isOpen, onClose, response }: ApiResponseModalProps) 
         </div>
       </div>
 
-      {/* Content based on active tab */}
+      {/* Response Metadata - Fixed below tabs */}
+      {response && (
+        <div className="flex flex-wrap gap-2 pb-3 px-4 border-b border-gray-200">
+          <div className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
+            response.success
+              ? 'bg-green-50 text-green-700'
+              : 'bg-red-50 text-red-700'
+          }`}>
+            {response.statusCode} {response.success ? 'Success' : 'Error'}
+          </div>
+          <div className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium">
+            {response.responseTime}ms
+          </div>
+          <div className="px-3 py-1.5 rounded-lg bg-gray-50 text-gray-700 text-xs font-medium">
+            {response.message}
+          </div>
+        </div>
+      )}
+
+      {/* Content based on active tab - Scrollable */}
       {activeTab === 'table' ? (
-        /* Table using shadcn components */
-        <div className="bg-white border border-gray-200 rounded-2xl flex-1 overflow-hidden">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-white">
-                  <TableHead className="w-[120px] sm:w-[205px] text-sm font-normal text-gray-800">
-                    Field
-                  </TableHead>
-                  <TableHead className="w-[100px] sm:w-[194px] text-sm font-normal text-gray-800">
-                    Value
-                  </TableHead>
-                  <TableHead className="text-sm font-normal text-gray-800">
-                    Description
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tableData.map((row, index) => (
-                  <TableRow key={index} className="bg-gray-50">
-                    <TableCell className="w-[120px] sm:w-[205px] text-sm font-normal text-gray-400">
-                      {row.field}
-                    </TableCell>
-                    <TableCell className={`w-[100px] sm:w-[194px] text-sm font-normal ${row.valueColor}`}>
-                      {row.value}
-                    </TableCell>
-                    <TableCell className="text-sm font-normal text-gray-400">
-                      {row.description}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+        /* Table using shadcn components - Dynamic rendering from old dashboard */
+        <div className="flex-1 min-h-0 overflow-hidden px-4 pb-4">
+          <div className="bg-white border border-gray-200 rounded-2xl h-full overflow-y-auto">
+            {response ? (
+              <Table>
+                <TableBody>
+                  {renderTableRows(parsedData)}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="flex items-center justify-center p-8 text-gray-400 text-sm">
+                No response data available
+              </div>
+            )}
           </div>
         </div>
       ) : (
         /* JSON view */
-        <div className="bg-gray-50 border border-gray-200 rounded-2xl flex-1 overflow-hidden">
-          <div className="flex flex-col h-full p-4">
-            {/* Copy button */}
-            <div className="flex justify-end mb-4">
+        <div className="flex-1 min-h-0 overflow-hidden px-4 pb-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl h-full flex flex-col overflow-hidden">
+            {/* Copy button - Sticky at top */}
+            <div className="flex justify-end p-4 border-b border-gray-200 bg-gray-50 sticky top-0 z-10">
               <button
                 onClick={handleCopyJson}
-                className="bg-white border border-gray-200 rounded px-4 py-2 flex items-center gap-1"
+                className="bg-white border border-gray-200 rounded px-4 py-2 flex items-center gap-1 hover:bg-gray-50 transition-colors"
               >
-                <span className="text-xs font-medium text-gray-400">Copy</span>
+                <span className="text-xs font-medium text-gray-600">Copy</span>
                 <div className="w-4 h-4 flex items-center justify-center">
-                  <Copy className="w-4 h-4 text-gray-400 ml-[2px]" />
+                  <Copy className="w-4 h-4 text-gray-600 ml-[2px]" />
                 </div>
               </button>
             </div>
 
-            {/* JSON content */}
-            <div className="flex-1 font-mono text-xs sm:text-sm text-gray-400 leading-6 overflow-auto">
-              <pre className="whitespace-pre-wrap">
-                <span className="text-gray-400">{"{ "}</span>
-                <br />
-                <span className="text-gray-400">  "status": "</span><span className="text-green-600">success</span><span className="text-gray-400">", </span>
-                <br />
-                <span className="text-gray-400">  "message": "Verification Successful", </span>
-                <br />
-                <span className="text-gray-400">  "data": {"{ "}</span>
-                <br />
-                <span className="text-gray-400">    "full_name": "John Doe", </span>
-                <br />
-                <span className="text-gray-400">    "pan_number": "ABCDE1234F", </span>
-                <br />
-                <span className="text-gray-400">    "gender": "Male", </span>
-                <br />
-                <span className="text-gray-400">    "date_of_birth": "1980-01-01", </span>
-                <br />
-                <span className="text-gray-400">    "category": "Individual", </span>
-                <br />
-                <span className="text-gray-400">    "verified_on": "2025-09-24T14:48:00Z", </span>
-                <br />
-                <span className="text-gray-400">    "verification_status": "</span><span className="text-green-600">KYC Completed</span><span className="text-gray-400">" </span>
-                <br />
-                <span className="text-gray-400">  {"} "}</span>
-                <br />
-                <span className="text-gray-400">{"} "}</span>
-              </pre>
+            {/* JSON content - Scrollable */}
+            <div className="flex-1 overflow-auto p-4">
+              {response ? (
+                <pre className="whitespace-pre-wrap text-gray-700 text-xs sm:text-sm leading-6">
+                  {JSON.stringify(parsedData, null, 2)}
+                </pre>
+              ) : (
+                <div className="flex items-center justify-center p-8 text-gray-400 text-sm">
+                  No response data available
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -215,23 +291,21 @@ const ApiResponseModal = ({ isOpen, onClose, response }: ApiResponseModalProps) 
 
   return (
     <>
-      {/* Desktop Modal */}
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[80vh] h-[468px] w-[776px] overflow-hidden p-0 hidden sm:block">
-          <div className="bg-white border border-gray-200 rounded-2xl w-full h-full">
+      {isMobile ? (
+        /* Mobile Bottom Sheet */
+        <Sheet open={isOpen} onOpenChange={onClose}>
+          <SheetContent side="bottom" className="h-[80vh] p-0 flex flex-col">
             <ModalContent />
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Mobile Bottom Sheet */}
-      <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent side="bottom" className="h-[80vh] p-0 sm:hidden">
-          <div className="bg-white border border-gray-200 rounded-t-2xl w-full h-full">
+          </SheetContent>
+        </Sheet>
+      ) : (
+        /* Desktop Modal */
+        <Dialog open={isOpen} onOpenChange={onClose}>
+          <DialogContent className="max-w-4xl w-[776px] h-[80vh] max-h-[600px] overflow-hidden p-0 flex flex-col">
             <ModalContent />
-          </div>
-        </SheetContent>
-      </Sheet>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   )
 }

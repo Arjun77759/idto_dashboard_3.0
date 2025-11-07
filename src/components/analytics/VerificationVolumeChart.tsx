@@ -3,18 +3,62 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts'
 import { Calendar } from 'lucide-react'
-
-// Sample data for the chart
-const chartData = [
-  { month: 'Jan', volume: 1200 },
-  { month: 'Feb', volume: 1900 },
-  { month: 'Mar', volume: 3000 },
-  { month: 'Apr', volume: 2800 },
-  { month: 'May', volume: 1890 },
-  { month: 'Jun', volume: 2390 },
-]
+import { useUsageVolumeTimeseries } from '@/hooks/useUsageVolumeTimeseries'
+import { useMemo } from 'react'
+import { useAnalyticsFilters } from '@/contexts/AnalyticsFilterContext'
+import { differenceInMonths } from 'date-fns'
 
 const VerificationVolumeChart = () => {
+  const { filters } = useAnalyticsFilters()
+  
+  // Calculate months back from date range filter (default to 6 months as per requirements)
+  const monthsBack = useMemo(() => {
+    if (filters.dateRange?.from && filters.dateRange?.to) {
+      const months = differenceInMonths(filters.dateRange.to, filters.dateRange.from)
+      return Math.max(1, Math.ceil(months))
+    }
+    return 6 // Default to 6 months as per requirements
+  }, [filters.dateRange])
+
+  // TODO: Pass additional filters to API hook when backend supports filtering
+  // const { data, loading, error } = useUsageVolumeTimeseries(monthsBack, filters)
+  const { data, loading, error } = useUsageVolumeTimeseries(monthsBack)
+
+  // Log current filter state for debugging
+  console.log('VerificationVolumeChart filters:', filters, 'monthsBack:', monthsBack)
+
+  // Format month labels to shorter version (e.g., "July 2025" -> "Jul '25")
+  const formatMonth = (monthYear: string) => {
+    try {
+      const [month, year] = monthYear.split(' ')
+      const shortMonth = month.substring(0, 3) // First 3 letters
+      const shortYear = year.substring(2) // Last 2 digits
+      return `${shortMonth} '${shortYear}`
+    } catch {
+      return monthYear
+    }
+  }
+
+  // Calculate date range from data for badge display
+  const dateRange = useMemo(() => {
+    if (data.length === 0) return 'Jan 2025 - Aug 2025'
+    const firstMonth = data[0].month
+    const lastMonth = data[data.length - 1].month
+    
+    // Format to short version (e.g., "July 2025" -> "Jul 2025")
+    const formatShort = (monthYear: string) => {
+      try {
+        const [month, year] = monthYear.split(' ')
+        const shortMonth = month.substring(0, 3)
+        return `${shortMonth} ${year}`
+      } catch {
+        return monthYear
+      }
+    }
+    
+    return `${formatShort(firstMonth)} - ${formatShort(lastMonth)}`
+  }, [data])
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -30,13 +74,24 @@ const VerificationVolumeChart = () => {
             </h3>
           </div>
           <Badge variant="outline" className="flex items-center gap-1 px-2 py-0 h-auto text-xs text-[#9296a0] font-medium tracking-[-0.12px] border-0 bg-transparent">
-            <span>Jan 2025 - Aug 2025</span>
+            <span>{dateRange}</span>
             <Calendar className="h-4 w-4" />
           </Badge>
         </CardHeader>
         <CardContent className="h-[202px] p-0 px-6 pb-6 relative top-5">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 10, right: 15, left: 15, bottom: 20 }}>
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="w-full h-32 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-sm text-red-600 px-2 text-center">
+                {typeof error === 'string' ? error : 'Failed to load chart data'}
+              </div>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data} margin={{ top: 10, right: 15, left: 15, bottom: 20 }}>
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="#f0f0f0"
@@ -47,6 +102,7 @@ const VerificationVolumeChart = () => {
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 12, fill: '#616675' }}
+                tickFormatter={formatMonth}
                 interval={0}
               />
               <YAxis
@@ -61,10 +117,11 @@ const VerificationVolumeChart = () => {
                   color: '#616675'
                 }}
                 labelStyle={{ color: '#616675', fontSize: '12px' }}
+                formatter={(value: number) => [`${value}`, 'Volume']}
               />
               <Line
                 type="monotone"
-                dataKey="volume"
+                dataKey="count"
                 stroke="#3b82f6"
                 strokeWidth={2}
                 dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
@@ -72,6 +129,7 @@ const VerificationVolumeChart = () => {
               />
             </LineChart>
           </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
     </motion.div>

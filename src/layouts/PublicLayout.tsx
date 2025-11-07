@@ -1,7 +1,8 @@
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, Navigate } from 'react-router-dom'
+import { getAccessToken } from '@/lib/auth'
 
 // Image assets from Figma
 const imgImage1 = "https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/public1.png"
@@ -24,6 +25,10 @@ const carouselImages = [
 ]
 
 const PublicLayout = () => {
+  const token = getAccessToken()
+  if (token) {
+    return <Navigate to="/dashboard" replace />
+  }
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
   const [count, setCount] = useState(0)

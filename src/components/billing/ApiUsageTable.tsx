@@ -1,38 +1,19 @@
 import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { useUsageMonthly } from '@/hooks/useUsageMonthly'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const ApiUsageTable = () => {
-  const apiUsageData = [
-    {
-      name: "Digilocker Initiate Session",
-      calls: 6,
-      perUnitCost: "₹0",
-      cost: "₹0"
-    },
-    {
-      name: "Pan Nsdl",
-      calls: 8,
-      perUnitCost: "₹1",
-      cost: "₹7"
-    },
-    {
-      name: "Pan Verification",
-      calls: 7,
-      perUnitCost: "₹1",
-      cost: "₹8"
-    },
-    {
-      name: "Mobile Verify OTP",
-      calls: 11,
-      perUnitCost: "₹1.5",
-      cost: "₹10.5"
-    },
-    {
-      name: "Pan All In One",
-      calls: 7,
-      perUnitCost: "₹1.5",
-      cost: "₹7"
-    }
-  ]
+  const { data, loading, error } = useUsageMonthly()
+  const [showAll, setShowAll] = useState(false)
+
+  // Transform snake_case to Title Case
+  const formatApiName = (name: string): string => {
+    return name
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+  }
 
   return (
     <motion.div
@@ -46,9 +27,12 @@ const ApiUsageTable = () => {
           <p className="relative shrink-0">
             API Usage
           </p>
-          <p className="relative shrink-0">
-            View all
-          </p>
+          <button
+            onClick={() => setShowAll((v) => !v)}
+            className="relative shrink-0 hover:text-[#131b31]"
+          >
+            {showAll ? 'Show less' : 'View all'}
+          </button>
         </div>
 
         <div className="bg-[#f7f7f8] border border-[#e7e8ea] border-solid relative rounded-md shrink-0 w-full overflow-x-auto">
@@ -91,12 +75,49 @@ const ApiUsageTable = () => {
             </div>
 
             {/* Table Rows */}
-            {apiUsageData.map((row, index) => (
+            {loading && (
+              Array.from({ length: 5 }).map((_, index) => (
+                <div key={`sk-${index}`} className="bg-[#f7f7f8] flex items-start relative shrink-0 w-full">
+                  <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[205px]">
+                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-[205px] flex items-center pl-4">
+                      <Skeleton className="h-4 w-40" />
+                    </div>
+                  </div>
+                  <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[76px]">
+                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-[76px] flex items-center pl-4">
+                      <Skeleton className="h-4 w-10" />
+                    </div>
+                  </div>
+                  <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[96px]">
+                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-[96px] flex items-center pl-4">
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                  </div>
+                  <div className="h-10 overflow-hidden relative shrink-0 w-[77px] flex items-center pl-4">
+                    <Skeleton className="h-4 w-10" />
+                  </div>
+                  <div className="grow h-10 min-h-0 min-w-px overflow-hidden relative shrink-0">
+                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+                  </div>
+                </div>
+              ))
+            )}
+            {error && !loading && (
+              <div className="p-3 text-sm text-red-600">
+                {typeof error === 'string' ? error : 'Failed to load API usage'}
+              </div>
+            )}
+            {!loading && !error && data.length === 0 && (
+              <div className="flex items-center justify-center p-8 text-sm text-[#9296a0] w-full">
+                No data available
+              </div>
+            )}
+            {!loading && !error && data.length > 0 && (showAll ? data : data.slice(0, 5)).map((row, index) => (
               <div key={index} className="bg-[#f7f7f8] flex items-start relative shrink-0 w-full">
                 <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[205px]">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-[205px]">
                     <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px]">
-                      {row.name}
+                      {formatApiName(row.api_name)}
                     </p>
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>
@@ -104,7 +125,7 @@ const ApiUsageTable = () => {
                 <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[76px]">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-[76px]">
                     <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px]">
-                      {row.calls}
+                      {row.number_of_transactions}
                     </p>
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>
@@ -112,14 +133,14 @@ const ApiUsageTable = () => {
                 <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[96px]">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-[96px]">
                     <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px]">
-                      {row.perUnitCost}
+                      ₹{row.unit_price.toFixed(2)}
                     </p>
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>
                 </div>
                 <div className="h-10 overflow-hidden relative shrink-0 w-[77px]">
                   <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px]">
-                    {row.cost}
+                    ₹{row.total_cost.toFixed(2)}
                   </p>
                   <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                 </div>

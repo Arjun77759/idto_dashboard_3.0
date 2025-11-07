@@ -1,101 +1,53 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import TransactionsPageHeader from '@/components/transactions/TransactionsPageHeader'
 import TransactionsStatsGrid from '@/components/transactions/TransactionsStatsGrid'
 import TransactionsFilters from '@/components/transactions/TransactionsFilters'
 import TransactionsTable from '@/components/transactions/TransactionsTable'
 
-// Sample transaction data
-const transactions = [
-  {
-    id: '29100214155...',
-    type: 'OKYC Verification',
-    date: '04/17/23  16:56:07',
-    status: 'Success',
-    statusColor: '#3ac828'
-  },
-  {
-    id: '29100214155...',
-    type: 'OKYC Verification', 
-    date: '04/17/23  16:56:07',
-    status: 'Success',
-    statusColor: '#3ac828'
-  },
-  {
-    id: '29100214155...',
-    type: 'OKYC Verification',
-    date: '04/17/23  16:56:07', 
-    status: 'Success',
-    statusColor: '#3ac828'
-  },
-  {
-    id: '29100214155...',
-    type: 'OKYC Verification',
-    date: '04/17/23  16:56:07',
-    status: 'Success', 
-    statusColor: '#3ac828'
-  },
-  {
-    id: '29100214155...',
-    type: 'OKYC Verification',
-    date: '04/17/23  16:56:07',
-    status: 'Success',
-    statusColor: '#3ac828'
-  },
-  {
-    id: '29100214155...',
-    type: 'OKYC Verification',
-    date: '04/17/23  16:56:07',
-    status: 'Success',
-    statusColor: '#3ac828'
-  },
-  {
-    id: '29100214155...',
-    type: 'OKYC Verification',
-    date: '04/17/23  16:56:07',
-    status: 'Success',
-    statusColor: '#3ac828'
-  },
-  {
-    id: '29100214155...',
-    type: 'OKYC Verification',
-    date: '04/17/23  16:56:07',
-    status: 'Success',
-    statusColor: '#3ac828'
-  },
-  {
-    id: '29100214155...',
-    type: 'OKYC Verification',
-    date: '04/17/23  16:56:07',
-    status: 'Success',
-    statusColor: '#3ac828'
-  },
-  {
-    id: '29100214155...',
-    type: 'OKYC Verification',
-    date: '04/17/23  16:56:07',
-    status: 'Success',
-    statusColor: '#3ac828'
-  }
-]
-
 const TransactionsPage = () => {
   const navigate = useNavigate()
-
-  const handleViewDetails = (transactionId: string) => {
-    navigate(`/transactions/${transactionId}`)
-  }
+  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [dateFilter, setDateFilter] = useState<any>(undefined)
+  const [documentTypeFilter, setDocumentTypeFilter] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<string>('')
+  const [locationFilter, setLocationFilter] = useState<string>('')
 
   const handleExportCsv = () => {
-    console.log('Export CSV')
+    console.log('Export CSV clicked')
   }
 
   const handleDownloadReport = () => {
-    console.log('Download Report')
+    console.log('Download Report clicked')
   }
 
   const handleReset = () => {
-    console.log('Reset filters')
+    console.log('Reset filters clicked')
+  }
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query)
+  }
+
+  const handleDateChange = (date: any) => {
+    setDateFilter(date)
+  }
+
+  const handleDocumentTypeChange = (type: string) => {
+    setDocumentTypeFilter(type)
+  }
+
+  const handleStatusChange = (status: string) => {
+    setStatusFilter(status)
+  }
+
+  const handleLocationChange = (location: string) => {
+    setLocationFilter(location)
+  }
+
+  const handleViewDetails = (transactionId: string) => {
+    navigate(`/transactions/${transactionId}`)
   }
 
   return (
@@ -115,10 +67,19 @@ const TransactionsPage = () => {
             onExportCsv={handleExportCsv}
             onDownloadReport={handleDownloadReport}
             onReset={handleReset}
+            onSearchChange={handleSearchChange}
+            onDateChange={handleDateChange}
+            onDocumentTypeChange={handleDocumentTypeChange}
+            onStatusChange={handleStatusChange}
+            onLocationChange={handleLocationChange}
           />
           <TransactionsTable 
-            transactions={transactions}
             onViewDetails={handleViewDetails}
+            searchQuery={searchQuery}
+            dateFilter={dateFilter}
+            documentTypeFilter={documentTypeFilter}
+            statusFilter={statusFilter}
+            locationFilter={locationFilter}
           />
         </div>
       </div>

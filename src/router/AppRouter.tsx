@@ -8,10 +8,12 @@ import DashboardPage from '../pages/DashboardPage'
 import HomePage from '../pages/HomePage'
 import LoginPage from '../pages/LoginPage'
 import RegisterPage from '../pages/RegisterPage'
+import CheckInboxPage from '../pages/CheckInboxPage'
 import SettingsPage from '../pages/SettingsPage'
 import TransactionDetailPage from '../pages/TransactionDetailPage'
 import TransactionsPage from '../pages/TransactionsPage'
 import UsersPage from '../pages/UsersPage'
+import CreatePassword from '@/pages/CreatePassword'
 
 // Refactored route configuration for better readability and maintainability
 const publicRoutes = [
@@ -30,6 +32,14 @@ const publicRoutes = [
   {
     path: 'register',
     element: <RegisterPage />
+  },
+  {
+    path: 'check-inbox',
+    element: <CheckInboxPage />
+  },
+  {
+    path: 'create-password',
+    element: <CreatePassword />
   }
 ]
 
@@ -51,13 +61,19 @@ const dashboardRoutes = [
   {
     index: true,
     element: <DashboardPage />
-  },
+  }
+]
+
+const usersRoutes = [
   {
-    path: 'users',
+    index: true,
     element: <UsersPage />
-  },
+  }
+]
+
+const settingsRoutes = [
   {
-    path: 'settings',
+    index: true,
     element: <SettingsPage />
   }
 ]
@@ -100,6 +116,16 @@ const router = createBrowserRouter([
     path: '/dashboard',
     element: <PrivateLayout />,
     children: dashboardRoutes,
+  },
+  {
+    path: '/users',
+    element: <PrivateLayout />,
+    children: usersRoutes,
+  },
+  {
+    path: '/settings',
+    element: <PrivateLayout />,
+    children: settingsRoutes,
   },
   {
     path: '/api-testing',

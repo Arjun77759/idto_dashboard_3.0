@@ -3,24 +3,71 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts'
 import { Calendar } from 'lucide-react'
-
-// Sample data for the chart - based on the heights from the original design
-const chartData = [
-  { month: 'Jan', transactions: 380 },
-  { month: 'Feb', transactions: 660 },
-  { month: 'Mar', transactions: 550 },
-  { month: 'Apr', transactions: 550 },
-  { month: 'May', transactions: 420 },
-  { month: 'Jun', transactions: 780 },
-  { month: 'Jul', transactions: 840 },
-  { month: 'Aug', transactions: 340 },
-  { month: 'Sep', transactions: 800 },
-  { month: 'Oct', transactions: 710 },
-  { month: 'Nov', transactions: 930 },
-  { month: 'Dec', transactions: 1000 },
-]
+import { useUsageVolumeTimeseries } from '@/hooks/useUsageVolumeTimeseries'
+import { useMemo } from 'react'
+import { useAnalyticsFilters } from '@/contexts/AnalyticsFilterContext'
+import { differenceInMonths } from 'date-fns'
 
 const MonthlyTransactionsChart = () => {
+  const { filters } = useAnalyticsFilters()
+  
+  // Calculate months back from date range filter (default to 6 months as per requirements)
+  const monthsBack = useMemo(() => {
+    if (filters.dateRange?.from && filters.dateRange?.to) {
+      const months = differenceInMonths(filters.dateRange.to, filters.dateRange.from)
+      return Math.max(1, Math.ceil(months))
+    }
+    return 6 // Default to 6 months as per requirements
+  }, [filters.dateRange])
+
+  // TODO: Pass additional filters to API hook when backend supports filtering
+  // const { data: volumeData, loading, error } = useUsageVolumeTimeseries(monthsBack, filters)
+  const { data: volumeData, loading, error } = useUsageVolumeTimeseries(monthsBack)
+
+  // Log current filter state for debugging
+  console.log('MonthlyTransactionsChart filters:', filters, 'monthsBack:', monthsBack)
+
+  // Format month labels to shorter version (e.g., "July 2025" -> "Jul '25")
+  const formatMonth = (monthYear: string) => {
+    try {
+      const [month, year] = monthYear.split(' ')
+      const shortMonth = month.substring(0, 3) // First 3 letters
+      const shortYear = year.substring(2) // Last 2 digits
+      return `${shortMonth} '${shortYear}`
+    } catch {
+      return monthYear
+    }
+  }
+
+  // Calculate date range from data for badge display
+  const dateRange = useMemo(() => {
+    if (volumeData.length === 0) return 'Jan 2025 - Aug 2025'
+    const firstMonth = volumeData[0].month
+    const lastMonth = volumeData[volumeData.length - 1].month
+    
+    // Format to short version (e.g., "July 2025" -> "Jul 2025")
+    const formatShort = (monthYear: string) => {
+      try {
+        const [month, year] = monthYear.split(' ')
+        const shortMonth = month.substring(0, 3)
+        return `${shortMonth} ${year}`
+      } catch {
+        return monthYear
+      }
+    }
+    
+    return `${formatShort(firstMonth)} - ${formatShort(lastMonth)}`
+  }, [volumeData])
+
+  // Map volume data to transactions format
+  const chartData = useMemo(() => 
+    volumeData.map(item => ({ 
+      month: item.month, 
+      transactions: item.count 
+    })),
+    [volumeData]
+  )
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -36,13 +83,24 @@ const MonthlyTransactionsChart = () => {
             </h3>
           </div>
           <Badge variant="outline" className="flex items-center gap-1 px-2 py-0 h-auto text-xs text-[#9296a0] font-medium tracking-[-0.12px] border-0 bg-transparent">
-            <span>Jan 2025 - Aug 2025</span>
+            <span>{dateRange}</span>
             <Calendar className="h-4 w-4" />
           </Badge>
         </CardHeader>
         <CardContent className="h-[172px] p-0 relative -left-5 top-5">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="w-full h-32 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-sm text-red-600 px-2 text-center">
+                {typeof error === 'string' ? error : 'Failed to load chart data'}
+              </div>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
               <defs>
                 <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#54eebe" />
@@ -60,6 +118,7 @@ const MonthlyTransactionsChart = () => {
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 11, fill: '#949494', fontFamily: 'Roboto', fontWeight: 500 }}
+                tickFormatter={formatMonth}
                 interval={0}
               />
               <YAxis 
@@ -88,6 +147,7 @@ const MonthlyTransactionsChart = () => {
               />
             </BarChart>
           </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
     </motion.div>

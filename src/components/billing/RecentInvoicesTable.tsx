@@ -1,21 +1,61 @@
 import { motion } from 'framer-motion'
-import { Search, FileSpreadsheet, Download, Calendar, ChevronDown, RotateCcw } from 'lucide-react'
+import { Search, FileSpreadsheet, Download, Calendar, RotateCcw } from 'lucide-react'
+import { useRecentInvoices } from '@/hooks/useRecentInvoices'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useMemo, useState } from 'react'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const RecentInvoicesTable = () => {
-  const invoiceData = [
-    {
-      id: "Inv-2023-001",
-      date: "04/17/23  16:56:07",
-      status: "Paid",
-      amount: "Rs 1500"
-    },
-    {
-      id: "Inv-2023-002",
-      date: "04/17/23  16:56:07",
-      status: "Paid",
-      amount: "Rs 2800"
+  const { data: invoiceData, loading, error } = useRecentInvoices(50)
+  const [search, setSearch] = useState('')
+  const [status, setStatus] = useState<'all' | 'Paid' | 'Unpaid' | 'Pending'>('all')
+  const [amountMin, setAmountMin] = useState('')
+  const [amountMax, setAmountMax] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+
+  const resetFilters = () => {
+    setSearch('')
+    setStatus('all')
+    setAmountMin('')
+    setAmountMax('')
+    setDateFrom('')
+    setDateTo('')
+  }
+
+  const filtered = useMemo(() => {
+    const normAmount = (amountStr: string | undefined) => {
+      if (!amountStr) return 0
+      const n = amountStr.replace(/[^0-9.]/g, '')
+      return parseFloat(n || '0')
     }
-  ]
+    const parseDate = (str: string | undefined) => {
+      if (!str) return null
+      const d = Date.parse(str.replace(/\s+/g, ' '))
+      return isNaN(d) ? null : new Date(d)
+    }
+    return (invoiceData || []).filter((inv) => {
+      if (search && !inv.id.toLowerCase().includes(search.toLowerCase())) return false
+      if (status !== 'all' && inv.status !== status) return false
+      const amt = normAmount(inv.amount)
+      if (amountMin && amt < parseFloat(amountMin)) return false
+      if (amountMax && amt > parseFloat(amountMax)) return false
+      const d = parseDate(inv.date_time)
+      if (d) {
+        if (dateFrom) {
+          const from = new Date(dateFrom)
+          if (d < from) return false
+        }
+        if (dateTo) {
+          const to = new Date(dateTo)
+          to.setHours(23, 59, 59, 999)
+          if (d > to) return false
+        }
+      }
+      return true
+    })
+  }, [invoiceData, search, status, amountMin, amountMax, dateFrom, dateTo])
 
   const handleExportCSV = () => {
     console.log('Export CSV')
@@ -44,13 +84,11 @@ const RecentInvoicesTable = () => {
         {/* Search and Action Bar */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-0 relative rounded shrink-0 w-full">
           <div className="flex flex-row items-center self-stretch w-full sm:w-auto">
-            <div className="bg-white border border-[#e7e8ea] border-solid flex h-full items-center justify-between px-4 py-2 relative rounded-lg shrink-0 w-full sm:w-[500px]">
-              <div className="flex gap-2 items-center relative shrink-0">
-                <p className="font-normal leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
-                  Search for Id, name product etc
-                </p>
+            <div className="bg-white border border-[#e7e8ea] border-solid flex h-full items-center justify-between pl-3 pr-2 py-2 relative rounded-lg shrink-0 w-full sm:w-[500px]">
+              <div className="flex gap-2 items-center relative shrink-0 w-full">
+                <Search className="size-4 text-[#9296a0]" />
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by invoice id" className="h-7 border-0 focus-visible:ring-0 text-[12px] px-0" />
               </div>
-              <Search className="size-6 text-[#9296a0]" />
             </div>
           </div>
           <div className="flex flex-wrap gap-2 sm:gap-3 items-center relative shrink-0 w-full sm:w-auto">
@@ -85,36 +123,44 @@ const RecentInvoicesTable = () => {
         <div className="flex flex-wrap gap-2 h-auto sm:h-10 items-center justify-between relative shrink-0 w-full">
           <div className="flex flex-wrap gap-2 h-full items-center min-h-0 min-w-px relative shrink-0">
             <div className="bg-white border border-[#e7e8ea] border-solid h-10 relative rounded-lg shrink-0">
-              <div className="flex gap-2 h-full items-center justify-center overflow-hidden px-2 py-3.5 relative rounded-[inherit]">
-                <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
-                  Sep 9, 2024 - Sep 15, 2024
-                </p>
+              <div className="flex gap-2 h-full items-center justify-center overflow-hidden px-2 py-2 relative rounded-[inherit]">
                 <Calendar className="size-4 text-[#9296a0]" />
+                <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-7 w-[140px] text-[12px]" />
+                <span className="text-[#9296a0] text-[12px]">-</span>
+                <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-7 w-[140px] text-[12px]" />
               </div>
             </div>
             <div className="bg-white border border-[#e7e8ea] border-solid h-10 relative rounded-lg shrink-0">
-              <div className="flex gap-2 h-full items-center justify-center overflow-hidden px-2 py-3.5 relative rounded-[inherit]">
-                <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
-                  Status
-                </p>
-                <ChevronDown className="size-4 text-[#9296a0]" />
+              <div className="flex gap-2 h-full items-center justify-center overflow-hidden px-2 py-2 relative rounded-[inherit] w-[180px]">
+                <Select value={status} onValueChange={(v) => setStatus(v as any)}>
+                  <SelectTrigger className="h-7 text-[12px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="Paid">Paid</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Unpaid">Unpaid</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="bg-white border border-[#e7e8ea] border-solid h-10 relative rounded-lg shrink-0">
-              <div className="flex gap-2 h-full items-center justify-center overflow-hidden px-2 py-3.5 relative rounded-[inherit]">
-                <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
-                  Amount
-                </p>
-                <ChevronDown className="size-4 text-[#9296a0]" />
+              <div className="flex gap-2 h-full items-center justify-center overflow-hidden px-2 py-2 relative rounded-[inherit]">
+                <span className="text-[12px] text-[#9296a0]">Amount</span>
+                <Input placeholder="Min" value={amountMin} onChange={(e) => setAmountMin(e.target.value)} className="h-7 w-20 text-[12px]" />
+                <Input placeholder="Max" value={amountMax} onChange={(e) => setAmountMax(e.target.value)} className="h-7 w-20 text-[12px]" />
               </div>
             </div>
           </div>
           <div className="border border-[#e7e8ea] border-solid h-10 relative rounded-lg shrink-0">
             <div className="flex gap-1 h-full items-center justify-center overflow-hidden px-2 py-3.5 relative rounded-[inherit]">
-              <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
-                Reset
-              </p>
-              <RotateCcw className="size-4 text-[#9296a0]" />
+              <button onClick={resetFilters} className="flex items-center gap-1">
+                <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
+                  Reset
+                </p>
+                <RotateCcw className="size-4 text-[#9296a0]" />
+              </button>
             </div>
           </div>
         </div>
@@ -172,7 +218,46 @@ const RecentInvoicesTable = () => {
             </div>
 
             {/* Table Rows */}
-            {invoiceData.map((invoice, index) => (
+            {loading && (
+              Array.from({ length: 6 }).map((_, index) => (
+                <div key={`sk-${index}`} className="flex items-start relative shrink-0 w-full">
+                  <div className="h-10 overflow-hidden relative shrink-0 w-12">
+                    <div className="absolute bg-[#f7f7f8] border border-[#9296a0] border-solid left-1/2 rounded top-3 size-4 translate-x-[-50%]" />
+                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+                  </div>
+                  <div className="grow h-10 min-h-0 min-w-px relative shrink-0">
+                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-full flex items-center pl-0">
+                      <Skeleton className="h-4 w-40" />
+                    </div>
+                  </div>
+                  <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[265px]">
+                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-[265px] flex items-center pl-4">
+                      <Skeleton className="h-4 w-44" />
+                    </div>
+                  </div>
+                  <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[171px]">
+                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-[171px] flex items-center pl-4">
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  </div>
+                  <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[208px]">
+                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-[208px] flex items-center pl-4">
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  </div>
+                  <div className="h-10 overflow-hidden relative shrink-0 w-[130px] flex items-center justify-center">
+                    <Skeleton className="h-6 w-20 rounded-lg" />
+                  </div>
+                  <div className="h-10 overflow-hidden relative shrink-0 w-[29px]">
+                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+                  </div>
+                </div>
+              ))
+            )}
+            {error && !loading ? (
+              <div className="p-3 text-sm text-red-600">{error}</div>
+            ) : null}
+            {!loading && filtered.map((invoice, index) => (
               <div key={index} className="flex items-start relative shrink-0 w-full">
                 <div className="h-10 overflow-hidden relative shrink-0 w-12">
                   <div className="absolute bg-[#f7f7f8] border border-[#9296a0] border-solid left-1/2 rounded top-3 size-4 translate-x-[-50%]" />
@@ -189,7 +274,12 @@ const RecentInvoicesTable = () => {
                 <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[265px]">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-[265px]">
                     <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px] whitespace-pre-wrap">
-                      {invoice.date}
+                      {invoice.date_time ? (() => {
+                        const [date, time] = invoice.date_time.split(' ')
+                        const [year, month, day] = date.split('-')
+                        const shortYear = year.substring(2)
+                        return `${day}/${month}/${shortYear} ${time}`
+                      })() : '-'}
                     </p>
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>
@@ -205,7 +295,7 @@ const RecentInvoicesTable = () => {
                 <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[208px]">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-[208px]">
                     <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px]">
-                      {invoice.amount}
+                      {invoice.amount ? `₹${Math.round(parseFloat(invoice.amount))}` : '₹0'}
                     </p>
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>

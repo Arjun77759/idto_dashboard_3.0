@@ -7,24 +7,26 @@ import DirectorKYCForm from './DirectorKYCForm'
 interface StepFormProps {
   currentStep: string
   onNext: () => void
+  onPrevious?: () => void
+  showPrevious?: boolean
   isLoading?: boolean
 }
 
-const StepForm = ({ currentStep, onNext, isLoading = false }: StepFormProps) => {
+const StepForm = ({ currentStep, onNext, onPrevious, showPrevious = false, isLoading = false }: StepFormProps) => {
   const renderStepForm = () => {
     switch (currentStep) {
       case 'basic-details':
-        return <BasicDetailsForm onNext={onNext} isLoading={isLoading} />
+        return <BasicDetailsForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} />
       case 'business-info':
-        return <BusinessInfoForm onNext={onNext} isLoading={isLoading} />
+        return <BusinessInfoForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} />
       case 'business-pan':
-        return <BusinessPANForm onNext={onNext} isLoading={isLoading} />
+        return <BusinessPANForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} />
       case 'gstin':
-        return <GSTINForm onNext={onNext} isLoading={isLoading} />
+        return <GSTINForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} />
       case 'director-kyc':
-        return <DirectorKYCForm onNext={onNext} isLoading={isLoading} />
+        return <DirectorKYCForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} />
       default:
-        return <BasicDetailsForm onNext={onNext} isLoading={isLoading} />
+        return <BasicDetailsForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} />
     }
   }
 

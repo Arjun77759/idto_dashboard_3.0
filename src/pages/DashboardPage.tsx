@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-import SimulationModeBanner from '@/components/dashboard/SimulationModeBanner'
 import WelcomeSection from '@/components/dashboard/WelcomeSection'
 import StatsGrid from '@/components/dashboard/StatsGrid'
 import ActionCards from '@/components/dashboard/ActionCards'
