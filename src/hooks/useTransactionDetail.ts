@@ -24,30 +24,6 @@ export function useTransactionDetail(traxId: string | undefined) {
 
     let cancelled = false
 
-    const mockData: TransactionDetail = {
-      trax_id: parseInt(traxId) || 1001,
-      api_name: 'PAN Verification',
-      status: 'success',
-      timestamp: '2024-09-09T10:30:00Z',
-      turn_around_time: '2.1s',
-      request_details: {
-        pan_number: 'ABCDE1234F',
-        name: 'John Doe',
-        dob: '1980-01-01',
-        consent: true
-      },
-      response_details: {
-        status: 'Success',
-        full_name: 'JOHN DOE',
-        pan_number: 'ABCDE1234F',
-        gender: 'Male',
-        date_of_birth: '01/01/1980',
-        category: 'Individual',
-        verification_status: 'Verified',
-        message: 'PAN details verified successfully'
-      }
-    }
-
     async function fetchTransactionDetail() {
       try {
         setLoading(true)
@@ -72,14 +48,8 @@ export function useTransactionDetail(traxId: string | undefined) {
           setData(data)
         }
       } catch (e: any) {
-        // Fallback to mock when API is missing or failing
-        const useMocks = import.meta.env.VITE_USE_MOCKS === 'true'
         if (!cancelled) {
-          if (useMocks || !data) {
-            setData(mockData)
-          } else {
-            setError(e.message || 'Failed to fetch transaction details')
-          }
+          setError(e.message || 'Failed to fetch transaction details')
         }
       } finally {
         if (!cancelled) setLoading(false)

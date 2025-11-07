@@ -29,24 +29,48 @@ const TransactionDetailPage = () => {
 
     // Extract details from response_details
     const details: { field: string; value: string }[] = []
-    if (transaction.response_details && typeof transaction.response_details === 'object') {
+    
+    // Helper function to convert snake_case to Title Case
+    const toTitleCase = (str: string) => {
+      return str.split('_').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ')
+    }
+
+    // Helper function to safely stringify values
+    const stringifyValue = (value: any): string => {
+      if (value === null || value === undefined) return 'N/A'
+      if (typeof value === 'object') return JSON.stringify(value)
+      return String(value)
+    }
+
+    if (transaction.response_details && typeof transaction.response_details === 'object' && !Array.isArray(transaction.response_details)) {
       Object.entries(transaction.response_details).forEach(([key, value]) => {
-        // Convert snake_case to Title Case
-        const field = key.split('_').map(word => 
-          word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ')
-        
         details.push({
-          field,
-          value: String(value)
+          field: toTitleCase(key),
+          value: stringifyValue(value)
         })
       })
+    }
+
+    // Add fallback details if response_details is empty or not available
+    if (details.length === 0) {
+      details.push(
+        { field: 'Transaction ID', value: transaction.trax_id.toString() },
+        { field: 'API Name', value: toTitleCase(transaction.api_name) },
+        { field: 'Status', value: transaction.status === 'success' ? 'Success' : 'Failed' },
+        { field: 'Timestamp', value: transaction.timestamp }
+      )
+      
+      if (transaction.turn_around_time) {
+        details.push({ field: 'Turn Around Time', value: transaction.turn_around_time })
+      }
     }
 
     return {
       id: transaction.trax_id.toString(),
       date: formattedDate,
-      api: transaction.api_name,
+      api: toTitleCase(transaction.api_name),
       status: transaction.status === 'success' ? 'Success' : 'Failed',
       statusColor,
       details,
@@ -60,12 +84,12 @@ const TransactionDetailPage = () => {
   }
 
   const handleCopyJson = () => {
-    if (formattedData) {
+    if (formattedData && transaction) {
       const jsonData = {
         transaction_id: formattedData.id,
         api: formattedData.api,
-        timestamp: transaction?.timestamp,
-        turn_around_time: transaction?.turn_around_time,
+        timestamp: transaction.timestamp,
+        turn_around_time: transaction.turn_around_time,
         status: formattedData.status,
         request: formattedData.requestData,
         response: formattedData.responseData
