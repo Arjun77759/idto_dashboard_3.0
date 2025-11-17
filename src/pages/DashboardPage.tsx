@@ -4,17 +4,21 @@ import StatsGrid from '@/components/dashboard/StatsGrid'
 import ActionCards from '@/components/dashboard/ActionCards'
 import ChartSection from '@/components/dashboard/ChartSection'
 import InvoicesTable from '@/components/dashboard/InvoicesTable'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 
 const DashboardPage = () => {
+  const { data: onboardingStatus } = useOnboardingStatus()
+  const showWelcomeSection = onboardingStatus ? !onboardingStatus.is_onboarded : true
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="flex flex-col gap-4 sm:gap-5 items-start relative w-full"
+      className="flex flex-col gap-4 sm:gap-5 items-start relative w-full h-full"
     >
       {/* Welcome Section */}
-      <WelcomeSection />
+      {showWelcomeSection && <WelcomeSection />}
 
       {/* Welcome Header */}
       <motion.div

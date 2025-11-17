@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { ArrowUpRight, Play, X } from 'lucide-react'
 
-const LOGO_SRC =
+export const LOGO_SRC =
   'https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/dashboard_2.0/idto_color_logo.png'
 
 const WelcomeSection = () => {
