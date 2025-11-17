@@ -164,9 +164,9 @@ const ActionCards = () => {
 
     const renderPromoCard = (card: ActionCardConfig) => (
         <div className="flex h-full flex-col rounded-2xl border border-[#e7e8ea] bg-white">
-            <div className="relative h-[130px] w-full overflow-hidden rounded-t-2xl bg-[#fff7ea]">
+            <div className="relative h-[48px] w-full overflow-hidden rounded-t-2xl bg-[#fff7ea]" style={{minHeight:'48px'}}>
                 <div className="absolute inset-0 bg-gradient-to-r from-[#fff0d9] via-[#fff7ea] to-[#f8fffb]" />
-                {promoEllipses.map((ellipse) => (
+                {/* {promoEllipses.map((ellipse) => (
                     <img
                         key={ellipse.src}
                         src={ellipse.src}
@@ -175,11 +175,11 @@ const ActionCards = () => {
                         className="absolute h-[26px] w-[26px]"
                         style={ellipse.style}
                     />
-                ))}
+                ))} */}
                 <img
                     src={promoIllustration}
                     alt="SDK preview"
-                    className="absolute right-4 top-2 w-[110px] drop-shadow-[0_12px_24px_rgba(0,0,0,0.18)]"
+                    className="absolute right-4 -top-2 w-[110px] drop-shadow-[0_12px_24px_rgba(0,0,0,0.18)]"
                     loading="lazy"
                 />
             </div>

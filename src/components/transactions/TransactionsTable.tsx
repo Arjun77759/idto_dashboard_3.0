@@ -10,8 +10,9 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useTransactions } from '@/hooks/useTransactions'
-import { format, isWithinInterval, parseISO } from 'date-fns'
+import { format, isWithinInterval } from 'date-fns'
 import { useState, useMemo } from 'react'
+import { parseTransactionTimestamp } from '@/lib/utils'
 
 interface TransactionsTableProps {
   onViewDetails: (transactionId: string) => void
@@ -30,7 +31,7 @@ const TransactionsTable = ({
   statusFilter = '',
   locationFilter = ''
 }: TransactionsTableProps) => {
-  const [selectedRows, setSelectedRows] = useState<number[]>([])
+  const [selectedRows, setSelectedRows] = useState<string[]>([])
   const { data: transactions, loading, error } = useTransactions()
 
   // Client-side filtering for all filter criteria
@@ -41,7 +42,7 @@ const TransactionsTable = ({
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(transaction =>
-        transaction.trax_id.toString().includes(query) ||
+        transaction.trax_id.toLowerCase().includes(query) ||
         transaction.api_name.toLowerCase().includes(query) ||
         transaction.status.toLowerCase().includes(query)
       )
@@ -50,15 +51,15 @@ const TransactionsTable = ({
     // Date range filter
     if (dateFilter?.from && dateFilter?.to) {
       filtered = filtered.filter(transaction => {
-        try {
-          const transactionDate = parseISO(transaction.timestamp)
-          return isWithinInterval(transactionDate, {
-            start: dateFilter.from,
-            end: dateFilter.to
-          })
-        } catch {
-          return true // Keep if date parsing fails
+        const transactionDate = parseTransactionTimestamp(transaction.timestamp)
+        if (!transactionDate) {
+          return true
         }
+
+        return isWithinInterval(transactionDate, {
+          start: dateFilter.from,
+          end: dateFilter.to
+        })
       })
     }
     
@@ -87,8 +88,8 @@ const TransactionsTable = ({
     return filtered
   }, [transactions, searchQuery, dateFilter, documentTypeFilter, statusFilter, locationFilter])
 
-  const handleCopyId = (id: number) => {
-    navigator.clipboard.writeText(id.toString())
+  const handleCopyId = (id: string) => {
+    navigator.clipboard.writeText(id)
   }
 
   const toggleSelectAll = () => {
@@ -99,22 +100,19 @@ const TransactionsTable = ({
     }
   }
 
-  const toggleSelectRow = (id: number) => {
+  const toggleSelectRow = (id: string) => {
     setSelectedRows(prev =>
       prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
     )
   }
 
   const getStatusColor = (status: string) => {
-    return status === 'success' ? '#54eebe' : '#ff4d4f'
+    return status?.toLowerCase() === 'success' ? '#54eebe' : '#ff4d4f'
   }
 
   const formatDateTime = (timestamp: string) => {
-    try {
-      return format(new Date(timestamp), 'MMM d, yyyy h:mm a')
-    } catch {
-      return timestamp
-    }
+    const parsed = parseTransactionTimestamp(timestamp)
+    return parsed ? format(parsed, 'MMM d, yyyy h:mm a') : timestamp
   }
 
   const formatApiName = (apiName: string) => {
@@ -194,7 +192,7 @@ const TransactionsTable = ({
                 </TableCell>
                 <TableCell className="text-center">
                   <Button
-                    onClick={() => onViewDetails(transaction.trax_id.toString())}
+                    onClick={() => onViewDetails(transaction.trax_id)}
                     variant="outline"
                     size="sm"
                     className="h-[29px] px-2 border-[#e7e8ea] text-[12px] text-[#9296a0] hover:bg-[#f7f7f8]"

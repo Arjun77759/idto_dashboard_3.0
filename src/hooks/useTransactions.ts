@@ -2,11 +2,15 @@ import { useEffect, useState } from 'react'
 import http from '@/api/axiosInstance'
 
 export type Transaction = {
-  trax_id: number
+  trax_id: string
   api_name: string
-  status: 'success' | 'failed'
+  status: string
   timestamp: string
-  turn_around_time: string
+  turn_around_time?: string | null
+}
+
+type TransactionApiResponse = Omit<Transaction, 'trax_id'> & {
+  trax_id: string | number
 }
 
 export function useTransactions() {
@@ -20,12 +24,18 @@ export function useTransactions() {
     async function fetchTransactions() {
       try {
         setLoading(true)
+        setError(null)
         
         // Fetch all transactions without filters (client-side filtering approach)
-        const { data } = await http.get<Transaction[]>('/usage/')
+        const { data } = await http.get<TransactionApiResponse[]>('/usage/')
         
         if (!cancelled) {
-          setData(data || [])
+          setData(
+            (data || []).map(transaction => ({
+              ...transaction,
+              trax_id: String(transaction.trax_id)
+            }))
+          )
         }
       } catch (e: any) {
         if (!cancelled) {
