@@ -7,6 +7,7 @@ import {
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { clearAuth } from '@/lib/auth'
+import { resetOnboardingStore } from '@/store/onboardingStore'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
@@ -24,8 +25,8 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LOGO_SRC } from './dashboard/WelcomeSection'
 import SwitchToProductionModal from './modals/switchToProductionModal/SwitchToProductionModal'
+import EnvironmentStatus from '@/components/dashboard/EnvironmentStatus'
 
 interface MenuItem {
   name: string
@@ -51,6 +52,7 @@ const Sidebar = () => {
 
   const handleLogout = () => {
     clearAuth()
+    resetOnboardingStore()
     navigate('/login')
   }
 
@@ -107,30 +109,7 @@ const Sidebar = () => {
       className="bg-white flex flex-col gap-5 items-start px-4 py-6 relative w-full h-screen"
     >
       {/* Environment Header */}
-      {isProduction ? <div className="h-6 sm:h-7 overflow-hidden relative w-[45px] sm:w-[52px]">
-        <img
-          alt="idto logo"
-          className="block max-w-none size-full"
-          src={LOGO_SRC}
-        />
-      </div> : (
-        <div className="flex items-start justify-between px-0 py-1.5 relative w-full">
-          <div className="flex gap-4 items-center relative">
-            <div className="rounded w-[34px] h-[34px] shrink-0"
-              style={{
-                backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 34 34\\' preserveAspectRatio=\\'none\\'><g transform=\\'matrix(-1.0409e-16 -1.7 1.7 -1.0409e-16 17 17)\\'><foreignObject x=\\'-190\\' y=\\'-190\\' width=\\'380\\' height=\\'380\\'><div xmlns=\\'http://www.w3.org/1999/xhtml\\' style=\\'background-image: conic-gradient(from 90deg, rgba(84, 238, 190, 1) 0%, rgba(63, 185, 206, 1) 25%, rgba(42, 132, 223, 1) 50%, rgba(32, 105, 231, 1) 62.5%, rgba(21, 78, 239, 1) 75%, rgba(11, 52, 247, 1) 87.5%, rgba(0, 25, 255, 1) 100%); opacity:1; height: 100%; width: 100%;\\'></div></foreignObject></g></svg>')"
-              }} />
-            <div className="flex flex-col items-start relative">
-              <p className="font-medium leading-[1.4] relative text-[12px] text-[#131b31] tracking-[-0.12px]">
-                Sandbox
-              </p>
-              <p className="font-normal leading-[1.4] relative text-[12px] text-[#9296a0] tracking-[-0.12px]">
-                Simulated Data
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      <EnvironmentStatus variant="header" />
 
       {/* Navigation List */}
       <div className="flex flex-col gap-2 grow items-start min-h-0 min-w-0 relative w-full overflow-y-auto">

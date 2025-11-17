@@ -1,18 +1,17 @@
 import { useState } from 'react'
-import SimulationModeBanner from '@/components/dashboard/SimulationModeBanner'
 import Sidebar from '@/components/Sidebar'
 import { motion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
 import { Outlet, Navigate } from 'react-router-dom'
 import { getAccessToken } from '@/lib/auth'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
+import EnvironmentStatus from '@/components/dashboard/EnvironmentStatus'
 
 const PrivateLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false) // Start closed on mobile
   const token = getAccessToken()
 
-  const { data: onboardingStatus } = useOnboardingStatus({ enabled: Boolean(token) })
-  const showSimulationBanner = onboardingStatus ? !onboardingStatus.is_onboarded : true
+  useOnboardingStatus({ enabled: Boolean(token) })
 
   if (!token) {
     return <Navigate to="/login" replace />
@@ -61,7 +60,7 @@ const PrivateLayout = () => {
             >
               {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
-            {showSimulationBanner && <SimulationModeBanner />}
+            <EnvironmentStatus />
           </div>
           <Outlet />
         </motion.div>

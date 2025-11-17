@@ -31,8 +31,6 @@ let state: OnboardingStoreState = {
   hasFetched: false,
 }
 
-let inflightRequest: Promise<OnboardingStatus | null> | null = null
-
 const setState = (partial: Partial<OnboardingStoreState>) => {
   state = { ...state, ...partial }
   listeners.forEach((listener) => listener())
@@ -54,43 +52,32 @@ export const useOnboardingStore = <T,>(
 }
 
 export const fetchOnboardingStatus = async () => {
-  if (inflightRequest) {
-    return inflightRequest
+  setState({ loading: true, error: null })
+  try {
+    const { data } = await http.get<OnboardingStatus>('/onboard/check')
+    setState({
+      data,
+      loading: false,
+      hasFetched: true,
+      error: null,
+    })
+    return data
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.detail ||
+      error?.response?.data?.message ||
+      error?.message ||
+      'Failed to fetch onboarding status'
+    setState({
+      error: message,
+      loading: false,
+      hasFetched: true,
+    })
+    throw error
   }
-
-  inflightRequest = (async () => {
-    setState({ loading: true, error: null })
-    try {
-      const { data } = await http.get<OnboardingStatus>('/onboard/check')
-      setState({
-        data,
-        loading: false,
-        hasFetched: true,
-        error: null,
-      })
-      return data
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.detail ||
-        error?.response?.data?.message ||
-        error?.message ||
-        'Failed to fetch onboarding status'
-      setState({
-        error: message,
-        loading: false,
-        hasFetched: true,
-      })
-      throw error
-    } finally {
-      inflightRequest = null
-    }
-  })()
-
-  return inflightRequest
 }
 
 export const resetOnboardingStore = () => {
-  inflightRequest = null
   setState({
     data: null,
     loading: false,

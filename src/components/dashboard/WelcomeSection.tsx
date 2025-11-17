@@ -1,10 +1,14 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowUpRight, Play, X } from 'lucide-react'
+import SwitchToProductionModal from '@/components/modals/switchToProductionModal/SwitchToProductionModal'
 
 export const LOGO_SRC =
   'https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/dashboard_2.0/idto_color_logo.png'
 
 const WelcomeSection = () => {
+  const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false)
+
   const handleClose = () => {
     console.log('Close welcome section')
   }
@@ -14,7 +18,12 @@ const WelcomeSection = () => {
   }
 
   const handleSwitchMode = () => {
-    console.log('Switch to live mode')
+    setIsSwitchModalOpen(true)
+  }
+
+  const handleConfirmSwitch = () => {
+    console.log('Confirmed switch to production')
+    setIsSwitchModalOpen(false)
   }
 
   return (
@@ -95,6 +104,11 @@ const WelcomeSection = () => {
           </div>
         </div>
       </div>
+      <SwitchToProductionModal
+        isOpen={isSwitchModalOpen}
+        onClose={() => setIsSwitchModalOpen(false)}
+        onConfirm={handleConfirmSwitch}
+      />
     </motion.div>
   )
 }
