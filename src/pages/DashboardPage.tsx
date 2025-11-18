@@ -15,7 +15,7 @@ const DashboardPage = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="flex flex-col gap-4 sm:gap-5 items-start relative w-full h-full"
+      className="flex flex-col gap-4 sm:gap-5 items-start relative w-full"
     >
       {/* Welcome Section */}
       {showWelcomeSection && <WelcomeSection />}

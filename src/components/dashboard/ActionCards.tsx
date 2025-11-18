@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion'
 import type { LucideIcon } from 'lucide-react'
-import { Plus, Code, FileText, BookOpen, SlidersHorizontal } from 'lucide-react'
+import { BookOpen, Code, FileText, Plus, SlidersHorizontal } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { Skeleton } from '@/components/ui/skeleton'
 import { useUsageCredits } from '@/hooks/useUsageCredits'
+import { useSimulationModeModal } from '@/contexts/SimulationModeModalContext'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 
 type CardButton = {
     label: string
@@ -22,35 +24,23 @@ type ActionCardConfig = {
     renderValue?: () => React.ReactNode
 }
 
-const promoIllustration = 'http://localhost:3845/assets/30d61803687988d01c11fa90a65f5b6251081b07.png'
-const promoEllipses = [
-    {
-        src: 'http://localhost:3845/assets/539b93a63edc520adec0433136d2c6cb165dce7c.svg',
-        style: { left: '55%', top: '30px' }
-    },
-    {
-        src: 'http://localhost:3845/assets/39a7d450570aea0e13ff334931d8527e4cbf9f2d.svg',
-        style: { left: '65%', top: '12px' }
-    },
-    {
-        src: 'http://localhost:3845/assets/cbe46a91bfef6aa3a6a123b716b9413b9d0abd51.svg',
-        style: { left: '78%', top: '30px' }
-    },
-    {
-        src: 'http://localhost:3845/assets/a0f8a4db0fd038289d969688ccc4ba42787b6c92.svg',
-        style: { left: '88%', top: '14px' }
-    },
-    {
-        src: 'http://localhost:3845/assets/af0c91faee4c1d50338bf729b67bfb0309775dd8.svg',
-        style: { left: '78%', top: '4px' }
-    }
-] as const
+const promoIllustration = '/mock_mobile.png'
+
 
 const ActionCards = () => {
     const navigate = useNavigate()
     const { data, loading, error } = useUsageCredits()
+    const { openModal } = useSimulationModeModal()
+    const { data: onboardingStatus } = useOnboardingStatus()
+    const isProduction = Boolean(onboardingStatus?.is_onboarded)
 
-    const handleRecharge = () => navigate('/billing')
+    const handleRecharge = () => {
+        if (!isProduction) {
+            openModal()
+        } else {
+            navigate('/billing')
+        }
+    }
     const handleStartTesting = () => navigate('/api-testing')
     const handleOpenDocs = () =>
         window.open('https://idtoai.readme.io/reference/idtoai-verification-apis', '_blank', 'noopener,noreferrer')
@@ -164,7 +154,7 @@ const ActionCards = () => {
 
     const renderPromoCard = (card: ActionCardConfig) => (
         <div className="flex h-full flex-col rounded-2xl border border-[#e7e8ea] bg-white">
-            <div className="relative h-[48px] w-full overflow-hidden rounded-t-2xl bg-[#fff7ea]" style={{minHeight:'48px'}}>
+            <div className="relative h-[48px] w-full overflow-hidden rounded-t-2xl bg-[#fff7ea]" style={{ minHeight: '48px' }}>
                 <div className="absolute inset-0 bg-gradient-to-r from-[#fff0d9] via-[#fff7ea] to-[#f8fffb]" />
                 {/* {promoEllipses.map((ellipse) => (
                     <img

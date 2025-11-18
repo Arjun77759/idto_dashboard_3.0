@@ -2,11 +2,21 @@ import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useMonthlyUsage } from '@/hooks/useMonthlyUsage'
+import { useSimulationModeModal } from '@/contexts/SimulationModeModalContext'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 
 const CurrentBalanceCard = () => {
   const { data, loading, error } = useMonthlyUsage()
+  const { openModal } = useSimulationModeModal()
+  const { data: onboardingStatus } = useOnboardingStatus()
+  const isProduction = Boolean(onboardingStatus?.is_onboarded)
+
   const handleRechargeCredits = () => {
-    console.log('Recharge credits')
+    if (!isProduction) {
+      openModal()
+    } else {
+      console.log('Recharge credits')
+    }
   }
 
   return (
