@@ -65,9 +65,6 @@ const RecentInvoicesTable = () => {
     console.log('Download Invoice')
   }
 
-  const handleSeeDetails = (invoiceId: string) => {
-    console.log('See details for', invoiceId)
-  }
 
   return (
     <motion.div
@@ -198,22 +195,13 @@ const RecentInvoicesTable = () => {
                   <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                 </div>
               </div>
-              <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[208px]">
+              <div className="h-10 overflow-hidden relative shrink-0 w-[208px]">
                 <div className="h-10 overflow-hidden relative rounded-[inherit] w-[208px]">
                   <p className="absolute bottom-8 font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
                     Amount
                   </p>
                   <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                 </div>
-              </div>
-              <div className="h-10 overflow-hidden relative shrink-0 w-[130px]">
-                <p className="absolute bottom-8 font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#131b31] text-center tracking-[-0.084px] translate-y-[100%]">
-                  Actions
-                </p>
-                <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-              </div>
-              <div className="h-10 overflow-hidden relative shrink-0 w-[29px]">
-                <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
               </div>
             </div>
 
@@ -240,16 +228,8 @@ const RecentInvoicesTable = () => {
                       <Skeleton className="h-4 w-16" />
                     </div>
                   </div>
-                  <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[208px]">
-                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-[208px] flex items-center pl-4">
-                      <Skeleton className="h-4 w-16" />
-                    </div>
-                  </div>
-                  <div className="h-10 overflow-hidden relative shrink-0 w-[130px] flex items-center justify-center">
-                    <Skeleton className="h-6 w-20 rounded-lg" />
-                  </div>
-                  <div className="h-10 overflow-hidden relative shrink-0 w-[29px]">
-                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+                  <div className="h-10 overflow-hidden relative shrink-0 w-[208px] flex items-center pl-4">
+                    <Skeleton className="h-4 w-16" />
                   </div>
                 </div>
               ))
@@ -292,29 +272,13 @@ const RecentInvoicesTable = () => {
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>
                 </div>
-                <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[208px]">
+                <div className="h-10 overflow-hidden relative shrink-0 w-[208px]">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-[208px]">
                     <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px]">
                       {invoice.amount ? `₹${Math.round(parseFloat(invoice.amount))}` : '₹0'}
                     </p>
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>
-                </div>
-                <div className="h-10 overflow-hidden relative shrink-0 w-[130px]">
-                  <div className="absolute border border-[#e7e8ea] border-solid h-[29px] left-1/2 rounded-lg top-1.5 translate-x-[-50%] w-[79px]">
-                    <button
-                      onClick={() => handleSeeDetails(invoice.id)}
-                      className="flex gap-1 h-[29px] items-center justify-center overflow-hidden px-2 py-3.5 relative rounded-[inherit] w-[79px]"
-                    >
-                      <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-center text-nowrap tracking-[-0.12px] whitespace-pre">
-                        See details
-                      </p>
-                    </button>
-                  </div>
-                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                </div>
-                <div className="h-10 overflow-hidden relative shrink-0 w-[29px]">
-                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                 </div>
               </div>
             ))}
