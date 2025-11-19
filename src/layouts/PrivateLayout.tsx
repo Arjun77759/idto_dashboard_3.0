@@ -15,8 +15,8 @@ const PrivateLayout = () => {
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false)
   const token = getAccessToken()
   const { isModalOpen, closeModal } = useSimulationModeModal()
-
-  useOnboardingStatus({ enabled: Boolean(token) })
+  const { data: onboardingStatus } = useOnboardingStatus({ enabled: Boolean(token) })
+  const isProduction = Boolean(onboardingStatus?.is_onboarded)
 
   const handleMoveToProduction = () => {
     closeModal()
@@ -79,11 +79,14 @@ const PrivateLayout = () => {
           <Outlet />
         </motion.div>
       </div>
-      <SimulationModeModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onMoveToProduction={handleMoveToProduction}
-      />
+      {/* Only show simulation mode modal if not in production */}
+      {!isProduction && (
+        <SimulationModeModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          onMoveToProduction={handleMoveToProduction}
+        />
+      )}
       <SwitchToProductionModal
         isOpen={isSwitchModalOpen}
         onClose={() => setIsSwitchModalOpen(false)}

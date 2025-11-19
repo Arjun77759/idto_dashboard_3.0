@@ -12,12 +12,27 @@ const KYCCallbackPage = () => {
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
+    // DigiLocker may return codeVerifier (camelCase) or code_verifier (snake_case)
     const code = searchParams.get('code')
-    const codeVerifier = searchParams.get('code_verifier')
+    const codeVerifier = searchParams.get('code_verifier') || searchParams.get('codeVerifier')
+
+    // Check for error in URL params (DigiLocker might redirect with error)
+    const error = searchParams.get('error')
+    const errorDescription = searchParams.get('error_description')
+
+    if (error) {
+      setStatus('error')
+      setErrorMessage(
+        errorDescription || 
+        error || 
+        'DigiLocker authentication was cancelled or failed. Please try again.'
+      )
+      return
+    }
 
     if (!code || !codeVerifier) {
       setStatus('error')
-      setErrorMessage('Missing authorization code or code verifier from DigiLocker')
+      setErrorMessage('Missing authorization code or code verifier from DigiLocker. Please try again.')
       return
     }
 
@@ -39,6 +54,7 @@ const KYCCallbackPage = () => {
           navigate('/dashboard')
         }, 2000)
       } catch (err: any) {
+        console.error('DigiLocker callback error:', err)
         setStatus('error')
         setErrorMessage(
           err?.response?.data?.message || 

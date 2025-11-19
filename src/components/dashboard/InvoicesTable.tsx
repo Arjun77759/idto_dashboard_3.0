@@ -43,7 +43,7 @@ const InvoicesTable = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.5 }}
-      className="grow bg-white border border-[#e7e8ea] border-solid min-h-0 min-w-0 relative rounded-2xl shrink-0 max-w-full"
+      className="grow bg-white border border-[#e7e8ea] border-solid min-w-0 relative rounded-2xl shrink-0 max-w-full min-h-[280px]"
     >
       <div className="flex flex-col gap-6 items-start overflow-hidden p-4 relative rounded-[inherit] w-full">
         <div className="flex items-center justify-between relative w-full">

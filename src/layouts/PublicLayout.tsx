@@ -1,6 +1,6 @@
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel'
 import { useEffect, useState, useMemo } from 'react'
-import { Outlet, Navigate } from 'react-router-dom'
+import { Outlet, Navigate, useLocation } from 'react-router-dom'
 import { getAccessToken } from '@/lib/auth'
 
 // Image assets from Figma
@@ -26,13 +26,26 @@ const carouselImages = [
 const PublicLayout = () => {
   // Memoize token check to prevent re-renders from causing flickering
   const token = useMemo(() => getAccessToken(), [])
+  const location = useLocation()
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
   const [count, setCount] = useState(0)
 
-  // Redirect if authenticated - do this before rendering anything
-  if (token) {
+  // Don't redirect if we're on the KYC callback page - it needs to process the callback even if authenticated
+  const isKYCCallback = location.pathname === '/kyc-callback'
+
+  // Redirect if authenticated - but skip redirect for KYC callback page
+  if (token && !isKYCCallback) {
     return <Navigate to="/dashboard" replace />
+  }
+
+  // For KYC callback, use a simpler layout without carousel
+  if (isKYCCallback) {
+    return (
+      <div className="min-h-screen w-screen bg-gray-50">
+        <Outlet />
+      </div>
+    )
   }
 
   useEffect(() => {

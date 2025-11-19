@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 
 interface SimulationModeModalContextType {
@@ -12,7 +12,7 @@ const SimulationModeModalContext = createContext<SimulationModeModalContextType 
 
 export const SimulationModeModalProvider = ({ children }: { children: ReactNode }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const { data: onboardingStatus } = useOnboardingStatus()
+  const { data: onboardingStatus, loading } = useOnboardingStatus()
   const isProduction = Boolean(onboardingStatus?.is_onboarded)
 
   const openModal = useCallback(() => {
@@ -31,14 +31,21 @@ export const SimulationModeModalProvider = ({ children }: { children: ReactNode 
     setIsModalOpen(false)
   }, [])
 
+  // Close modal immediately if user is in production
+  useEffect(() => {
+    if (isProduction && isModalOpen) {
+      setIsModalOpen(false)
+    }
+  }, [isProduction, isModalOpen])
+
   // Set up 15-minute interval to show modal when not in production
   useEffect(() => {
-    if (isProduction) {
-      // Don't show modal if already in production
+    // Don't show modal if already in production or still loading
+    if (isProduction || loading) {
       return
     }
 
-    // Show modal immediately on mount
+    // Show modal immediately on mount (after loading is complete)
     setIsModalOpen(true)
 
     // Interval for every 15 minutes
@@ -46,13 +53,16 @@ export const SimulationModeModalProvider = ({ children }: { children: ReactNode 
 
     // Set up interval to show modal every 15 minutes
     const intervalId = setInterval(() => {
-      setIsModalOpen(true)
+      // Double check production status before showing
+      if (!isProduction) {
+        setIsModalOpen(true)
+      }
     }, intervalMs)
 
     return () => {
       clearInterval(intervalId)
     }
-  }, [isProduction])
+  }, [isProduction, loading])
 
   const value = {
     isModalOpen,
