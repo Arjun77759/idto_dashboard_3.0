@@ -1,6 +1,5 @@
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel'
-import { motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Outlet, Navigate } from 'react-router-dom'
 import { getAccessToken } from '@/lib/auth'
 
@@ -25,13 +24,16 @@ const carouselImages = [
 ]
 
 const PublicLayout = () => {
-  const token = getAccessToken()
-  if (token) {
-    return <Navigate to="/dashboard" replace />
-  }
+  // Memoize token check to prevent re-renders from causing flickering
+  const token = useMemo(() => getAccessToken(), [])
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
   const [count, setCount] = useState(0)
+
+  // Redirect if authenticated - do this before rendering anything
+  if (token) {
+    return <Navigate to="/dashboard" replace />
+  }
 
   useEffect(() => {
     if (!api) {
@@ -58,12 +60,7 @@ const PublicLayout = () => {
   }, [api])
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      className="min-h-screen w-screen bg-gray-50"
-    >
+    <div className="min-h-screen w-screen bg-gray-50">
 
       {/* Main Content with Two Panel Layout */}
       <main className="flex flex-col lg:flex-row min-h-screen">
@@ -111,7 +108,7 @@ const PublicLayout = () => {
         </div>
       </main>
 
-    </motion.div>
+    </div>
   )
 }
 

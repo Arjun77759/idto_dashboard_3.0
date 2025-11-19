@@ -18,13 +18,13 @@ export function useOnboardingStatus(options: UseOnboardingStatusOptions = {}) {
       return
     }
 
-    if (state.hasFetched || state.loading) {
-      return
+    // Only fetch if not already fetched and not currently loading
+    // The store's fetchOnboardingStatus function has additional guards
+    if (!state.hasFetched && !state.loading) {
+      fetchOnboardingStatus().catch(() => {
+        // errors are stored in the shared store, so we intentionally swallow here
+      })
     }
-
-    fetchOnboardingStatus().catch(() => {
-      // errors are stored in the shared store, so we intentionally swallow here
-    })
   }, [enabled, state.hasFetched, state.loading])
 
   return state

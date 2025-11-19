@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent } from '../../ui/dialog'
 import { Sheet, SheetContent } from '../../ui/sheet'
 import { useIsMobile } from '../../../hooks/use-mobile'
+import { useOnboardingStatus } from '../../../hooks/useOnboardingStatus'
+import { useOnboardingSteps } from '../../../hooks/useOnboardingSteps'
 import { ModalHeader, StepperProgress, StepForm } from './components'
 import { Info, Building2, Building, CreditCard, Lock, ArrowRight, Monitor, Smartphone } from 'lucide-react'
 
@@ -16,6 +18,37 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
   const [currentStep, setCurrentStep] = useState('basic-details')
   const [isInStepperMode, setIsInStepperMode] = useState(false)
   const isMobile = useIsMobile()
+  const onboardingData = useOnboardingStatus()
+  const stepsStatus = useOnboardingSteps()
+
+  // Determine the first incomplete step
+  useEffect(() => {
+    if (!stepsStatus.loading && isOpen) {
+      const stepOrder = ['basic-details', 'business-info', 'business-pan', 'gstin', 'director-kyc']
+      
+      // Find the first incomplete step
+      let firstIncompleteStep = 'basic-details'
+      
+      if (!stepsStatus.basicDetails) {
+        firstIncompleteStep = 'basic-details'
+      } else if (!stepsStatus.businessInfo) {
+        firstIncompleteStep = 'business-info'
+      } else if (!stepsStatus.businessPAN) {
+        firstIncompleteStep = 'business-pan'
+      } else if (!stepsStatus.gstin) {
+        firstIncompleteStep = 'gstin'
+      } else {
+        firstIncompleteStep = 'director-kyc'
+      }
+      
+      setCurrentStep(firstIncompleteStep)
+      
+      // If at least one step is completed, go directly to stepper mode
+      if (stepsStatus.basicDetails || stepsStatus.businessInfo || stepsStatus.businessPAN || stepsStatus.gstin) {
+        setIsInStepperMode(true)
+      }
+    }
+  }, [stepsStatus, isOpen])
 
   const handleStartVerification = async () => {
     setIsLoading(true)
@@ -31,14 +64,21 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
     await new Promise(resolve => setTimeout(resolve, 1000))
     setIsLoading(false)
 
-    // Move to next step
+    // Move to next incomplete step
     const currentIndex = stepOrder.indexOf(currentStep)
-    if (currentIndex < stepOrder.length - 1) {
-      setCurrentStep(stepOrder[currentIndex + 1])
+    const nextIndex = currentIndex + 1
+    
+    if (nextIndex < stepOrder.length) {
+      setCurrentStep(stepOrder[nextIndex])
     } else {
-      // All steps completed
-      onConfirm()
-      onClose()
+      // All steps completed - check if director KYC is done
+      if (onboardingData.data?.is_onboarded) {
+        onConfirm()
+        onClose()
+      } else {
+        // Director KYC is the last step
+        setCurrentStep('director-kyc')
+      }
     }
   }
 
@@ -191,6 +231,8 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
               onPrevious={handleStepPrevious}
               showPrevious={true}
               isLoading={isLoading}
+              initialData={onboardingData.data}
+              stepsStatus={stepsStatus}
             />
           </div>
         ) : (

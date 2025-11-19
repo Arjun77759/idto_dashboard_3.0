@@ -1,12 +1,18 @@
-import { useState } from "react"
-import { ArrowRight, ArrowLeft } from "lucide-react"
+import { useState, useEffect } from "react"
+import { ArrowRight, AlertCircle } from "lucide-react"
 import { z } from "zod"
+import type { OnboardingStatus } from "@/hooks/useOnboardingStatus"
+import type { OnboardingStepsStatus } from "@/hooks/useOnboardingSteps"
+import { updateBusinessInfo } from "@/api/onboardingApi"
+import { invalidateOnboardingSteps } from "@/store/onboardingStepsStore"
 
 interface BusinessInfoFormProps {
   onNext: () => void
   onPrevious?: () => void
   showPrevious?: boolean
   isLoading?: boolean
+  initialData?: OnboardingStatus | null
+  stepsStatus?: OnboardingStepsStatus
 }
 
 // Zod validation schemas
@@ -22,7 +28,7 @@ const businessInfoSchema = z.object({
     .regex(/^[0-9]{6}$/, 'Please enter a valid 6-digit pin code')
 })
 
-const BusinessInfoForm = ({ onNext, onPrevious, showPrevious = false, isLoading = false }: BusinessInfoFormProps) => {
+const BusinessInfoForm = ({ onNext, onPrevious, showPrevious = false, isLoading: externalLoading = false, initialData }: BusinessInfoFormProps) => {
   const [formData, setFormData] = useState({
     registered_name: '',
     authorized_email: '',
@@ -38,11 +44,18 @@ const BusinessInfoForm = ({ onNext, onPrevious, showPrevious = false, isLoading 
     office_address: '',
     pin_code: ''
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const [apiError, setApiError] = useState('')
+
+  // Note: initialData no longer contains registered_name
+  // This would need to come from user profile or be fetched separately
+  // For now, we'll just use the form's initial state
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     // Clear error when user starts typing
     setErrors(prev => ({ ...prev, [field]: '' }))
+    setApiError('')
   }
 
   const validateField = (field: keyof typeof formData) => {
@@ -103,21 +116,31 @@ const BusinessInfoForm = ({ onNext, onPrevious, showPrevious = false, isLoading 
     }
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       return
     }
 
-    // TODO: Wire up with POST /onboard/business-info API endpoint
-    // const payload = {
-    //   registered_name: formData.registered_name,
-    //   authorized_email: formData.authorized_email,
-    //   authorized_mobile: formData.authorized_mobile,
-    //   office_address: formData.office_address,
-    //   pin_code: formData.pin_code
-    // }
-    console.log('Form data:', formData)
-    onNext()
+    setIsLoading(true)
+    setApiError('')
+
+    try {
+      const payload = {
+        registered_name: formData.registered_name,
+        email: formData.authorized_email,
+        mobile: formData.authorized_mobile,
+        address: formData.office_address,
+        pin_code: formData.pin_code
+      }
+      await updateBusinessInfo(payload)
+      invalidateOnboardingSteps() // Invalidate cache so it refetches
+      onNext()
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.message || err?.response?.data?.detail || err?.message || 'Failed to update business information. Please try again.'
+      setApiError(errorMessage)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const isFormValid = formData.registered_name && formData.authorized_email && formData.authorized_mobile && formData.office_address && formData.pin_code
@@ -136,6 +159,17 @@ const BusinessInfoForm = ({ onNext, onPrevious, showPrevious = false, isLoading 
             </p>
           </div>
         </div>
+
+        {/* API Error Message */}
+        {apiError && (
+          <div className="flex gap-3 items-start p-4 bg-red-50 border border-red-200 rounded-lg w-full">
+            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-900 mb-1">Error</p>
+              <p className="text-sm text-red-700">{apiError}</p>
+            </div>
+          </div>
+        )}
 
         {/* Form Fields */}
         <div className="grow flex flex-col gap-4 items-start min-h-px min-w-px relative shrink-0 w-full">
@@ -272,25 +306,14 @@ const BusinessInfoForm = ({ onNext, onPrevious, showPrevious = false, isLoading 
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 items-center justify-between relative shrink-0 w-full">
-          {/* Previous Button */}
-          {showPrevious && onPrevious && (
-            <button
-              onClick={onPrevious}
-              className="flex gap-2 items-center px-6 py-3 text-[#616675] hover:bg-gray-100 rounded-lg transition-colors border border-[#e7e8ea]"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="font-medium text-xs tracking-[-0.12px]">Previous</span>
-            </button>
-          )}
-          <div className="flex-1"></div>
+        <div className="flex gap-3 items-center justify-end relative shrink-0 w-full">
           <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid relative rounded-lg shrink-0">
             <button
               onClick={handleSubmit}
-              disabled={isLoading || !isFormValid}
+              disabled={isLoading || externalLoading || !isFormValid}
               className="flex gap-2 items-center justify-center px-8 py-3.5 relative rounded-[inherit] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? (
+              {(isLoading || externalLoading) ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-[#0019ff] border-t-transparent rounded-full animate-spin" />
                   <p className="font-bold leading-4 relative text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">

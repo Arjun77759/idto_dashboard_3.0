@@ -3,6 +3,8 @@ import BusinessInfoForm from './BusinessInfoForm'
 import BusinessPANForm from './BusinessPANForm'
 import GSTINForm from './GSTINForm'
 import DirectorKYCForm from './DirectorKYCForm'
+import type { OnboardingStatus } from '@/hooks/useOnboardingStatus'
+import type { OnboardingStepsStatus } from '@/hooks/useOnboardingSteps'
 
 interface StepFormProps {
   currentStep: string
@@ -10,23 +12,25 @@ interface StepFormProps {
   onPrevious?: () => void
   showPrevious?: boolean
   isLoading?: boolean
+  initialData?: OnboardingStatus | null
+  stepsStatus?: OnboardingStepsStatus
 }
 
-const StepForm = ({ currentStep, onNext, onPrevious, showPrevious = false, isLoading = false }: StepFormProps) => {
+const StepForm = ({ currentStep, onNext, onPrevious, showPrevious = false, isLoading = false, initialData, stepsStatus }: StepFormProps) => {
   const renderStepForm = () => {
     switch (currentStep) {
       case 'basic-details':
-        return <BasicDetailsForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} />
+        return <BasicDetailsForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} initialData={initialData} stepsStatus={stepsStatus} />
       case 'business-info':
-        return <BusinessInfoForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} />
+        return <BusinessInfoForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} initialData={initialData} stepsStatus={stepsStatus} />
       case 'business-pan':
-        return <BusinessPANForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} />
+        return <BusinessPANForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} initialData={initialData} stepsStatus={stepsStatus} />
       case 'gstin':
-        return <GSTINForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} />
+        return <GSTINForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} initialData={initialData} stepsStatus={stepsStatus} />
       case 'director-kyc':
-        return <DirectorKYCForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} />
+        return <DirectorKYCForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} initialData={initialData} stepsStatus={stepsStatus} />
       default:
-        return <BasicDetailsForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} />
+        return <BasicDetailsForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} initialData={initialData} stepsStatus={stepsStatus} />
     }
   }
 

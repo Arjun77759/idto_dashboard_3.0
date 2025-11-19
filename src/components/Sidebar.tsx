@@ -230,7 +230,7 @@ const Sidebar = () => {
                       {userProfile?.name || 'User'}
                     </p>
                     <p className="font-normal relative text-[8px] text-[#9296a0] tracking-[-0.08px]">
-                      {userProfile?.company_name || 'Company'}
+                      {userProfile?.brand_name || userProfile?.registered_name || 'Company'}
                     </p>
                   </>
                 )}

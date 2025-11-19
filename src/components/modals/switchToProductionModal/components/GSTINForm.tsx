@@ -1,12 +1,18 @@
-import { useState } from 'react'
-import { ArrowRight, ArrowLeft } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { ArrowRight, AlertCircle } from 'lucide-react'
 import { z } from 'zod'
+import type { OnboardingStatus } from '@/hooks/useOnboardingStatus'
+import type { OnboardingStepsStatus } from '@/hooks/useOnboardingSteps'
+import { updateGST } from '@/api/onboardingApi'
+import { invalidateOnboardingSteps } from '@/store/onboardingStepsStore'
 
 interface GSTINFormProps {
   onNext: () => void
   onPrevious?: () => void
   showPrevious?: boolean
   isLoading?: boolean
+  initialData?: OnboardingStatus | null
+  stepsStatus?: OnboardingStepsStatus
 }
 
 // Zod validation schema for GSTIN
@@ -17,7 +23,7 @@ const gstinSchema = z.object({
     .length(15, 'GSTIN must be exactly 15 characters')
 })
 
-const GSTINForm = ({ onNext, onPrevious, showPrevious = false, isLoading = false }: GSTINFormProps) => {
+const GSTINForm = ({ onNext, onPrevious, showPrevious = false, isLoading: externalLoading = false, initialData }: GSTINFormProps) => {
   const [formData, setFormData] = useState({
     gst_number: ''
   })
@@ -25,6 +31,12 @@ const GSTINForm = ({ onNext, onPrevious, showPrevious = false, isLoading = false
   const [errors, setErrors] = useState({
     gst_number: ''
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const [apiError, setApiError] = useState('')
+
+  // Note: initialData no longer contains gst_number
+  // This would need to come from user profile or be fetched separately
+  // For now, we'll just use the form's initial state
 
   const handleInputChange = (value: string) => {
     // Convert to uppercase automatically and remove spaces
@@ -32,6 +44,7 @@ const GSTINForm = ({ onNext, onPrevious, showPrevious = false, isLoading = false
     setFormData({ gst_number: upperValue })
     // Clear error when user starts typing
     setErrors({ gst_number: '' })
+    setApiError('')
   }
 
   const validateField = () => {
@@ -61,17 +74,34 @@ const GSTINForm = ({ onNext, onPrevious, showPrevious = false, isLoading = false
     }
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       return
     }
 
-    // TODO: Wire up with POST /customers/verify-and-update-gst API endpoint
-    // const payload = {
-    //   gst_number: formData.gst_number
-    // }
-    console.log('GSTIN data:', formData)
-    onNext()
+    setIsLoading(true)
+    setApiError('')
+
+    try {
+      const payload = {
+        gst_number: formData.gst_number
+      }
+      const response = await updateGST(payload)
+      
+      // Check if verification matched
+      if (!response.verification_result?.matched) {
+        setApiError('GST verification failed: Registered name does not match with GST records. Please verify your registered business name.')
+        return
+      }
+      
+      invalidateOnboardingSteps() // Invalidate cache so it refetches
+      onNext()
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.message || err?.response?.data?.detail || err?.message || 'Failed to verify GST. Please check the GST number and try again.'
+      setApiError(errorMessage)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const isFormValid = formData.gst_number.length === 15
@@ -90,6 +120,17 @@ const GSTINForm = ({ onNext, onPrevious, showPrevious = false, isLoading = false
             </p>
           </div>
         </div>
+
+        {/* API Error Message */}
+        {apiError && (
+          <div className="flex gap-3 items-start p-4 bg-red-50 border border-red-200 rounded-lg w-full mb-4">
+            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-900 mb-1">Verification Failed</p>
+              <p className="text-sm text-red-700">{apiError}</p>
+            </div>
+          </div>
+        )}
 
         {/* Form Fields */}
         <div className="grow flex flex-col gap-4 items-start min-h-px min-w-px relative shrink-0 w-full">
@@ -119,24 +160,14 @@ const GSTINForm = ({ onNext, onPrevious, showPrevious = false, isLoading = false
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 items-center justify-between relative shrink-0 w-full">
-          {showPrevious && onPrevious && (
-            <button
-              onClick={onPrevious}
-              className="flex gap-2 items-center px-6 py-3 text-[#616675] hover:bg-gray-100 rounded-lg transition-colors border border-[#e7e8ea]"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="font-medium text-xs tracking-[-0.12px]">Previous</span>
-            </button>
-          )}
-          <div className="flex-1"></div>
+        <div className="flex gap-3 items-center justify-end relative shrink-0 w-full">
           <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid relative rounded-lg shrink-0">
             <button
               onClick={handleSubmit}
-              disabled={isLoading || !isFormValid}
+              disabled={isLoading || externalLoading || !isFormValid}
               className="flex gap-2 items-center justify-center px-8 py-3.5 relative rounded-[inherit] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? (
+              {(isLoading || externalLoading) ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-[#0019ff] border-t-transparent rounded-full animate-spin" />
                   <p className="font-bold leading-4 relative text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
