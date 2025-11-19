@@ -31,38 +31,15 @@ export const SimulationModeModalProvider = ({ children }: { children: ReactNode 
     setIsModalOpen(false)
   }, [])
 
-  // Close modal immediately if user is in production
+  // Show modal only when /onboard/check API is in flight
   useEffect(() => {
-    if (isProduction && isModalOpen) {
+    // Only show modal when API is loading and user is not in production
+    if (loading && !isProduction) {
+      setIsModalOpen(true)
+    } else {
       setIsModalOpen(false)
     }
-  }, [isProduction, isModalOpen])
-
-  // Set up 15-minute interval to show modal when not in production
-  useEffect(() => {
-    // Don't show modal if already in production or still loading
-    if (isProduction || loading) {
-      return
-    }
-
-    // Show modal immediately on mount (after loading is complete)
-    setIsModalOpen(true)
-
-    // Interval for every 15 minutes
-    const intervalMs = 15 * 60 * 1000 // 15 minutes in milliseconds
-
-    // Set up interval to show modal every 15 minutes
-    const intervalId = setInterval(() => {
-      // Double check production status before showing
-      if (!isProduction) {
-        setIsModalOpen(true)
-      }
-    }, intervalMs)
-
-    return () => {
-      clearInterval(intervalId)
-    }
-  }, [isProduction, loading])
+  }, [loading, isProduction])
 
   const value = {
     isModalOpen,
