@@ -36,13 +36,13 @@ const AnalyticsPage = () => {
         <div className="flex flex-wrap gap-5 items-start relative w-full">
           <VerificationVolumeChart />
           <MonthlyTransactionsChart />
-          <AnalyticsPieChart />
         </div>
 
         {/* Charts Row 2 */}
         <div className="flex flex-wrap gap-5 items-start relative w-full">
           <BarChart />
-          <AnalyticsLineChart />
+          {/* <AnalyticsLineChart /> */}
+          <AnalyticsPieChart />
         </div>
       </motion.div>
     </AnalyticsFilterProvider>

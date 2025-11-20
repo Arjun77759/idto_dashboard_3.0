@@ -75,7 +75,7 @@ const BarChart = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.6 }}
-      className="bg-white border border-[#e7e8ea] border-solid h-[245px] min-w-[280px] relative rounded-2xl shrink-0 w-full max-w-[411px]"
+      className="bg-white border border-[#e7e8ea] border-solid h-[245px] min-w-[280px] relative rounded-2xl shrink-0 w-full flex-1"
     >
       <div className="flex flex-col h-[245px] items-start justify-between min-w-inherit overflow-hidden p-4 relative rounded-[inherit] w-full">
         <div className="flex flex-col gap-4 grow items-start min-h-0 min-w-px relative shrink-0 w-full">
