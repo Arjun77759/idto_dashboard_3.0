@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { signInWithPopup } from 'firebase/auth'
 import { auth, googleProvider } from '../lib/firebase'
-import { firebaseAuth } from '../api/authApi'
+import { firebaseAuth, resendVerificationEmail } from '../api/authApi'
 import { setAuth } from '../lib/auth'
 import { useToast } from '@/hooks/use-toast'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -22,13 +22,25 @@ const CheckInboxPage = () => {
     try {
       setSubmitting(true)
       
-      // TODO: Implement API call when backend endpoint is available
-      // await resendVerificationEmail({ email })
+      const response = await resendVerificationEmail({ email })
       
-      toast({
-        title: "Email sent",
-        description: "Please check your inbox for the sign-in link.",
-      })
+      if (response.status === 'already_verified') {
+        toast({
+          title: "Email already verified",
+          description: "This email is already verified. You can proceed to login.",
+        })
+      } else if (response.email_sent === false) {
+        toast({
+          title: "Email queued",
+          description: "The email has been queued but may not have been sent. Please try again later.",
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Email sent",
+          description: "Please check your inbox for the sign-in link.",
+        })
+      }
     } catch (err: any) {
       const message = err?.response?.data?.detail || err?.message || 'Failed to resend email'
       toast({

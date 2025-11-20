@@ -7,6 +7,7 @@ import { useUsageVolumeTimeseries } from '@/hooks/useUsageVolumeTimeseries'
 import { useAnalyticsFilters } from '@/contexts/AnalyticsFilterContext'
 import { useMemo } from 'react'
 import { format, differenceInMonths } from 'date-fns'
+import type { UsageVolumeTimeseriesFilters } from '@/api/usageApi'
 
 const AnalyticsLineChart = () => {
   const { filters } = useAnalyticsFilters()
@@ -20,9 +21,24 @@ const AnalyticsLineChart = () => {
     return 6 // Default to 6 months as per requirements
   }, [filters.dateRange])
 
-  // TODO: Pass additional filters to API hook when backend supports filtering
-  // const { data, loading, error } = useUsageVolumeTimeseries(monthsBack, filters)
-  const { data, loading, error } = useUsageVolumeTimeseries(monthsBack)
+  // Prepare filters for API
+  const apiFilters = useMemo<UsageVolumeTimeseriesFilters | undefined>(() => {
+    const hasFilters = filters.region !== 'all' || 
+                      filters.verificationType !== 'all' || 
+                      filters.deviceType !== 'desktop'
+    
+    if (!hasFilters) return undefined
+    
+    return {
+      start_date: filters.dateRange?.from ? format(filters.dateRange.from, 'yyyy-MM-dd') : undefined,
+      end_date: filters.dateRange?.to ? format(filters.dateRange.to, 'yyyy-MM-dd') : undefined,
+      region: filters.region !== 'all' ? filters.region : undefined,
+      api_name: filters.verificationType !== 'all' ? filters.verificationType : undefined,
+      device_type: filters.deviceType !== 'desktop' ? filters.deviceType : undefined
+    }
+  }, [filters.dateRange, filters.region, filters.verificationType, filters.deviceType])
+
+  const { data, loading, error } = useUsageVolumeTimeseries(monthsBack, apiFilters)
 
   // Log current filter state for debugging
   console.log('AnalyticsLineChart filters:', filters, 'monthsBack:', monthsBack)

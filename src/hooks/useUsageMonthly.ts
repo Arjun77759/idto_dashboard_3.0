@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import http from '@/api/axiosInstance'
+import { getMonthlyUsage, type UsageMonthlyFilters } from '@/api/usageApi'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 
 // Type for each monthly usage entry
@@ -46,7 +46,7 @@ function getMockUsageMonthly(): UsageMonthlyItem[] {
   ]
 }
 
-export function useUsageMonthly() {
+export function useUsageMonthly(filters?: UsageMonthlyFilters) {
   const { data: onboardingStatus } = useOnboardingStatus()
   const isProduction = Boolean(onboardingStatus?.is_onboarded)
 
@@ -70,8 +70,8 @@ export function useUsageMonthly() {
           return
         }
         // Real API fetch if production
-        const response = await http.get<UsageMonthlyItem[]>('/usage/monthly')
-        if (!cancelled) setData(response.data)
+        const response = await getMonthlyUsage(filters)
+        if (!cancelled) setData(response)
       } catch (e: any) {
         if (!cancelled) {
           let errorMessage = 'Failed to load monthly usage'
@@ -99,7 +99,7 @@ export function useUsageMonthly() {
     return () => {
       cancelled = true
     }
-  }, [isProduction])
+  }, [isProduction, filters?.start_date, filters?.end_date, filters?.region, filters?.api_name, filters?.device_type])
 
   return { data, loading, error }
 }

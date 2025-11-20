@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import http from '@/api/axiosInstance'
+import { getUsageVolumeTimeseries, type UsageVolumeTimeseriesFilters } from '@/api/usageApi'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 
 export type UsageVolumePoint = {
@@ -43,7 +43,10 @@ const getDateRange = (monthsBack: number = 5): { start: string; end: string } =>
   }
 }
 
-export function useUsageVolumeTimeseries(monthsBack: number = 5) {
+export function useUsageVolumeTimeseries(
+  monthsBack: number = 5,
+  filters?: UsageVolumeTimeseriesFilters
+) {
   const { data: onboardingStatus } = useOnboardingStatus()
   const isProduction = Boolean(onboardingStatus?.is_onboarded)
 
@@ -68,11 +71,9 @@ export function useUsageVolumeTimeseries(monthsBack: number = 5) {
       try {
         const { start, end } = getDateRange(monthsBack)
 
-        const response = await http.get<TimeseriesResponse>('/usage/volume/timeseries', {
-          params: { start, end }
-        })
+        const response = await getUsageVolumeTimeseries(start, end, filters)
 
-        if (!cancelled) setData(response.data.series)
+        if (!cancelled) setData(response.series)
       } catch (e: any) {
         if (!cancelled) {
           // Handle different error response structures
@@ -103,7 +104,7 @@ export function useUsageVolumeTimeseries(monthsBack: number = 5) {
     return () => {
       cancelled = true
     }
-  }, [monthsBack, isProduction])
+  }, [monthsBack, isProduction, filters?.region, filters?.api_name, filters?.device_type])
 
   return { data, loading, error }
 }

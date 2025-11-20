@@ -59,3 +59,18 @@ export async function firebaseAuth(payload: FirebaseAuthPayload): Promise<Fireba
   const { data } = await http.post<FirebaseAuthResponse>('/auth/firebase', payload)
   return data
 }
+
+export type ResendEmailPayload = {
+  email: string
+}
+
+export type ResendEmailResponse = {
+  status: 'resent' | 'already_verified'
+  customer_id?: string
+  email_sent?: boolean
+}
+
+export async function resendVerificationEmail(payload: ResendEmailPayload): Promise<ResendEmailResponse> {
+  const { data } = await http.post<ResendEmailResponse>('/onboard/resend-email', payload)
+  return data
+}
