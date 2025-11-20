@@ -15,12 +15,28 @@ const mockMonthlyUsage: MonthlyUsage = {
   total: 1500,
 }
 
+type Listener = () => void
+const listeners = new Set<Listener>()
+
+export const invalidateMonthlyUsage = () => {
+  listeners.forEach((listener) => listener())
+}
+
 export function useMonthlyUsage() {
   const { data: onboardingStatus } = useOnboardingStatus()
   const isProduction = Boolean(onboardingStatus?.is_onboarded)
   const [data, setData] = useState<MonthlyUsage | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [refreshToken, setRefreshToken] = useState(0)
+
+  useEffect(() => {
+    const listener: Listener = () => setRefreshToken((prev) => prev + 1)
+    listeners.add(listener)
+    return () => {
+      listeners.delete(listener)
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -66,7 +82,7 @@ export function useMonthlyUsage() {
       cancelled = true
     }
   // Depend on isProduction to react to onboarding status changes
-  }, [isProduction])
+  }, [isProduction, refreshToken])
 
   return { data, loading, error }
 }

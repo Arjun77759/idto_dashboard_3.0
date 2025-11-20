@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useMemo, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { downloadCsv } from '@/lib/downloadCsv'
 
 const RecentInvoicesTable = () => {
   const { data: invoiceData, loading, error } = useRecentInvoices(50)
@@ -57,8 +58,27 @@ const RecentInvoicesTable = () => {
     })
   }, [invoiceData, search, status, amountMin, amountMax, dateFrom, dateTo])
 
+  const formatDateTime = (dateTime: string | undefined) => {
+    if (!dateTime) return '-'
+    const [date, time] = dateTime.split(' ')
+    const [year, month, day] = date?.split('-') || []
+    if (!date || !time || !year || !month || !day) return dateTime
+    const shortYear = year.substring(2)
+    return `${day}/${month}/${shortYear} ${time}`
+  }
+
   const handleExportCSV = () => {
-    console.log('Export CSV')
+    const headers = ['Invoice ID', 'Date & Time', 'Status', 'Amount']
+    const rows = filtered.map((invoice) => [
+      invoice.id,
+      formatDateTime(invoice.date_time),
+      invoice.status,
+      invoice.amount ? Math.round(parseFloat(invoice.amount)) : 0
+    ])
+
+    const today = new Date()
+    const formattedDate = today.toISOString().split('T')[0]
+    downloadCsv({ headers, rows, filename: `Billing_${formattedDate}` })
   }
 
   const handleDownloadInvoice = () => {
@@ -254,12 +274,7 @@ const RecentInvoicesTable = () => {
                 <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[265px]">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-[265px]">
                     <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px] whitespace-pre-wrap">
-                      {invoice.date_time ? (() => {
-                        const [date, time] = invoice.date_time.split(' ')
-                        const [year, month, day] = date.split('-')
-                        const shortYear = year.substring(2)
-                        return `${day}/${month}/${shortYear} ${time}`
-                      })() : '-'}
+                      {formatDateTime(invoice.date_time)}
                     </p>
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>

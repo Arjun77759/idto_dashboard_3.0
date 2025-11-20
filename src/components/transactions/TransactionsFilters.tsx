@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Search, FileSpreadsheet, Download, Calendar as CalendarIcon, RotateCcw } from 'lucide-react'
+import { Search, FileSpreadsheet, Calendar as CalendarIcon, RotateCcw } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { useUsageMonthly } from '@/hooks/useUsageMonthly'
 import { format } from 'date-fns'
@@ -22,7 +22,6 @@ import type { DateRange } from 'react-day-picker'
 
 interface TransactionsFiltersProps {
   onExportCsv: () => void
-  onDownloadReport: () => void
   onReset: () => void
   onSearchChange: (query: string) => void
   onDateChange?: (date: DateRange | undefined) => void
@@ -33,7 +32,6 @@ interface TransactionsFiltersProps {
 
 const TransactionsFilters = ({ 
   onExportCsv, 
-  onDownloadReport, 
   onReset,
   onSearchChange,
   onDateChange,
@@ -122,16 +120,6 @@ const TransactionsFilters = ({
             </p>
             <FileSpreadsheet className="size-4 ml-2 text-[#0019ff]" />
           </Button>
-          
-          <Button 
-            onClick={onDownloadReport}
-            className="bg-[#e6e8ff] hover:bg-[#d0d4ff] text-[#0019ff] border-0 px-2 py-3.5 h-auto rounded-lg flex-1 sm:flex-none"
-          >
-            <p className="font-medium leading-[1.4] text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre">
-              Download Report
-            </p>
-            <Download className="size-4 ml-2 text-[#0019ff]" />
-          </Button>
         </div>
       </div>
 
@@ -174,7 +162,7 @@ const TransactionsFilters = ({
           </Popover>
           
           {/* Document Type Filter */}
-          <Select value={documentType} onValueChange={handleDocumentTypeChange} disabled={loading}>
+          {/* <Select value={documentType} onValueChange={handleDocumentTypeChange} disabled={loading}>
             <SelectTrigger className="h-10 w-[180px] px-2 py-3.5 text-[12px] font-medium text-[#9296a0] border-[#e7e8ea]">
               <SelectValue placeholder={loading ? "Loading..." : "Document Type"} />
             </SelectTrigger>
@@ -189,7 +177,7 @@ const TransactionsFilters = ({
                 ))
               )}
             </SelectContent>
-          </Select>
+          </Select> */}
           
           {/* Status Filter */}
           <Select value={status} onValueChange={handleStatusChange}>
@@ -203,7 +191,7 @@ const TransactionsFilters = ({
           </Select>
           
           {/* Location Filter - Note: Backend API support pending (region parameter) */}
-          <Select value={location} onValueChange={handleLocationChange}>
+          {/* <Select value={location} onValueChange={handleLocationChange}>
             <SelectTrigger className="h-10 w-[140px] px-2 py-3.5 text-[12px] font-medium text-[#9296a0] border-[#e7e8ea]">
               <SelectValue placeholder="Location" />
             </SelectTrigger>
@@ -213,7 +201,7 @@ const TransactionsFilters = ({
               <SelectItem value="east">East</SelectItem>
               <SelectItem value="west">West</SelectItem>
             </SelectContent>
-          </Select>
+          </Select> */}
         </div>
         
         <Button 

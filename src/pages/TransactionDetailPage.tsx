@@ -8,6 +8,7 @@ import { useTransactionDetail } from '@/hooks/useTransactionDetail'
 import { format } from 'date-fns'
 import { useMemo } from 'react'
 import { parseTransactionTimestamp } from '@/lib/utils'
+import { downloadCsv } from '@/lib/downloadCsv'
 
 const TransactionDetailPage = () => {
   const navigate = useNavigate()
@@ -103,11 +104,28 @@ const TransactionDetailPage = () => {
   }
 
   const handleExportCsv = () => {
-    console.log('Export CSV')
-  }
+    if (!formattedData || !transaction) return
 
-  const handleDownloadReport = () => {
-    console.log('Download Report')
+    const headers = ['Field', 'Value']
+    const detailRows = formattedData.details.map(({ field, value }) => [field, value])
+    const additionalRows = [
+      ['Transaction ID', formattedData.id],
+      ['API', formattedData.api],
+      ['Timestamp', transaction.timestamp],
+      ['Status', formattedData.status],
+      ['Turn Around Time', transaction.turn_around_time || 'N/A'],
+      ['Request', JSON.stringify(transaction.request_details ?? {}, null, 2)],
+      ['Response', JSON.stringify(transaction.response_details ?? {}, null, 2)]
+    ]
+
+    const today = new Date()
+    const formattedDate = today.toISOString().split('T')[0]
+
+    downloadCsv({
+      headers,
+      rows: [...detailRows, ...additionalRows],
+      filename: `Transaction_${formattedData.id}_${formattedDate}`
+    })
   }
 
   if (error) {
@@ -157,7 +175,6 @@ const TransactionDetailPage = () => {
       <TransactionHeader
         onBack={handleBack}
         onExportCsv={handleExportCsv}
-        onDownloadReport={handleDownloadReport}
       />
 
       <TransactionSummary

@@ -90,7 +90,7 @@ const AnalyticsFilters = () => {
         </Popover>
 
         {/* Region Filter */}
-        <Select value={filters.region} onValueChange={setRegion}>
+        {/* <Select value={filters.region} onValueChange={setRegion}>
           <SelectTrigger className="h-auto w-[140px] px-2 py-3.5 text-[12px] font-medium text-[#9296a0] border-[#e7e8ea]">
             <SelectValue placeholder="Region" />
           </SelectTrigger>
@@ -101,10 +101,10 @@ const AnalyticsFilters = () => {
             <SelectItem value="east">East</SelectItem>
             <SelectItem value="west">West</SelectItem>
           </SelectContent>
-        </Select>
+        </Select> */}
 
         {/* Verification Type Filter */}
-        <Select value={filters.verificationType} onValueChange={setVerificationType} disabled={loading}>
+        {/* <Select value={filters.verificationType} onValueChange={setVerificationType} disabled={loading}>
           <SelectTrigger className="h-auto w-[180px] px-2 py-3.5 text-[12px] font-medium text-[#9296a0] border-[#e7e8ea]">
             <SelectValue placeholder={loading ? "Loading..." : "Verification Type"} />
           </SelectTrigger>
@@ -120,10 +120,10 @@ const AnalyticsFilters = () => {
               ))
             )}
           </SelectContent>
-        </Select>
+        </Select> */}
 
         {/* Device Type Filter */}
-        <Select value={filters.deviceType} onValueChange={setDeviceType}>
+        {/* <Select value={filters.deviceType} onValueChange={setDeviceType}>
           <SelectTrigger className="h-auto w-[150px] px-2 py-3.5 text-[12px] font-medium text-[#9296a0] border-[#e7e8ea]">
             <SelectValue placeholder="Device Type" />
           </SelectTrigger>
@@ -133,7 +133,7 @@ const AnalyticsFilters = () => {
             <SelectItem value="desktop">Desktop</SelectItem>
             <SelectItem value="tablet">Tablet</SelectItem>
           </SelectContent>
-        </Select>
+        </Select> */}
       </div>
 
       {/* Reset Button */}

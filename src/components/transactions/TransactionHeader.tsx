@@ -1,13 +1,12 @@
 import { Button } from '@/components/ui/button'
-import { Receipt, ArrowLeft, FileSpreadsheet, Download } from 'lucide-react'
+import { Receipt, ArrowLeft, FileSpreadsheet } from 'lucide-react'
 
 interface TransactionHeaderProps {
   onBack: () => void
   onExportCsv: () => void
-  onDownloadReport: () => void
 }
 
-const TransactionHeader = ({ onBack, onExportCsv, onDownloadReport }: TransactionHeaderProps) => {
+const TransactionHeader = ({ onBack, onExportCsv }: TransactionHeaderProps) => {
   return (
     <>
       {/* Transactions Header */}
@@ -40,16 +39,6 @@ const TransactionHeader = ({ onBack, onExportCsv, onDownloadReport }: Transactio
               Export CSV
             </span>
             <FileSpreadsheet className="size-4 ml-2" />
-          </Button>
-          
-          <Button 
-            onClick={onDownloadReport}
-            className="bg-[#e6e8ff] hover:bg-[#d0d4ff] text-[#0019ff] border-0 px-2 py-3.5 h-auto rounded-lg flex-1 sm:flex-none"
-          >
-            <span className="font-medium text-[12px] text-nowrap tracking-[-0.12px]">
-              Download Report
-            </span>
-            <Download className="size-4 ml-2" />
           </Button>
         </div>
       </div>

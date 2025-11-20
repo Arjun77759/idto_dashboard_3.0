@@ -9,16 +9,19 @@ declare global {
 
 interface RazorpayOptions {
   key: string;
-  amount?: number; // Amount in paise (e.g., 50000 = ₹500) - Optional when using order_id
+  amount?: string; // Amount in paise (e.g., 50000 = ₹500) - Optional when using order_id
   currency?: string;
   name?: string;
   description?: string;
-  image?: string;
+  image?: string; // URL of the image to be displayed on the checkout
   order_id?: string; // When using order_id, amount is not required as it's in the order
   prefill?: {
     name?: string;
     email?: string;
     contact?: string;
+  };
+  notes?: {
+    [key: string]: string;
   };
   theme?: {
     color?: string;
@@ -84,24 +87,51 @@ export const openRazorpayCheckout = async (
       throw new Error('Razorpay SDK not loaded');
     }
 
-    const razorpay = new window.Razorpay({
-      ...options,
+    // Build Razorpay options object matching the reference pattern
+    const razorpayOptions: any = {
+      key: options.key,
+      currency: options.currency || 'INR',
+      name: options.name || 'IDto',
+      description: options.description || 'Payment',
       handler: (response: any) => {
         if (options.handler) {
           options.handler(response);
         }
       },
-      modal: {
-        ...options.modal,
+    };
+
+    // Add optional fields only if provided
+    if (options.amount !== undefined) {
+      razorpayOptions.amount = options.amount;
+    }
+    if (options.order_id) {
+      razorpayOptions.order_id = options.order_id;
+    }
+    if (options.image) {
+      razorpayOptions.image = options.image;
+    }
+    if (options.prefill) {
+      razorpayOptions.prefill = options.prefill;
+    }
+    if (options.notes) {
+      razorpayOptions.notes = options.notes;
+    }
+    if (options.theme) {
+      razorpayOptions.theme = options.theme;
+    }
+    if (options.modal) {
+      razorpayOptions.modal = {
         ondismiss: () => {
           if (options.modal?.ondismiss) {
             options.modal.ondismiss();
           }
         },
-      },
-    });
+      };
+    }
 
-    // Handle payment failures
+    const razorpay = new window.Razorpay(razorpayOptions);
+
+    // Handle payment failures - matching reference pattern
     if (options.onError) {
       razorpay.on('payment.failed', (error: any) => {
         options.onError?.(error);

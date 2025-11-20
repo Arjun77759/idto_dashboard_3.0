@@ -1,18 +1,20 @@
-import { useState, useCallback } from 'react';
-import { openRazorpayCheckout, getRazorpayKey } from '@/lib/razorpay';
-import { toast } from 'sonner';
 import {
-  createOrder,
-  confirmOrderSuccess,
   confirmOrderFailed,
-  type CreateOrderRequest,
+  confirmOrderSuccess,
+  createOrder,
   type ConfirmOrderSuccessResponse,
-} from '@/api/paymentsApi';
+  type CreateOrderRequest,
+} from "@/api/paymentsApi";
+import { invalidateMonthlyUsage } from "@/hooks/useMonthlyUsage";
+import { getRazorpayKey, openRazorpayCheckout } from "@/lib/razorpay";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
 
 interface UseRazorpayOptions {
   amount: number; // Amount in rupees (base amount before tax)
   tax?: number; // Tax amount in rupees (optional, defaults to 0)
   description?: string;
+  image?: string; // URL of the image to be displayed on the checkout
   onSuccess?: (response: ConfirmOrderSuccessResponse) => void;
   onError?: (error: any) => void;
   onDismiss?: () => void;
@@ -20,6 +22,9 @@ interface UseRazorpayOptions {
     name?: string;
     email?: string;
     contact?: string;
+  };
+  notes?: {
+    [key: string]: string;
   };
   // Optional GST details
   gst_number?: string;
@@ -43,6 +48,9 @@ export const useRazorpay = () => {
         const tax = options.tax ?? 0;
         const totalAmount = options.amount + tax;
 
+        // Convert to paise for Razorpay (expects amount in subunits)
+        const amountInPaise = Math.round(totalAmount * 100);
+
         // Create order on backend
         const createOrderPayload: CreateOrderRequest = {
           amount: options.amount,
@@ -59,19 +67,24 @@ export const useRazorpay = () => {
         setCurrentOrderId(orderId);
 
         // Open Razorpay checkout with order_id
-        // Note: When using order_id, do NOT pass amount as the order already contains it
         const razorpayKey = getRazorpayKey();
 
         await openRazorpayCheckout({
           key: razorpayKey,
-          // amount: amountInPaise, // Don't pass amount when using order_id
-          currency: 'INR',
-          name: 'IDto',
-          description: options.description || 'Account Recharge',
+          amount: amountInPaise.toString(), // Pass amount in paise as number
+          currency: "INR",
+          name: "IDto",
+          description: options.description || "Account Recharge",
+          image: options.image || "https://superadmin.idto.ai/Logo.png", // Use provided image or default logo
           order_id: orderId, // Use order_id from backend - this contains the amount
           prefill: options.prefill,
+          notes: {
+            ...options.notes,
+            ...(options.address && { address: options.address }),
+            ...(options.company_name && { company_name: options.company_name }),
+          },
           theme: {
-            color: '#0019ff', // Match your brand color
+            color: "#0019ff", // Match your brand color
           },
           handler: async (response) => {
             try {
@@ -84,8 +97,9 @@ export const useRazorpay = () => {
 
               setLoading(false);
               setCurrentOrderId(null);
-              toast.success('Payment successful!');
-              
+              invalidateMonthlyUsage();
+              toast.success("Payment successful!");
+
               if (options.onSuccess) {
                 options.onSuccess(confirmResponse);
               }
@@ -96,7 +110,7 @@ export const useRazorpay = () => {
                 error?.response?.data?.detail ||
                 error?.response?.data?.message ||
                 error?.message ||
-                'Failed to confirm payment. Please contact support.';
+                "Failed to confirm payment. Please contact support.";
               toast.error(errorMessage);
               if (options.onError) {
                 options.onError(error);
@@ -107,39 +121,41 @@ export const useRazorpay = () => {
             // Handle payment failure from Razorpay
             try {
               const errorPayload = {
-                code: error.error?.code || error.code || 'PAYMENT_FAILED',
+                code: error.error?.code || error.code || "PAYMENT_FAILED",
                 description:
                   error.error?.description ||
                   error.description ||
-                  'Payment failed. Please try again.',
-                source: error.error?.source || error.source || 'gateway',
-                step: error.error?.step || error.step || 'payment_authorization',
-                reason: error.error?.reason || error.reason || 'payment_failed',
+                  "Payment failed. Please try again.",
+                source: error.error?.source || error.source || "gateway",
+                step:
+                  error.error?.step || error.step || "payment_authorization",
+                reason: error.error?.reason || error.reason || "payment_failed",
                 metadata: {
                   payment_id:
                     error.error?.metadata?.payment_id ||
                     error.metadata?.payment_id ||
-                    '',
+                    "",
                   order_id:
                     error.error?.metadata?.order_id ||
                     error.metadata?.order_id ||
                     currentOrderId ||
-                    '',
+                    "",
                 },
               };
 
               await confirmOrderFailed(errorPayload);
               setLoading(false);
               setCurrentOrderId(null);
+              invalidateMonthlyUsage();
               toast.error(errorPayload.description);
               if (options.onError) {
                 options.onError(error);
               }
             } catch (confirmError) {
-              console.error('Failed to confirm failed payment:', confirmError);
+              console.error("Failed to confirm failed payment:", confirmError);
               setLoading(false);
               setCurrentOrderId(null);
-              toast.error('Payment failed. Please try again.');
+              toast.error("Payment failed. Please try again.");
               if (options.onError) {
                 options.onError(error);
               }
@@ -152,18 +168,19 @@ export const useRazorpay = () => {
               if (currentOrderId) {
                 try {
                   await confirmOrderFailed({
-                    code: 'USER_CLOSED',
-                    description: 'Payment was cancelled by user',
-                    source: 'user',
-                    step: 'payment_initiation',
-                    reason: 'payment_cancelled',
+                    code: "USER_CLOSED",
+                    description: "Payment was cancelled by user",
+                    source: "user",
+                    step: "payment_initiation",
+                    reason: "payment_cancelled",
                     metadata: {
-                      payment_id: '',
+                      payment_id: "",
                       order_id: currentOrderId,
                     },
                   });
+                  invalidateMonthlyUsage();
                 } catch (error) {
-                  console.error('Failed to confirm cancelled payment:', error);
+                  console.error("Failed to confirm cancelled payment:", error);
                 }
               }
               setLoading(false);
@@ -185,7 +202,7 @@ export const useRazorpay = () => {
           error?.response?.data?.detail ||
           error?.response?.data?.message ||
           error?.message ||
-          'Failed to initiate payment. Please try again.';
+          "Failed to initiate payment. Please try again.";
         toast.error(errorMessage);
         if (options.onError) {
           options.onError(error);
@@ -200,4 +217,3 @@ export const useRazorpay = () => {
     loading,
   };
 };
-
