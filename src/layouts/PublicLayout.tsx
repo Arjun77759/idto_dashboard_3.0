@@ -32,7 +32,7 @@ const PublicLayout = () => {
   const [count, setCount] = useState(0)
 
   // Don't redirect if we're on the KYC callback page - it needs to process the callback even if authenticated
-  const isKYCCallback = location.pathname === '/kyc-callback'
+  const isKYCCallback = location.pathname.includes('/kyc-callback')
 
   // Redirect if authenticated - but skip redirect for KYC callback page
   if (token && !isKYCCallback) {
