@@ -5,15 +5,19 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useMemo, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { downloadCsv } from '@/lib/downloadCsv'
+import { useInvoiceDownload } from '@/hooks/useInvoiceDownload'
 
 const RecentInvoicesTable = () => {
   const { data: invoiceData, loading, error } = useRecentInvoices(50)
+  const { downloadInvoice } = useInvoiceDownload()
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<'all' | 'Paid' | 'Unpaid' | 'Pending'>('all')
   const [amountMin, setAmountMin] = useState('')
   const [amountMax, setAmountMax] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<string | null>(null)
 
   const resetFilters = () => {
     setSearch('')
@@ -57,17 +61,61 @@ const RecentInvoicesTable = () => {
     })
   }, [invoiceData, search, status, amountMin, amountMax, dateFrom, dateTo])
 
+  const formatDateTime = (dateTime: string | undefined) => {
+    if (!dateTime) return '-'
+    const [date, time] = dateTime.split(' ')
+    const [year, month, day] = date?.split('-') || []
+    if (!date || !time || !year || !month || !day) return dateTime
+    const shortYear = year.substring(2)
+    return `${day}/${month}/${shortYear} ${time}`
+  }
+
   const handleExportCSV = () => {
-    console.log('Export CSV')
+    const headers = ['Invoice ID', 'Date & Time', 'Status', 'Amount']
+    const rows = filtered.map((invoice) => [
+      invoice.id,
+      formatDateTime(invoice.date_time),
+      invoice.status,
+      invoice.amount ? Math.round(parseFloat(invoice.amount)) : 0
+    ])
+
+    const today = new Date()
+    const formattedDate = today.toISOString().split('T')[0]
+    downloadCsv({ headers, rows, filename: `Billing_${formattedDate}` })
   }
 
-  const handleDownloadInvoice = () => {
-    console.log('Download Invoice')
+  // Extract year and month from invoice date_time
+  const extractYearMonth = (dateTime: string | undefined): { year: number; month: number } | null => {
+    if (!dateTime) return null
+    try {
+      const [date] = dateTime.split(' ')
+      const [year, month] = date.split('-')
+      if (year && month) {
+        return { year: parseInt(year), month: parseInt(month) }
+      }
+    } catch (error) {
+      console.error('Error parsing date:', error)
+    }
+    return null
   }
 
-  const handleSeeDetails = (invoiceId: string) => {
-    console.log('See details for', invoiceId)
+  const handleDownloadInvoice = async (invoice: { id: string; date_time?: string }) => {
+    const yearMonth = extractYearMonth(invoice.date_time)
+    if (!yearMonth) {
+      console.error('Unable to extract year/month from invoice date')
+      return
+    }
+
+    setDownloadingInvoiceId(invoice.id)
+    try {
+      await downloadInvoice(yearMonth.year, yearMonth.month)
+    } catch (error) {
+      console.error('Error downloading invoice:', error)
+    } finally {
+      setDownloadingInvoiceId(null)
+    }
   }
+
 
   return (
     <motion.div
@@ -102,19 +150,6 @@ const RecentInvoicesTable = () => {
                 </p>
                 <FileSpreadsheet className="size-4 text-[#0019ff]" />
               </button>
-            </div>
-            <div className="flex flex-row items-center self-stretch flex-1 sm:flex-none">
-              <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid h-full relative rounded-lg shrink-0 w-full">
-                <button
-                  onClick={handleDownloadInvoice}
-                  className="flex gap-2 h-full items-center justify-center overflow-hidden px-3 py-3.5 relative rounded-[inherit] w-full"
-                >
-                  <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
-                    Download Invoice
-                  </p>
-                  <Download className="size-4 text-[#0019ff]" />
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -167,7 +202,7 @@ const RecentInvoicesTable = () => {
 
         {/* Invoice Table */}
         <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-md shrink-0 w-full overflow-x-auto">
-          <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full min-w-[800px]">
+          <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full min-w-[920px]">
             {/* Table Header */}
             <div className="bg-white flex items-start relative shrink-0 w-full">
               <div className="h-10 overflow-hidden relative shrink-0 w-12">
@@ -206,14 +241,13 @@ const RecentInvoicesTable = () => {
                   <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                 </div>
               </div>
-              <div className="h-10 overflow-hidden relative shrink-0 w-[130px]">
-                <p className="absolute bottom-8 font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#131b31] text-center tracking-[-0.084px] translate-y-[100%]">
-                  Actions
-                </p>
-                <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-              </div>
-              <div className="h-10 overflow-hidden relative shrink-0 w-[29px]">
-                <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+              <div className="h-10 overflow-hidden relative shrink-0 w-[120px]">
+                <div className="h-10 overflow-hidden relative rounded-[inherit] w-[120px]">
+                  <p className="absolute bottom-8 font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
+                    Action
+                  </p>
+                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+                </div>
               </div>
             </div>
 
@@ -240,16 +274,11 @@ const RecentInvoicesTable = () => {
                       <Skeleton className="h-4 w-16" />
                     </div>
                   </div>
-                  <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[208px]">
-                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-[208px] flex items-center pl-4">
-                      <Skeleton className="h-4 w-16" />
-                    </div>
+                  <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[208px] flex items-center pl-4">
+                    <Skeleton className="h-4 w-16" />
                   </div>
-                  <div className="h-10 overflow-hidden relative shrink-0 w-[130px] flex items-center justify-center">
-                    <Skeleton className="h-6 w-20 rounded-lg" />
-                  </div>
-                  <div className="h-10 overflow-hidden relative shrink-0 w-[29px]">
-                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+                  <div className="h-10 overflow-hidden relative shrink-0 w-[120px] flex items-center pl-4">
+                    <Skeleton className="h-4 w-12" />
                   </div>
                 </div>
               ))
@@ -274,12 +303,7 @@ const RecentInvoicesTable = () => {
                 <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[265px]">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-[265px]">
                     <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px] whitespace-pre-wrap">
-                      {invoice.date_time ? (() => {
-                        const [date, time] = invoice.date_time.split(' ')
-                        const [year, month, day] = date.split('-')
-                        const shortYear = year.substring(2)
-                        return `${day}/${month}/${shortYear} ${time}`
-                      })() : '-'}
+                      {formatDateTime(invoice.date_time)}
                     </p>
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>
@@ -300,21 +324,21 @@ const RecentInvoicesTable = () => {
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>
                 </div>
-                <div className="h-10 overflow-hidden relative shrink-0 w-[130px]">
-                  <div className="absolute border border-[#e7e8ea] border-solid h-[29px] left-1/2 rounded-lg top-1.5 translate-x-[-50%] w-[79px]">
+                <div className="h-10 overflow-hidden relative shrink-0 w-[120px]">
+                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[120px] flex items-center justify-center">
                     <button
-                      onClick={() => handleSeeDetails(invoice.id)}
-                      className="flex gap-1 h-[29px] items-center justify-center overflow-hidden px-2 py-3.5 relative rounded-[inherit] w-[79px]"
+                      onClick={() => handleDownloadInvoice(invoice)}
+                      disabled={downloadingInvoiceId === invoice.id}
+                      className="flex items-center justify-center gap-1 px-2 py-1 rounded hover:bg-[#e6e8ff] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Download Invoice"
                     >
-                      <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-center text-nowrap tracking-[-0.12px] whitespace-pre">
-                        See details
-                      </p>
+                      <Download className={`size-4 ${downloadingInvoiceId === invoice.id ? 'text-[#9296a0]' : 'text-[#0019ff]'}`} />
+                      {downloadingInvoiceId === invoice.id && (
+                        <span className="text-[10px] text-[#9296a0]">...</span>
+                      )}
                     </button>
+                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>
-                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                </div>
-                <div className="h-10 overflow-hidden relative shrink-0 w-[29px]">
-                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                 </div>
               </div>
             ))}

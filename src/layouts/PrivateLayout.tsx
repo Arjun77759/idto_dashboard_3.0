@@ -1,15 +1,32 @@
-import SimulationModeBanner from '@/components/dashboard/SimulationModeBanner'
+import { useState } from 'react'
 import Sidebar from '@/components/Sidebar'
 import { motion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
-import { useState } from 'react'
 import { Outlet, Navigate } from 'react-router-dom'
 import { getAccessToken } from '@/lib/auth'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
+import EnvironmentStatus from '@/components/dashboard/EnvironmentStatus'
+import SimulationModeModal from '@/components/modals/simulationModeModal/SimulationModeModal'
+import { useSimulationModeModal } from '@/contexts/SimulationModeModalContext'
+import SwitchToProductionModal from '@/components/modals/switchToProductionModal/SwitchToProductionModal'
 
 const PrivateLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false) // Start closed on mobile
-
+  const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false)
   const token = getAccessToken()
+  const { isModalOpen, closeModal } = useSimulationModeModal()
+  const { data: onboardingStatus } = useOnboardingStatus({ enabled: Boolean(token) })
+  const isProduction = Boolean(onboardingStatus?.is_onboarded)
+
+  const handleMoveToProduction = () => {
+    closeModal()
+    setIsSwitchModalOpen(true)
+  }
+
+  const handleConfirmSwitch = () => {
+    setIsSwitchModalOpen(false)
+  }
+
   if (!token) {
     return <Navigate to="/login" replace />
   }
@@ -48,7 +65,7 @@ const PrivateLayout = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex flex-col gap-4 sm:gap-5 items-start p-4 sm:p-6 relative w-full"
+          className="flex flex-col gap-4 sm:gap-5 items-start p-4 sm:p-6 relative w-full h-full overflow-y-auto"
         >
           <div className='flex items-center gap-4'>
             <button
@@ -57,11 +74,24 @@ const PrivateLayout = () => {
             >
               {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
-            <SimulationModeBanner />
+            <EnvironmentStatus />
           </div>
           <Outlet />
         </motion.div>
       </div>
+      {/* Only show simulation mode modal if not in production */}
+      {!isProduction && (
+        <SimulationModeModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          onMoveToProduction={handleMoveToProduction}
+        />
+      )}
+      <SwitchToProductionModal
+        isOpen={isSwitchModalOpen}
+        onClose={() => setIsSwitchModalOpen(false)}
+        onConfirm={handleConfirmSwitch}
+      />
     </motion.div>
   )
 }

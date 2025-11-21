@@ -2,13 +2,50 @@ import { useEffect, useState } from 'react'
 import http from '@/api/axiosInstance'
 
 export interface TransactionDetail {
-  trax_id: number
+  trax_id: string
   api_name: string
-  request_details: any
-  response_details: any
-  status: 'success' | 'failed'
+  request_details: unknown
+  response_details: unknown
+  status: string
   timestamp: string
-  turn_around_time?: string
+  turn_around_time?: string | null
+}
+
+type TransactionDetailApiResponse = Omit<TransactionDetail, 'trax_id'> & {
+  trax_id: string | number
+}
+
+const parseJsonLikeField = (value: unknown) => {
+  if (typeof value !== 'string') {
+    return value
+  }
+
+  const trimmedValue = value.trim()
+  if (!trimmedValue) {
+    return value
+  }
+
+  try {
+    return JSON.parse(trimmedValue)
+  } catch {
+    // Continue with normalization attempts
+  }
+
+  if (!trimmedValue.startsWith('{') && !trimmedValue.startsWith('[')) {
+    return value
+  }
+
+  const normalizedValue = trimmedValue
+    .replace(/'/g, '"')
+    .replace(/\bNone\b/g, 'null')
+    .replace(/\bTrue\b/g, 'true')
+    .replace(/\bFalse\b/g, 'false')
+
+  try {
+    return JSON.parse(normalizedValue)
+  } catch {
+    return value
+  }
 }
 
 export function useTransactionDetail(traxId: string | undefined) {
@@ -27,25 +64,20 @@ export function useTransactionDetail(traxId: string | undefined) {
     async function fetchTransactionDetail() {
       try {
         setLoading(true)
-        const { data } = await http.get<TransactionDetail>(`/usage/${traxId}`)
+        setError(null)
+        const { data } = await http.get<TransactionDetailApiResponse>(
+          `/usage/transaction/${traxId}`
+        )
 
         if (!cancelled) {
-          // Parse JSON strings if needed
-          if (typeof data.request_details === 'string') {
-            try {
-              data.request_details = JSON.parse(data.request_details)
-            } catch {
-              // Keep as string if parsing fails
-            }
+          const normalized: TransactionDetail = {
+            ...data,
+            trax_id: String(data.trax_id),
+            request_details: parseJsonLikeField(data.request_details),
+            response_details: parseJsonLikeField(data.response_details)
           }
-          if (typeof data.response_details === 'string') {
-            try {
-              data.response_details = JSON.parse(data.response_details)
-            } catch {
-              // Keep as string if parsing fails
-            }
-          }
-          setData(data)
+
+          setData(normalized)
         }
       } catch (e: any) {
         if (!cancelled) {

@@ -1,29 +1,32 @@
-import { motion } from 'framer-motion'
-import {
-  ArrowRight,
-  BarChart3,
-  BookOpen,
-  Receipt,
-  CreditCard,
-  FlaskConical,
-  Home,
-  MessageSquare,
-  Settings,
-  User,
-  LogOut,
-  ChevronDown
-} from 'lucide-react'
-import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import SwitchToProductionModal from './modals/switchToProductionModal/SwitchToProductionModal'
-import { useUserProfile } from '@/hooks/useUserProfile'
-import { clearAuth } from '@/lib/auth'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
+import { useUserProfile } from '@/hooks/useUserProfile'
+import { clearAuth } from '@/lib/auth'
+import { resetOnboardingStore } from '@/store/onboardingStore'
+import { motion } from 'framer-motion'
+import {
+  ArrowRight,
+  BarChart3,
+  BookOpen,
+  ChevronDown,
+  CreditCard,
+  FlaskConical,
+  Home,
+  LogOut,
+  MessageSquare,
+  Receipt,
+  Settings,
+  User
+} from 'lucide-react'
+import { useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import SwitchToProductionModal from './modals/switchToProductionModal/SwitchToProductionModal'
+import EnvironmentStatus from '@/components/dashboard/EnvironmentStatus'
 
 interface MenuItem {
   name: string
@@ -44,9 +47,12 @@ const Sidebar = () => {
   const navigate = useNavigate()
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false)
   const { data: userProfile, loading: profileLoading } = useUserProfile()
+  const { data: onboardingStatus } = useOnboardingStatus()
+  const isProduction = Boolean(onboardingStatus?.is_onboarded)
 
   const handleLogout = () => {
     clearAuth()
+    resetOnboardingStore()
     navigate('/login')
   }
 
@@ -103,22 +109,7 @@ const Sidebar = () => {
       className="bg-white flex flex-col gap-5 items-start px-4 py-6 relative w-full h-screen"
     >
       {/* Environment Header */}
-      <div className="flex items-start justify-between px-0 py-1.5 relative w-full">
-        <div className="flex gap-4 items-center relative">
-          <div className="rounded w-[34px] h-[34px] shrink-0"
-            style={{
-              backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 34 34\\' preserveAspectRatio=\\'none\\'><g transform=\\'matrix(-1.0409e-16 -1.7 1.7 -1.0409e-16 17 17)\\'><foreignObject x=\\'-190\\' y=\\'-190\\' width=\\'380\\' height=\\'380\\'><div xmlns=\\'http://www.w3.org/1999/xhtml\\' style=\\'background-image: conic-gradient(from 90deg, rgba(84, 238, 190, 1) 0%, rgba(63, 185, 206, 1) 25%, rgba(42, 132, 223, 1) 50%, rgba(32, 105, 231, 1) 62.5%, rgba(21, 78, 239, 1) 75%, rgba(11, 52, 247, 1) 87.5%, rgba(0, 25, 255, 1) 100%); opacity:1; height: 100%; width: 100%;\\'></div></foreignObject></g></svg>')"
-            }} />
-          <div className="flex flex-col items-start relative">
-            <p className="font-medium leading-[1.4] relative text-[12px] text-[#131b31] tracking-[-0.12px]">
-              Sandbox
-            </p>
-            <p className="font-normal leading-[1.4] relative text-[12px] text-[#9296a0] tracking-[-0.12px]">
-              Simulated Data
-            </p>
-          </div>
-        </div>
-      </div>
+      <EnvironmentStatus variant="header" />
 
       {/* Navigation List */}
       <div className="flex flex-col gap-2 grow items-start min-h-0 min-w-0 relative w-full overflow-y-auto">
@@ -203,19 +194,21 @@ const Sidebar = () => {
       </div>
 
       {/* Switch to Production Button */}
-      <div className="bg-[#fff7ea] border border-[#b47d1f] border-solid relative rounded-lg shrink-0 w-full">
-        <button
-          onClick={handleSwitchToProduction}
-          className="flex gap-2 items-center justify-center p-2 relative rounded-[inherit] w-full"
-        >
-          <p className="font-medium leading-[1.4] relative text-[12px] text-[#b47d1f] text-nowrap tracking-[-0.12px] whitespace-pre">
-            Switch to Production
-          </p>
-          <div className="overflow-hidden relative shrink-0 size-4">
-            <ArrowRight className="w-4 h-4 text-[#b47d1f]" />
-          </div>
-        </button>
-      </div>
+      {!isProduction && (
+        <div className="bg-[#fff7ea] border border-[#b47d1f] border-solid relative rounded-lg shrink-0 w-full">
+          <button
+            onClick={handleSwitchToProduction}
+            className="flex gap-2 items-center justify-center p-2 relative rounded-[inherit] w-full"
+          >
+            <p className="font-medium leading-[1.4] relative text-[12px] text-[#b47d1f] text-nowrap tracking-[-0.12px] whitespace-pre">
+              Switch to Production
+            </p>
+            <div className="overflow-hidden relative shrink-0 size-4">
+              <ArrowRight className="w-4 h-4 text-[#b47d1f]" />
+            </div>
+          </button>
+        </div>
+      )}
 
       {/* User Profile */}
       <DropdownMenu>
@@ -237,7 +230,7 @@ const Sidebar = () => {
                       {userProfile?.name || 'User'}
                     </p>
                     <p className="font-normal relative text-[8px] text-[#9296a0] tracking-[-0.08px]">
-                      {userProfile?.company_name || 'Company'}
+                      {userProfile?.brand_name || userProfile?.registered_name || 'Company'}
                     </p>
                   </>
                 )}

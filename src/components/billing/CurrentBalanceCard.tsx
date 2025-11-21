@@ -1,12 +1,50 @@
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Spinner } from '@/components/ui/spinner'
 import { useMonthlyUsage } from '@/hooks/useMonthlyUsage'
+import { useSimulationModeModal } from '@/contexts/SimulationModeModalContext'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
+import { useRazorpay } from '@/hooks/useRazorpay'
+import { useUserProfileStore } from '@/store/userProfileStore'
 
 const CurrentBalanceCard = () => {
   const { data, loading, error } = useMonthlyUsage()
+  const { openModal } = useSimulationModeModal()
+  const { data: onboardingStatus } = useOnboardingStatus()
+  const { initiatePayment, loading: paymentLoading } = useRazorpay()
+  const userProfile = useUserProfileStore((state) => state.data)
+  const isProduction = Boolean(onboardingStatus?.is_onboarded)
+
   const handleRechargeCredits = () => {
-    console.log('Recharge credits')
+    if (!isProduction) {
+      openModal()
+    } else {
+      // Open Razorpay checkout for recharge
+      initiatePayment({
+        amount: 1000, // Default amount ₹1000, can be made configurable later
+        tax: 0, // Tax amount (can be calculated based on GST if needed)
+        description: 'Account Recharge',
+        prefill: {
+          name: userProfile?.name || '',
+          email: userProfile?.email || '',
+          contact: userProfile?.mobile || '',
+        },
+        // Optional GST details from user profile
+        ...(userProfile?.gst_number && { gst_number: userProfile.gst_number }),
+        ...(userProfile?.brand_name && { company_name: userProfile.brand_name }),
+        ...(userProfile?.business_address && { address: userProfile.business_address }),
+        onSuccess: (response) => {
+          console.log('Payment successful:', response)
+          // Response includes: status, internal_payment_id, razorpay_payment_id, new_balance
+          // You may want to refresh the balance here
+          // The balance is already updated on the backend
+        },
+        onError: (error) => {
+          console.error('Payment failed:', error)
+        },
+      })
+    }
   }
 
   return (
@@ -16,7 +54,7 @@ const CurrentBalanceCard = () => {
       transition={{ duration: 0.3, delay: 0.1 }}
       className="bg-white border border-[#e7e8ea] border-solid relative rounded-2xl w-full lg:w-[281px] h-full"
     >
-      <div className="flex flex-col gap-2.5 h-full items-start overflow-hidden relative rounded-[inherit] w-full">
+      <div className="flex flex-col gap-2.5 h-full items-start overflow-hidden relative rounded-[inherit] w-full justify-between">
         {/* Current Balance Section */}
         <div className="flex flex-col font-medium gap-4 items-start overflow-hidden p-6 relative shrink-0 w-full">
           <p className="leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] tracking-[-0.12px] w-full">
@@ -63,15 +101,27 @@ const CurrentBalanceCard = () => {
               )}
             </div>
           </div>
-          <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid h-10 relative rounded-lg shrink-0 w-full">
+          <div className={`bg-[#e6e8ff] border border-[#e7e8ea] border-solid h-10 relative rounded-lg shrink-0 w-full ${paymentLoading ? 'opacity-50' : ''}`}>
             <button
               onClick={handleRechargeCredits}
-              className="flex gap-2 h-10 items-center justify-center overflow-hidden px-2 py-3.5 relative rounded-[inherit] w-full"
+              disabled={paymentLoading}
+              className="flex gap-2 h-10 items-center justify-center overflow-hidden px-2 py-3.5 relative rounded-[inherit] w-full disabled:cursor-not-allowed"
             >
-              <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
-                Recharge Credits
-              </p>
-              <Plus className="size-4 text-[#0019ff]" />
+              {paymentLoading ? (
+                <>
+                  <Spinner className="size-4 text-[#0019ff]" />
+                  <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
+                    Processing...
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
+                    Recharge Credits
+                  </p>
+                  <Plus className="size-4 text-[#0019ff]" />
+                </>
+              )}
             </button>
           </div>
         </div>

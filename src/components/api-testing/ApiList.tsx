@@ -35,7 +35,7 @@ const ApiList = ({ selectedApi, onApiSelect, searchQuery = '', categoryFilter = 
 
   // Skeleton loader component
   const SkeletonItem = () => (
-    <div className="border-b border-[#e7e8ea] border-solid flex items-center justify-between p-4 relative shrink-0 w-full">
+    <div className="border-b border-[#e7e8ea] border-solid flex items-center justify-between p-4 relative shrink-0 w-full overflow-y-auto">
       <div className="flex flex-col gap-2 grow">
         <div className="h-3 w-32 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
       </div>
@@ -44,7 +44,7 @@ const ApiList = ({ selectedApi, onApiSelect, searchQuery = '', categoryFilter = 
   )
 
   return (
-    <div className="border border-[#e7e8ea] border-solid flex flex-col items-start overflow-hidden relative rounded-lg shrink-0 w-full flex-1">
+    <div className="border border-[#e7e8ea] border-solid flex flex-col items-start overflow-hidden relative rounded-lg shrink-0 w-full flex-grow overflow-y-auto">
       <div className="flex flex-col items-start overflow-hidden relative rounded-lg w-full h-full">
         {loading ? (
           // Show skeleton loaders while loading

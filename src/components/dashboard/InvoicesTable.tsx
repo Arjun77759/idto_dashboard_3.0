@@ -7,10 +7,6 @@ const InvoicesTable = () => {
   const navigate = useNavigate()
   const { data: invoices, loading, error } = useRecentInvoices(4)
 
-  const handleSeeDetails = (invoiceId: string) => {
-    console.log('See details for:', invoiceId)
-  }
-
   const handleSeeAll = () => {
     navigate('/billing')
   }
@@ -47,7 +43,7 @@ const InvoicesTable = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.5 }}
-      className="grow bg-white border border-[#e7e8ea] border-solid min-h-0 min-w-0 relative rounded-2xl shrink-0 max-w-full"
+      className="grow bg-white border border-[#e7e8ea] border-solid min-w-0 relative rounded-2xl shrink-0 max-w-full min-h-[280px]"
     >
       <div className="flex flex-col gap-6 items-start overflow-hidden p-4 relative rounded-[inherit] w-full">
         <div className="flex items-center justify-between relative w-full">
@@ -97,24 +93,11 @@ const InvoicesTable = () => {
                   <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
                 </div>
               </div>
-              <div className="border-r border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[115px]">
+              <div className="border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[115px]">
                 <div className="h-10 overflow-hidden relative rounded-[inherit] w-[115px]">
                   <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
                     Amount
                   </p>
-                  <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
-                </div>
-              </div>
-              <div className="border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[107px]">
-                <div className="h-10 overflow-hidden relative rounded-[inherit] w-[107px]">
-                  <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] text-center tracking-[-0.084px] translate-y-[100%]">
-                    Actions
-                  </p>
-                  <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
-                </div>
-              </div>
-              <div className="border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-6">
-                <div className="h-10 overflow-hidden relative rounded-[inherit] w-6">
                   <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
                 </div>
               </div>
@@ -139,15 +122,9 @@ const InvoicesTable = () => {
                       <Skeleton className="h-4 w-16" />
                     </div>
                   </div>
-                  <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[115px]">
-                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-[115px] flex items-center pl-4">
-                      <Skeleton className="h-4 w-20" />
-                    </div>
+                  <div className="h-10 overflow-hidden relative shrink-0 w-[115px] flex items-center pl-4">
+                    <Skeleton className="h-4 w-20" />
                   </div>
-                  <div className="h-10 overflow-hidden relative shrink-0 w-[107px] flex items-center justify-center">
-                    <Skeleton className="h-6 w-20 rounded-lg" />
-                  </div>
-                  <div className="h-10 overflow-hidden relative shrink-0 w-6"></div>
                 </div>
               ))
             )}
@@ -195,29 +172,13 @@ const InvoicesTable = () => {
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>
                 </div>
-                <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[115px]">
+                <div className="h-10 overflow-hidden relative shrink-0 w-[115px]">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-[115px]">
                     <p className="absolute font-normal leading-[24px] left-4 not-italic right-4 text-[#9296a0] text-[14px] top-2 tracking-[-0.084px]">
                       {formatAmount(invoice.amount)}
                     </p>
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                   </div>
-                </div>
-                <div className="h-10 overflow-hidden relative shrink-0 w-[107px]">
-                  <div className="absolute border border-[#e7e8ea] border-solid h-[29px] left-1/2 rounded-lg top-1.5 translate-x-[-50%] w-[79px]">
-                    <button
-                      onClick={() => handleSeeDetails(invoice.id)}
-                      className="flex gap-1 h-[29px] items-center justify-center px-2 py-[14px] relative rounded-[inherit] w-[79px]"
-                    >
-                      <p className="font-medium leading-[1.4] relative text-[#9296a0] text-[12px] text-center text-nowrap tracking-[-0.12px] whitespace-pre">
-                        See details
-                      </p>
-                    </button>
-                  </div>
-                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                </div>
-                <div className="h-10 overflow-hidden relative shrink-0 w-6">
-                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                 </div>
               </motion.div>
             ))}

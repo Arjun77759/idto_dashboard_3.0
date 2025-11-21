@@ -9,112 +9,55 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { useTransactions } from '@/hooks/useTransactions'
-import { format, isWithinInterval, parseISO } from 'date-fns'
-import { useState, useMemo } from 'react'
+import { format } from 'date-fns'
+import { useEffect, useState } from 'react'
+import { parseTransactionTimestamp } from '@/lib/utils'
+import type { Transaction } from '@/hooks/useTransactions'
 
 interface TransactionsTableProps {
   onViewDetails: (transactionId: string) => void
-  searchQuery?: string
-  dateFilter?: any
-  documentTypeFilter?: string
-  statusFilter?: string
-  locationFilter?: string
+  transactions: Transaction[]
+  loading: boolean
+  error: string | null
 }
 
 const TransactionsTable = ({ 
   onViewDetails, 
-  searchQuery = '',
-  dateFilter,
-  documentTypeFilter = '',
-  statusFilter = '',
-  locationFilter = ''
+  transactions,
+  loading,
+  error
 }: TransactionsTableProps) => {
-  const [selectedRows, setSelectedRows] = useState<number[]>([])
-  const { data: transactions, loading, error } = useTransactions()
+  const [selectedRows, setSelectedRows] = useState<string[]>([])
 
-  // Client-side filtering for all filter criteria
-  const filteredTransactions = useMemo(() => {
-    let filtered = [...transactions]
-    
-    // Search query filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(transaction =>
-        transaction.trax_id.toString().includes(query) ||
-        transaction.api_name.toLowerCase().includes(query) ||
-        transaction.status.toLowerCase().includes(query)
-      )
-    }
-    
-    // Date range filter
-    if (dateFilter?.from && dateFilter?.to) {
-      filtered = filtered.filter(transaction => {
-        try {
-          const transactionDate = parseISO(transaction.timestamp)
-          return isWithinInterval(transactionDate, {
-            start: dateFilter.from,
-            end: dateFilter.to
-          })
-        } catch {
-          return true // Keep if date parsing fails
-        }
-      })
-    }
-    
-    // Document type filter
-    if (documentTypeFilter) {
-      filtered = filtered.filter(transaction =>
-        transaction.api_name === documentTypeFilter
-      )
-    }
-    
-    // Status filter
-    if (statusFilter) {
-      filtered = filtered.filter(transaction =>
-        transaction.status === statusFilter
-      )
-    }
-    
-    // Location filter (not available in current data structure)
-    // Will be supported when backend adds region field to transaction response
-    // if (locationFilter) {
-    //   filtered = filtered.filter(transaction =>
-    //     transaction.region?.toLowerCase() === locationFilter.toLowerCase()
-    //   )
-    // }
-    
-    return filtered
-  }, [transactions, searchQuery, dateFilter, documentTypeFilter, statusFilter, locationFilter])
+  useEffect(() => {
+    setSelectedRows((prev) => prev.filter((id) => transactions.some((t) => t.trax_id === id)))
+  }, [transactions])
 
-  const handleCopyId = (id: number) => {
-    navigator.clipboard.writeText(id.toString())
+  const handleCopyId = (id: string) => {
+    navigator.clipboard.writeText(id)
   }
 
   const toggleSelectAll = () => {
-    if (selectedRows.length === filteredTransactions.length) {
+    if (selectedRows.length === transactions.length) {
       setSelectedRows([])
     } else {
-      setSelectedRows(filteredTransactions.map(t => t.trax_id))
+      setSelectedRows(transactions.map(t => t.trax_id))
     }
   }
 
-  const toggleSelectRow = (id: number) => {
+  const toggleSelectRow = (id: string) => {
     setSelectedRows(prev =>
       prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
     )
   }
 
   const getStatusColor = (status: string) => {
-    return status === 'success' ? '#54eebe' : '#ff4d4f'
+    return status?.toLowerCase() === 'success' ? '#54eebe' : '#ff4d4f'
   }
 
   const formatDateTime = (timestamp: string) => {
-    try {
-      return format(new Date(timestamp), 'MMM d, yyyy h:mm a')
-    } catch {
-      return timestamp
-    }
+    const parsed = parseTransactionTimestamp(timestamp)
+    return parsed ? format(parsed, 'MMM d, yyyy h:mm a') : timestamp
   }
 
   const formatApiName = (apiName: string) => {
@@ -145,7 +88,7 @@ const TransactionsTable = ({
           <TableRow className="hover:bg-transparent">
             <TableHead className="w-12">
               <Checkbox
-                checked={selectedRows.length === filteredTransactions.length && filteredTransactions.length > 0}
+                checked={selectedRows.length === transactions.length && transactions.length > 0}
                 onCheckedChange={toggleSelectAll}
               />
             </TableHead>
@@ -157,14 +100,14 @@ const TransactionsTable = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredTransactions.length === 0 ? (
+          {transactions.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="text-center text-[#9296a0] py-8">
                 No transactions found
               </TableCell>
             </TableRow>
           ) : (
-            filteredTransactions.map((transaction, index) => (
+            transactions.map((transaction, index) => (
               <TableRow key={transaction.trax_id} className={index % 2 === 0 ? 'bg-[#f7f7f8]' : 'bg-white'}>
                 <TableCell>
                   <Checkbox
@@ -194,7 +137,7 @@ const TransactionsTable = ({
                 </TableCell>
                 <TableCell className="text-center">
                   <Button
-                    onClick={() => onViewDetails(transaction.trax_id.toString())}
+                    onClick={() => onViewDetails(transaction.trax_id)}
                     variant="outline"
                     size="sm"
                     className="h-[29px] px-2 border-[#e7e8ea] text-[12px] text-[#9296a0] hover:bg-[#f7f7f8]"

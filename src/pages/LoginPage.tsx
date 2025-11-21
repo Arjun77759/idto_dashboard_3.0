@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import { Building2, Lock, MoveRight } from 'lucide-react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
@@ -111,12 +110,7 @@ const LoginPage = () => {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      className="bg-white flex flex-col gap-6 sm:gap-8 lg:gap-12 items-center p-4 sm:p-6 lg:p-10 relative w-full min-h-screen"
-    >
+    <div className="bg-white flex flex-col gap-6 sm:gap-8 lg:gap-12 items-center p-4 sm:p-6 lg:p-10 relative w-full min-h-screen">
       {/* Logo */}
       <div className="flex gap-2 items-center px-0 py-1.5 relative w-full max-w-sm sm:max-w-md">
         <div className="h-6 sm:h-8 overflow-hidden relative w-10 sm:w-14">
@@ -271,7 +265,7 @@ const LoginPage = () => {
           Don't have an account? <Link to="/register" className="font-medium text-[#8a95ff] hover:text-[#0019ff]">Sign up for free</Link>
         </p>
       </div>
-    </motion.div>
+    </div>
   )
 }
 

@@ -22,9 +22,9 @@ const BillingPage = () => {
       </div>
 
       {/* Top Section - Balance and Payment Cards */}
-      <div className="flex flex-col lg:flex-row gap-4 sm:gap-5 items-start relative w-full h-full">
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-5 items-start relative w-full">
         <CurrentBalanceCard />
-        <PaymentMethodsCard />
+        {/* <PaymentMethodsCard /> */}
         <ApiUsageTable />
       </div>
 

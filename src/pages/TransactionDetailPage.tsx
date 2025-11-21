@@ -7,6 +7,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useTransactionDetail } from '@/hooks/useTransactionDetail'
 import { format } from 'date-fns'
 import { useMemo } from 'react'
+import { parseTransactionTimestamp } from '@/lib/utils'
+import { downloadCsv } from '@/lib/downloadCsv'
 
 const TransactionDetailPage = () => {
   const navigate = useNavigate()
@@ -17,15 +19,12 @@ const TransactionDetailPage = () => {
   const formattedData = useMemo(() => {
     if (!transaction) return null
 
-    const statusColor = transaction.status === 'success' ? '#54eebe' : '#ff4d4f'
+    const statusColor = transaction.status?.toLowerCase() === 'success' ? '#54eebe' : '#ff4d4f'
     
     // Format date
     let formattedDate = 'N/A'
-    try {
-      formattedDate = format(new Date(transaction.timestamp), 'MM/dd/yy  HH:mm:ss')
-    } catch {
-      formattedDate = transaction.timestamp
-    }
+    const parsedTimestamp = parseTransactionTimestamp(transaction.timestamp)
+    formattedDate = parsedTimestamp ? format(parsedTimestamp, 'MM/dd/yy  HH:mm:ss') : transaction.timestamp
 
     // Extract details from response_details
     const details: { field: string; value: string }[] = []
@@ -56,9 +55,9 @@ const TransactionDetailPage = () => {
     // Add fallback details if response_details is empty or not available
     if (details.length === 0) {
       details.push(
-        { field: 'Transaction ID', value: transaction.trax_id.toString() },
+        { field: 'Transaction ID', value: transaction.trax_id },
         { field: 'API Name', value: toTitleCase(transaction.api_name) },
-        { field: 'Status', value: transaction.status === 'success' ? 'Success' : 'Failed' },
+        { field: 'Status', value: transaction.status?.toLowerCase() === 'success' ? 'Success' : 'Failed' },
         { field: 'Timestamp', value: transaction.timestamp }
       )
       
@@ -68,10 +67,10 @@ const TransactionDetailPage = () => {
     }
 
     return {
-      id: transaction.trax_id.toString(),
+      id: transaction.trax_id,
       date: formattedDate,
       api: toTitleCase(transaction.api_name),
-      status: transaction.status === 'success' ? 'Success' : 'Failed',
+      status: transaction.status?.toLowerCase() === 'success' ? 'Success' : 'Failed',
       statusColor,
       details,
       requestData: transaction.request_details,
@@ -105,11 +104,28 @@ const TransactionDetailPage = () => {
   }
 
   const handleExportCsv = () => {
-    console.log('Export CSV')
-  }
+    if (!formattedData || !transaction) return
 
-  const handleDownloadReport = () => {
-    console.log('Download Report')
+    const headers = ['Field', 'Value']
+    const detailRows = formattedData.details.map(({ field, value }) => [field, value])
+    const additionalRows = [
+      ['Transaction ID', formattedData.id],
+      ['API', formattedData.api],
+      ['Timestamp', transaction.timestamp],
+      ['Status', formattedData.status],
+      ['Turn Around Time', transaction.turn_around_time || 'N/A'],
+      ['Request', JSON.stringify(transaction.request_details ?? {}, null, 2)],
+      ['Response', JSON.stringify(transaction.response_details ?? {}, null, 2)]
+    ]
+
+    const today = new Date()
+    const formattedDate = today.toISOString().split('T')[0]
+
+    downloadCsv({
+      headers,
+      rows: [...detailRows, ...additionalRows],
+      filename: `Transaction_${formattedData.id}_${formattedDate}`
+    })
   }
 
   if (error) {
@@ -159,7 +175,6 @@ const TransactionDetailPage = () => {
       <TransactionHeader
         onBack={handleBack}
         onExportCsv={handleExportCsv}
-        onDownloadReport={handleDownloadReport}
       />
 
       <TransactionSummary

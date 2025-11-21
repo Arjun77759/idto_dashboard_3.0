@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getUsageComparison, getUsageOverview } from '@/api/usageApi'
 import type { UsageComparisonResponse } from '@/api/usageApi'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 
 export type UsageOverview = {
   total: number
@@ -9,7 +10,28 @@ export type UsageOverview = {
   balance: number
 }
 
+// Simple mock usage data to use in development/sandbox mode
+function getMockUsageOverview(): UsageComparisonResponse {
+  const now = new Date()
+  return {
+    total_verifications: { count: 314, change_percent: 13.7 },
+    successful_verifications: { count: 290, change_percent: 21.3 },
+    failed_verifications: { count: 24, change_percent: 4.7 },
+    monthly_spend: { amount: 1287.51, change_percent: 2.4 },
+    period: {
+      requested_month: now.getMonth() + 1,
+      current_year: now.getFullYear(),
+      current_month_window: { start: '', end: '' },
+      previous_month_window: { start: '', end: '' }
+    }
+  }
+}
+
 export function useUsageOverview(period?: number) {
+  const { data: onboardingStatus } = useOnboardingStatus()
+  // If isProduction is false, mock this API with good data
+  const isProduction = Boolean(onboardingStatus?.is_onboarded)
+
   const [data, setData] = useState<UsageComparisonResponse | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
@@ -17,20 +39,31 @@ export function useUsageOverview(period?: number) {
   useEffect(() => {
     let cancelled = false
     async function fetchOverview() {
+      setLoading(true)
+
+      // If not production, use mock data for sandbox and return early
+      if (!isProduction) {
+        if (!cancelled) {
+          setData(getMockUsageOverview())
+          setError(null)
+          setLoading(false)
+        }
+        return
+      }
+
       try {
-        setLoading(true)
-        
         // Try comparison API first, fallback to basic overview if not available
         try {
           const response = await getUsageComparison(period)
           if (!cancelled) setData(response)
         } catch (comparisonError: any) {
-          // If comparison API not available (404/501), use basic overview
-          if (comparisonError?.response?.status === 404 || comparisonError?.response?.status === 501) {
+          if (
+            comparisonError?.response?.status === 404 ||
+            comparisonError?.response?.status === 501
+          ) {
             console.warn('Comparison API not available, using basic overview')
             const basicData = await getUsageOverview()
             if (!cancelled) {
-              // Transform basic data to comparison format with null change_percent
               const transformedData: UsageComparisonResponse = {
                 total_verifications: { count: basicData.total, change_percent: null },
                 successful_verifications: { count: basicData.success, change_percent: null },
@@ -51,31 +84,23 @@ export function useUsageOverview(period?: number) {
         }
       } catch (e: any) {
         if (!cancelled) {
-          // Handle different error response structures
           let errorMessage = 'Failed to load overview'
-          
+
           if (e?.response?.data?.detail) {
             const detail = e.response.data.detail
-            // Handle array of validation errors
             if (Array.isArray(detail)) {
               errorMessage = detail.map((err: any) => err.msg || JSON.stringify(err)).join(', ')
-            } 
-            // Handle object with msg property
-            else if (typeof detail === 'object' && detail.msg) {
+            } else if (typeof detail === 'object' && detail.msg) {
               errorMessage = detail.msg
-            }
-            // Handle string
-            else if (typeof detail === 'string') {
+            } else if (typeof detail === 'string') {
               errorMessage = detail
-            }
-            // Fallback for unknown object structure
-            else if (typeof detail === 'object') {
+            } else if (typeof detail === 'object') {
               errorMessage = JSON.stringify(detail)
             }
           } else if (e?.message) {
             errorMessage = e.message
           }
-          
+
           setError(errorMessage)
         }
       } finally {
@@ -86,9 +111,8 @@ export function useUsageOverview(period?: number) {
     return () => {
       cancelled = true
     }
-  }, [period])
+    // Also depend on isProduction so hook updates with onboardingStatus change
+  }, [period, isProduction])
 
   return { data, loading, error }
 }
-
-

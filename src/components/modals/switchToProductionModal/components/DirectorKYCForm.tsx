@@ -1,48 +1,40 @@
 import { useState } from 'react'
-import { ArrowRight, AlertCircle, ArrowLeft } from "lucide-react"
-import http from '../../../../api/axiosInstance'
+import { ArrowRight, AlertCircle } from "lucide-react"
+import type { OnboardingStatus } from '@/hooks/useOnboardingStatus'
+import type { OnboardingStepsStatus } from '@/hooks/useOnboardingSteps'
 
 interface DirectorKYCFormProps {
   onNext: () => void
   onPrevious?: () => void
   showPrevious?: boolean
   isLoading?: boolean
+  initialData?: OnboardingStatus | null
+  stepsStatus?: OnboardingStepsStatus
 }
 
-const DirectorKYCForm = ({ onNext, onPrevious, showPrevious = false, isLoading: externalLoading = false }: DirectorKYCFormProps) => {
+const DirectorKYCForm = ({ onNext: _onNext, onPrevious: _onPrevious, showPrevious: _showPrevious = false, isLoading: externalLoading = false, initialData: _initialData, stepsStatus: _stepsStatus }: DirectorKYCFormProps) => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     try {
       setIsLoading(true)
       setError('')
 
       // Get current domain for redirect URL
-      const redirectUrl = `${window.location.origin}/kyc-callback`
+      const redirectUri = encodeURIComponent(`${window.location.origin}/kyc-callback`)
 
-      // Call DigiLocker initiate session API
-      const response = await http.post('/verify/digilocker/initiate_session', {
-        consent_purpose: 'Director KYC verification for production environment activation',
-        redirect_url: redirectUrl,
-        redirect_to_signup: false,
-        consent: true
-      })
+      // Construct DigiLocker URL with required parameters
+      const digilockerUrl = `https://digilocker.idto.ai/digilocker?client_id=28d04bf7-9fa4-46ea-ad39-9d466c1ca3bf&redirect_uri=${redirectUri}&redirect_to_signup=false&req_docs=ADHAR`
 
-      // Check if response is successful
-      if (response.data && response.data.url) {
-        // Redirect to DigiLocker authentication URL
-        window.location.href = response.data.url
-        
-        // Note: User will be redirected away, so we don't call onNext() here
-        // The callback page will handle the next step
-      } else {
-        throw new Error('Invalid response from server')
-      }
+      // Redirect to DigiLocker authentication URL
+      window.location.href = digilockerUrl
+      
+      // Note: User will be redirected away, so we don't call onNext() here
+      // The callback page will handle the next step
     } catch (err: any) {
       console.error('DigiLocker initiation error:', err)
       setError(
-        err?.response?.data?.message || 
         err?.message || 
         'Failed to initiate DigiLocker verification. Please try again.'
       )
@@ -114,17 +106,7 @@ const DirectorKYCForm = ({ onNext, onPrevious, showPrevious = false, isLoading: 
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 items-center justify-between relative shrink-0 w-full">
-          {showPrevious && onPrevious && (
-            <button
-              onClick={onPrevious}
-              className="flex gap-2 items-center px-6 py-3 text-[#616675] hover:bg-gray-100 rounded-lg transition-colors border border-[#e7e8ea]"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="font-medium text-xs tracking-[-0.12px]">Previous</span>
-            </button>
-          )}
-          <div className="flex-1"></div>
+        <div className="flex gap-3 items-center justify-end relative shrink-0 w-full">
           <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid relative rounded-lg shrink-0">
             <button
               onClick={handleContinue}

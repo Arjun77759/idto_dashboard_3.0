@@ -4,12 +4,31 @@ import { useUsageMonthly } from '@/hooks/useUsageMonthly'
 import { useMemo } from 'react'
 import { useAnalyticsFilters } from '@/contexts/AnalyticsFilterContext'
 import { format } from 'date-fns'
+import type { UsageMonthlyFilters } from '@/api/usageApi'
 
 const BarChart = () => {
   const { filters } = useAnalyticsFilters()
-  // TODO: Pass filters to API hook when backend supports filtering
-  // const { data, loading, error } = useUsageMonthly(filters)
-  const { data, loading, error } = useUsageMonthly()
+  
+  // Prepare filters for API
+  const apiFilters = useMemo<UsageMonthlyFilters | undefined>(() => {
+    const hasFilters = filters.dateRange?.from || 
+                      filters.dateRange?.to ||
+                      filters.region !== 'all' || 
+                      filters.verificationType !== 'all' || 
+                      filters.deviceType !== 'desktop'
+    
+    if (!hasFilters) return undefined
+    
+    return {
+      start_date: filters.dateRange?.from ? format(filters.dateRange.from, 'yyyy-MM-dd') : undefined,
+      end_date: filters.dateRange?.to ? format(filters.dateRange.to, 'yyyy-MM-dd') : undefined,
+      region: filters.region !== 'all' ? filters.region : undefined,
+      api_name: filters.verificationType !== 'all' ? filters.verificationType : undefined,
+      device_type: filters.deviceType !== 'desktop' ? filters.deviceType : undefined
+    }
+  }, [filters.dateRange, filters.region, filters.verificationType, filters.deviceType])
+
+  const { data, loading, error } = useUsageMonthly(apiFilters)
 
   // Log current filter state for debugging
   console.log('BarChart filters:', filters)
@@ -56,7 +75,7 @@ const BarChart = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.6 }}
-      className="bg-white border border-[#e7e8ea] border-solid h-[245px] min-w-[280px] relative rounded-2xl shrink-0 w-full max-w-[411px]"
+      className="bg-white border border-[#e7e8ea] border-solid h-[245px] min-w-[280px] relative rounded-2xl shrink-0 w-full flex-1"
     >
       <div className="flex flex-col h-[245px] items-start justify-between min-w-inherit overflow-hidden p-4 relative rounded-[inherit] w-full">
         <div className="flex flex-col gap-4 grow items-start min-h-0 min-w-px relative shrink-0 w-full">

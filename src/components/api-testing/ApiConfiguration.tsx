@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Settings, Terminal } from 'lucide-react'
 import { getApiById } from '@/config/apiEndpoints'
 import http from '@/api/axiosInstance'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 
 interface ApiConfigurationProps {
   selectedApi: string | null
@@ -14,6 +15,8 @@ interface ApiConfigurationProps {
 const ApiConfiguration = ({ selectedApi, onApiRun, loading: pageLoading = false }: ApiConfigurationProps) => {
   const [inputValues, setInputValues] = useState<Record<string, any>>({})
   const [isLoading, setIsLoading] = useState(false)
+  const { data: onboardingStatus } = useOnboardingStatus()
+  const isSandboxMode = !Boolean(onboardingStatus?.is_onboarded)
 
   const apiConfig = selectedApi ? getApiById(selectedApi) : null
 
@@ -34,6 +37,27 @@ const ApiConfiguration = ({ selectedApi, onApiRun, loading: pageLoading = false 
     setIsLoading(true)
     const startTime = Date.now()
 
+    // In sandbox mode, return sample output instead of making actual API call
+    if (isSandboxMode) {
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500))
+      
+      const responseTime = Date.now() - startTime
+      
+      // Return sample output
+      onApiRun({
+        success: true,
+        data: apiConfig.sampleOutput,
+        statusCode: 200,
+        responseTime,
+        message: 'API call successful (Sandbox Mode - Sample Output)'
+      })
+      
+      setIsLoading(false)
+      return
+    }
+
+    // Production mode - make actual API call
     try {
       let response
       

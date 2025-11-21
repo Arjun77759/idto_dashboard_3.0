@@ -14,6 +14,7 @@ import TransactionDetailPage from '../pages/TransactionDetailPage'
 import TransactionsPage from '../pages/TransactionsPage'
 import UsersPage from '../pages/UsersPage'
 import CreatePassword from '@/pages/CreatePassword'
+import KYCCallbackPage from '@/pages/KYCCallbackPage'
 
 // Refactored route configuration for better readability and maintainability
 const publicRoutes = [
@@ -40,6 +41,10 @@ const publicRoutes = [
   {
     path: 'create-password',
     element: <CreatePassword />
+  },
+  {
+    path: 'kyc-callback',
+    element: <KYCCallbackPage />
   }
 ]
 

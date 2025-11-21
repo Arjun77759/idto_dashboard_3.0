@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react'
+import React, { createContext, useContext, useState, useMemo, type ReactNode } from 'react'
 import { subMonths } from 'date-fns'
 import type { DateRange } from 'react-day-picker'
+import { useOnboardingStatus } from '../hooks/useOnboardingStatus' // Assuming this location, adjust as needed
 
 export interface AnalyticsFilters {
   dateRange: DateRange | undefined
@@ -37,17 +38,40 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
   deviceType: 'desktop'
 }
 
+// Mock good data for development when not onboarded
+const MOCK_FILTERS: AnalyticsFilters = {
+  dateRange: getDefaultDateRange(),
+  region: 'mock-region',
+  verificationType: 'mock-verification',
+  deviceType: 'mock-device'
+}
+
 export const AnalyticsFilterProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(DEFAULT_FILTERS.dateRange)
-  const [region, setRegion] = useState<string>(DEFAULT_FILTERS.region)
-  const [verificationType, setVerificationType] = useState<string>(DEFAULT_FILTERS.verificationType)
-  const [deviceType, setDeviceType] = useState<string>(DEFAULT_FILTERS.deviceType)
+  // Use onboarding status to determine if in production
+  const { data: onboardingStatus } = useOnboardingStatus()
+  const isProduction = Boolean(onboardingStatus?.is_onboarded)
+
+  // Conditionally pick default filters (real vs mock)
+  const initialFilters = isProduction ? DEFAULT_FILTERS : MOCK_FILTERS
+
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(initialFilters.dateRange)
+  const [region, setRegion] = useState<string>(initialFilters.region)
+  const [verificationType, setVerificationType] = useState<string>(initialFilters.verificationType)
+  const [deviceType, setDeviceType] = useState<string>(initialFilters.deviceType)
 
   const resetFilters = () => {
-    setDateRange(getDefaultDateRange())
-    setRegion(DEFAULT_FILTERS.region)
-    setVerificationType(DEFAULT_FILTERS.verificationType)
-    setDeviceType(DEFAULT_FILTERS.deviceType)
+    // Reset to the proper set based on environment
+    if (isProduction) {
+      setDateRange(getDefaultDateRange())
+      setRegion(DEFAULT_FILTERS.region)
+      setVerificationType(DEFAULT_FILTERS.verificationType)
+      setDeviceType(DEFAULT_FILTERS.deviceType)
+    } else {
+      setDateRange(getDefaultDateRange()) // Mock and default both use the same function for date
+      setRegion(MOCK_FILTERS.region)
+      setVerificationType(MOCK_FILTERS.verificationType)
+      setDeviceType(MOCK_FILTERS.deviceType)
+    }
   }
 
   const value = useMemo(
@@ -81,4 +105,3 @@ export const useAnalyticsFilters = () => {
   }
   return context
 }
-

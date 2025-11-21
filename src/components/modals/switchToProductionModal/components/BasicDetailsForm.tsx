@@ -1,40 +1,108 @@
-import { useState } from "react"
-import { ChevronDown, ArrowRight, ArrowLeft } from "lucide-react"
+import { useState, useEffect } from "react"
+import { ChevronDown, ArrowRight, AlertCircle } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import type { OnboardingStatus } from "@/hooks/useOnboardingStatus"
+import type { OnboardingStepsStatus } from "@/hooks/useOnboardingSteps"
+import { updateBasicDetails } from "@/api/onboardingApi"
+import { invalidateOnboardingSteps } from "@/store/onboardingStepsStore"
 
 interface BasicDetailsFormProps {
   onNext: () => void
   onPrevious?: () => void
   showPrevious?: boolean
   isLoading?: boolean
+  initialData?: OnboardingStatus | null
+  stepsStatus?: OnboardingStepsStatus
 }
 
-const BasicDetailsForm = ({ onNext, onPrevious, showPrevious = false, isLoading = false }: BasicDetailsFormProps) => {
+const BasicDetailsForm = ({ onNext, onPrevious, showPrevious = false, isLoading: externalLoading = false, initialData, stepsStatus }: BasicDetailsFormProps) => {
   const [formData, setFormData] = useState({
     brand_name: '',
     website_url: '',
     entity_type: ''
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [websiteError, setWebsiteError] = useState('')
+
+  // Note: initialData no longer contains brand_name or industry
+  // These would need to come from user profile or be fetched separately
+  // For now, we'll just use the form's initial state
+
+  const validateWebsiteUrl = (url: string): string => {
+    if (!url.trim()) {
+      return '' // Empty URL is allowed (optional field)
+    }
+    
+    // Try to create a URL object to validate
+    try {
+      // Add protocol if missing
+      let urlToValidate = url.trim()
+      if (!urlToValidate.match(/^https?:\/\//i)) {
+        urlToValidate = `https://${urlToValidate}`
+      }
+      
+      new URL(urlToValidate)
+      
+      // Additional validation: must have a valid domain
+      const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i
+      if (!urlPattern.test(urlToValidate)) {
+        return 'Please enter a valid website URL (e.g., example.com or https://example.com)'
+      }
+      
+      return ''
+    } catch {
+      return 'Please enter a valid website URL (e.g., example.com or https://example.com)'
+    }
+  }
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+    setError('')
+    
+    // Validate website URL in real-time
+    if (field === 'website_url') {
+      setWebsiteError(validateWebsiteUrl(value))
+    }
   }
 
-  const handleSubmit = () => {
+  const handleWebsiteBlur = () => {
+    setWebsiteError(validateWebsiteUrl(formData.website_url))
+  }
+
+  const handleSubmit = async () => {
     // Validate required fields
     if (!formData.entity_type) {
-      alert('Please select an Entity Type before continuing')
+      setError('Please select an Entity Type before continuing')
       return
     }
 
-    // TODO: Wire up with POST /onboard/ API endpoint
-    // const payload = {
-    //   brand_name: formData.brand_name,
-    //   website_url: formData.website_url,
-    //   entity_type: formData.entity_type
-    // }
-    console.log('Form data:', formData)
-    onNext()
+    // Validate website URL
+    const websiteValidationError = validateWebsiteUrl(formData.website_url)
+    if (websiteValidationError) {
+      setWebsiteError(websiteValidationError)
+      return
+    }
+
+    setIsLoading(true)
+    setError('')
+    setWebsiteError('')
+
+    try {
+      const payload = {
+        brand_name: formData.brand_name,
+        website_url: formData.website_url,
+        entity_type: formData.entity_type
+      }
+      await updateBasicDetails(payload)
+      invalidateOnboardingSteps() // Invalidate cache so it refetches
+      onNext()
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.message || err?.response?.data?.detail || err?.message || 'Failed to update basic details. Please try again.'
+      setError(errorMessage)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const isFormValid = formData.entity_type !== ''
@@ -52,6 +120,17 @@ const BasicDetailsForm = ({ onNext, onPrevious, showPrevious = false, isLoading 
             </p>
           </div>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="flex gap-3 items-start p-4 bg-red-50 border border-red-200 rounded-lg w-full">
+            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-900 mb-1">Error</p>
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          </div>
+        )}
 
         {/* Form Fields - Scrollable */}
         <div className="flex-1 min-h-0 flex flex-col gap-4 items-start relative shrink-0 w-full overflow-y-auto pr-2">
@@ -80,15 +159,19 @@ const BasicDetailsForm = ({ onNext, onPrevious, showPrevious = false, isLoading 
                 Website URL
               </p>
             </label>
-            <div className="bg-[#f7f7f8] border border-[#e7e8ea] border-solid flex gap-1 h-12 items-center px-3 py-2 relative rounded-md shrink-0 w-full">
+            <div className={`bg-[#f7f7f8] border ${websiteError ? 'border-red-500' : 'border-[#e7e8ea]'} border-solid flex gap-1 h-12 items-center px-3 py-2 relative rounded-md shrink-0 w-full`}>
               <input
-                type="url"
+                type="text"
                 value={formData.website_url}
                 onChange={(e) => handleInputChange('website_url', e.target.value)}
+                onBlur={handleWebsiteBlur}
                 placeholder="Company website or landing page (if any)"
                 className="font-medium grow leading-6 relative shrink-0 text-base text-[#1c252e] tracking-[-0.16px] bg-transparent border-none outline-none w-full placeholder:text-[#9296a0]"
               />
             </div>
+            {websiteError && (
+              <p className="text-xs text-red-600 mt-1">{websiteError}</p>
+            )}
           </div>
 
           {/* Entity Type Field */}
@@ -121,28 +204,14 @@ const BasicDetailsForm = ({ onNext, onPrevious, showPrevious = false, isLoading 
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 items-center justify-between relative shrink-0 w-full">
-          {/* Previous Button */}
-          {showPrevious && onPrevious && (
-            <button
-              onClick={onPrevious}
-              className="flex gap-2 items-center px-6 py-3 text-[#616675] hover:bg-gray-100 rounded-lg transition-colors border border-[#e7e8ea]"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="font-medium text-xs tracking-[-0.12px]">Previous</span>
-            </button>
-          )}
-          
-          {/* Spacer */}
-          <div className="flex-1"></div>
-          
+        <div className="flex gap-3 items-center justify-end relative shrink-0 w-full">
           {/* Continue Button */}
           <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid relative rounded-lg shrink-0">
             <button
               onClick={handleSubmit}
-              disabled={isLoading || !isFormValid}
+              disabled={isLoading || externalLoading || !isFormValid}
               className="flex gap-2 items-center justify-center px-8 py-3.5 relative rounded-[inherit] disabled:opacity-50 disabled:cursor-not-allowed">
-              {isLoading ? (
+              {(isLoading || externalLoading) ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-[#0019ff] border-t-transparent rounded-full animate-spin" />
                   <p className="font-bold leading-4 relative text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
