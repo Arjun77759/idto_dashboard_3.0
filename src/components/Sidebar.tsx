@@ -17,6 +17,7 @@ import {
   CreditCard,
   FlaskConical,
   Home,
+  Key,
   LogOut,
   MessageSquare,
   Receipt,
@@ -80,6 +81,7 @@ const Sidebar = () => {
       name: 'Developer Tools',
       items: [
         { name: 'API Testing', href: '/api-testing', icon: FlaskConical, isActive: location.pathname === '/api-testing' },
+        { name: 'API Credentials', href: '/api-credentials', icon: Key, isActive: location.pathname === '/api-credentials' },
         { name: 'API Documentation', href: 'https://idtoai.readme.io/reference/idtoai-verification-apis', icon: BookOpen, isActive: false, isExternal: true }
       ]
     },
