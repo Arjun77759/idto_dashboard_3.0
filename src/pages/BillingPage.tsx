@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { CreditCard, IndianRupee, Plus } from 'lucide-react'
+import { Building, CreditCard, IndianRupee, Plus } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
 import { Spinner } from '@/components/ui/spinner'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useSimulationModeModal } from '@/contexts/SimulationModeModalContext'
 import { useMonthlyUsage } from '@/hooks/useMonthlyUsage'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
@@ -36,6 +37,7 @@ const BillingPage = () => {
   const [companyName, setCompanyName] = useState<string>(userProfile?.brand_name ?? '')
   const [stateName, setStateName] = useState<string>(userProfile?.business_state ?? '')
   const [businessAddress, setBusinessAddress] = useState<string>(userProfile?.business_address ?? '')
+  const [showBankDetailsModal, setShowBankDetailsModal] = useState(false)
 
   useEffect(() => {
     setGstNumber(userProfile?.gst_number ?? '')
@@ -73,8 +75,8 @@ const BillingPage = () => {
       return
     }
 
-    if (paymentMethod !== 'razorpay') {
-      toast.info('Bank transfer will be available soon. Please use Razorpay.')
+    if (paymentMethod === 'bank') {
+      setShowBankDetailsModal(true)
       return
     }
 
@@ -247,20 +249,23 @@ const BillingPage = () => {
               <RadioGroup
                 value={paymentMethod}
                 onValueChange={(value) => setPaymentMethod(value as 'razorpay' | 'bank')}
-                className="flex flex-wrap gap-6"
+                className="flex flex-col gap-4"
               >
-                {[
-                  { label: 'Razorpay PG', value: 'razorpay' },
-                  { label: 'Bank Transfer', value: 'bank' },
-                ].map((option) => (
-                  <label key={option.value} className="flex items-center gap-2 text-xs text-[#9296a0]">
-                    <RadioGroupItem
-                      value={option.value}
-                      className="border-[#c8cacf] text-[#8a95ff] focus-visible:ring-[#8a95ff]"
-                    />
-                    {option.label}
-                  </label>
-                ))}
+                <div className="flex flex-wrap gap-6">
+                  {[
+                    { label: 'Razorpay PG', value: 'razorpay' },
+                    { label: 'Bank Transfer', value: 'bank' },
+                  ].map((option) => (
+                    <label key={option.value} className="flex items-center gap-2 text-xs text-[#9296a0]">
+                      <RadioGroupItem
+                        value={option.value}
+                        className="border-[#c8cacf] text-[#8a95ff] focus-visible:ring-[#8a95ff]"
+                      />
+                      {option.label}
+                    </label>
+                  ))}
+                </div>
+                {/* {paymentMethod === 'bank' && <BankTransferDetails desiredAmount={taxes.finalAmount} />} */}
               </RadioGroup>
             </div>
             <Button
@@ -287,6 +292,23 @@ const BillingPage = () => {
       <div className="flex flex-col gap-6">
         <RecentInvoicesTable />
       </div>
+      <Dialog open={showBankDetailsModal} onOpenChange={setShowBankDetailsModal}>
+        <DialogContent className="max-w-md rounded-2xl border border-[#e7e8ea] p-6">
+          <DialogHeader className="text-left">
+            <DialogTitle className="text-lg font-semibold text-[#131b31]">Bank Transfer Details</DialogTitle>
+            <DialogDescription className="text-sm text-[#616675]">
+              Transfer {taxes.finalAmount ? formatCurrency(taxes.finalAmount) : '-'} via RTGS/NEFT/IMPS using the account
+              details below.
+            </DialogDescription>
+          </DialogHeader>
+          <BankTransferDetails desiredAmount={taxes.finalAmount} />
+          <DialogFooter className="mt-4 flex w-full justify-end">
+            <Button onClick={() => setShowBankDetailsModal(false)} className="rounded-lg bg-[#0019ff] text-white">
+              Okay, Got It
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   )
 }
@@ -317,6 +339,52 @@ const CreditStat = ({ label, value }: CreditStatProps) => (
       {label} : <span className="text-base font-[500] text-[#131b31]">{value}</span>
     </p>
     <Plus className="size-4 text-[#616675]" />
+  </div>
+)
+
+const BANK_DETAILS = {
+  bankName: 'AXIS BANK',
+  accountHolder: 'PAYVRIZ TECHNOLOGIES PRIVATE LIMITED',
+  accountNumber: '924020027102018',
+  ifsc: 'UTIB0001527',
+  accountType: 'Current Account',
+}
+
+type BankTransferDetailsProps = {
+  desiredAmount: number
+}
+
+const BankTransferDetails = ({ desiredAmount }: BankTransferDetailsProps) => (
+  <div className="flex flex-col gap-4 rounded-xl border border-[#e7e8ea] bg-[#f7f7f8] p-4">
+    <div className="flex items-center gap-3">
+      <div className="flex size-10 items-center justify-center rounded-full bg-[#e6e8ff]">
+        <Building className="size-5 text-[#0019ff]" />
+      </div>
+      <div>
+        <p className="text-xs font-semibold text-[#131b31]">Bank Transfer Details</p>
+        <p className="text-[11px] text-[#9296a0]">Transfer via RTGS/NEFT/IMPS using the details below.</p>
+      </div>
+    </div>
+    <div className="space-y-3 text-xs text-[#131b31]">
+      <BankDetailRow label="Bank Name" value={BANK_DETAILS.bankName} />
+      <BankDetailRow label="Account Holder" value={BANK_DETAILS.accountHolder} />
+      <BankDetailRow label="Account Number" value={BANK_DETAILS.accountNumber} />
+      <BankDetailRow label="IFSC Code" value={BANK_DETAILS.ifsc} />
+      <BankDetailRow label="Account Type" value={BANK_DETAILS.accountType} />
+      <BankDetailRow label="Amount to Transfer" value={formatCurrency(desiredAmount)} />
+    </div>
+  </div>
+)
+
+type BankDetailRowProps = {
+  label: string
+  value: string
+}
+
+const BankDetailRow = ({ label, value }: BankDetailRowProps) => (
+  <div className="flex items-center justify-between gap-3">
+    <span className="text-[#9296a0]">{label}</span>
+    <span className="font-medium text-[#131b31]">{value}</span>
   </div>
 )
 
