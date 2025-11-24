@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { CreditCard, IndianRupee, Plus } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 import RecentInvoicesTable from '@/components/billing/RecentInvoicesTable'
 import { Button } from '@/components/ui/button'
@@ -8,7 +9,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
+import { Spinner } from '@/components/ui/spinner'
+import { useSimulationModeModal } from '@/contexts/SimulationModeModalContext'
 import { useMonthlyUsage } from '@/hooks/useMonthlyUsage'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
+import { useRazorpay } from '@/hooks/useRazorpay'
 import { useUserProfileStore } from '@/store/userProfileStore'
 
 const formatCurrency = (value: number) => {
@@ -19,6 +24,10 @@ const formatCurrency = (value: number) => {
 const BillingPage = () => {
   const { data, loading } = useMonthlyUsage()
   const userProfile = useUserProfileStore((state) => state.data)
+  const { openModal } = useSimulationModeModal()
+  const { data: onboardingStatus } = useOnboardingStatus()
+  const { initiatePayment, loading: paymentLoading } = useRazorpay()
+  const isProduction = Boolean(onboardingStatus?.is_onboarded)
 
   const [creditAmount, setCreditAmount] = useState<string>('')
   const [hasGst, setHasGst] = useState<'yes' | 'no'>(userProfile?.gst_number ? 'yes' : 'no')
@@ -52,6 +61,45 @@ const BillingPage = () => {
 
   const liveCredits = loading ? '...' : formatCurrency(data?.balance ?? 0)
   const testingCredits = loading ? '...' : formatCurrency(Math.max((data?.total ?? 0) - (data?.used ?? 0), 0))
+
+  const handleProceedToPayment = () => {
+    if (!parsedAmount || parsedAmount <= 0) {
+      toast.error('Please enter a valid credit amount.')
+      return
+    }
+
+    if (hasGst === 'yes' && !gstNumber.trim()) {
+      toast.error('Please enter your GST number.')
+      return
+    }
+
+    if (paymentMethod !== 'razorpay') {
+      toast.info('Bank transfer will be available soon. Please use Razorpay.')
+      return
+    }
+
+    if (!isProduction) {
+      openModal()
+      return
+    }
+
+    const taxTotal = taxes.sgst + taxes.cgst
+
+    initiatePayment({
+      amount: parsedAmount,
+      tax: taxTotal,
+      description: 'Add Live Credits',
+      prefill: {
+        name: userProfile?.name || undefined,
+        email: userProfile?.email || undefined,
+        contact: userProfile?.mobile || undefined,
+      },
+      ...(hasGst === 'yes' && gstNumber ? { gst_number: gstNumber } : {}),
+      ...(companyName ? { company_name: companyName } : {}),
+      ...(stateName ? { state: stateName } : {}),
+      ...(businessAddress ? { address: businessAddress } : {}),
+    })
+  }
 
   return (
     <motion.div
@@ -92,9 +140,18 @@ const BillingPage = () => {
             </p>
             <Button
               variant="secondary"
-              className="w-fit rounded-lg border border-[#e7e8ea] bg-[#e6e8ff] text-xs font-medium text-[#0019ff]"
+              onClick={handleProceedToPayment}
+              disabled={!parsedAmount || paymentLoading}
+              className="w-fit rounded-lg border border-[#e7e8ea] bg-[#e6e8ff] text-xs font-medium text-[#0019ff] disabled:opacity-60"
             >
-              Proceed
+              {paymentLoading ? (
+                <>
+                  <Spinner className="size-4 text-[#0019ff]" />
+                  Processing...
+                </>
+              ) : (
+                'Proceed'
+              )}
             </Button>
           </div>
 
@@ -174,43 +231,54 @@ const BillingPage = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
-            <p className="text-xs text-[#9296a0]">Order Summary</p>
-            <div className="flex flex-col gap-4 rounded-lg bg-[#f7f7f8] p-4 text-xs text-[#9296a0]">
-              <SummaryRow label="Credits" value={parsedAmount ? `${parsedAmount} Credits` : '-'} />
-              <SummaryRow label="Desired Amount" value={formatCurrency(parsedAmount)} />
-              <SummaryRow label="SGST @ 9%" value={formatCurrency(taxes.sgst)} />
-              <SummaryRow label="CGST @ 9%" value={formatCurrency(taxes.cgst)} />
-              <div className="border-t border-[#c8cacf] pt-3 text-sm font-semibold text-[#131b31]">
-                <SummaryRow label="Final Amount" value={formatCurrency(taxes.finalAmount)} bold />
+          <div className="flex flex-col gap-4 justify-between">
+            <div className='flex flex-col gap-4'>
+              <p className="text-xs text-[#9296a0]">Order Summary</p>
+              <div className="flex flex-col gap-4 rounded-lg bg-[#f7f7f8] p-4 text-xs text-[#9296a0]">
+                <SummaryRow label="Credits" value={parsedAmount ? `${parsedAmount} Credits` : '-'} />
+                <SummaryRow label="Desired Amount" value={formatCurrency(parsedAmount)} />
+                <SummaryRow label="SGST @ 9%" value={formatCurrency(taxes.sgst)} />
+                <SummaryRow label="CGST @ 9%" value={formatCurrency(taxes.cgst)} />
+                <div className="border-t border-[#c8cacf] pt-3 text-sm font-semibold text-[#131b31]">
+                  <SummaryRow label="Final Amount" value={formatCurrency(taxes.finalAmount)} bold />
+                </div>
               </div>
+              <p className="text-xs text-[#9296a0]">Select Payment Method</p>
+              <RadioGroup
+                value={paymentMethod}
+                onValueChange={(value) => setPaymentMethod(value as 'razorpay' | 'bank')}
+                className="flex flex-wrap gap-6"
+              >
+                {[
+                  { label: 'Razorpay PG', value: 'razorpay' },
+                  { label: 'Bank Transfer', value: 'bank' },
+                ].map((option) => (
+                  <label key={option.value} className="flex items-center gap-2 text-xs text-[#9296a0]">
+                    <RadioGroupItem
+                      value={option.value}
+                      className="border-[#c8cacf] text-[#8a95ff] focus-visible:ring-[#8a95ff]"
+                    />
+                    {option.label}
+                  </label>
+                ))}
+              </RadioGroup>
             </div>
-            <p className="text-xs text-[#9296a0]">Select Payment Method</p>
-            <RadioGroup
-              value={paymentMethod}
-              onValueChange={(value) => setPaymentMethod(value as 'razorpay' | 'bank')}
-              className="flex flex-wrap gap-6"
-            >
-              {[
-                { label: 'Razorpay PG', value: 'razorpay' },
-                { label: 'Bank Transfer', value: 'bank' },
-              ].map((option) => (
-                <label key={option.value} className="flex items-center gap-2 text-xs text-[#9296a0]">
-                  <RadioGroupItem
-                    value={option.value}
-                    className="border-[#c8cacf] text-[#8a95ff] focus-visible:ring-[#8a95ff]"
-                  />
-                  {option.label}
-                </label>
-              ))}
-            </RadioGroup>
-
             <Button
-              disabled={!parsedAmount}
+              onClick={handleProceedToPayment}
+              disabled={!parsedAmount || paymentLoading}
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#e7e8ea] bg-[#e7e8ea] text-xs font-medium text-[#9296a0] disabled:bg-[#e7e8ea]"
             >
-              Proceed to Pay
-              <IndianRupee className="size-4" />
+              {paymentLoading ? (
+                <>
+                  <Spinner className="size-4 text-[#9296a0]" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  Proceed to Pay
+                  <IndianRupee className="size-4" />
+                </>
+              )}
             </Button>
           </div>
         </div>
