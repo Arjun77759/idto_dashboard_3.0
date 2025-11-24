@@ -171,10 +171,10 @@ const ApiTestingPage = () => {
               </SelectContent>
             </Select>
 
-            <label className="flex items-center gap-2 text-xs font-medium text-[#616675]">
+            {/* <label className="flex items-center gap-2 text-xs font-medium text-[#616675]">
               <Checkbox checked={showSavedOnly} onCheckedChange={(checked) => setShowSavedOnly(Boolean(checked))} />
               Show only saved APIs
-            </label>
+            </label> */}
           </div>
 
           <div className="min-h-[400px] border-t-[1px] border-[#e7e8ea] p-3">
@@ -240,7 +240,7 @@ const ApiCard = ({ api, isPinned, onSelect, onTogglePin }: ApiCardProps) => (
         <p className="text-sm font-semibold text-[#131b31]">{api.name}</p>
         <p className="text-xs text-[#616675]">{api.shortDescription}</p>
       </div>
-      <button
+      {/* <button
         type="button"
         className="rounded-full border border-[#e7e8ea] bg-white p-1 text-[#616675] hover:bg-[#f0f0f0]"
         onClick={(event) => {
@@ -250,7 +250,7 @@ const ApiCard = ({ api, isPinned, onSelect, onTogglePin }: ApiCardProps) => (
         aria-label={isPinned ? 'Unpin API' : 'Pin API'}
       >
         {isPinned ? <Pin className="size-4" /> : <PinOff className="size-4" />}
-      </button>
+      </button> */}
     </div>
     {isPinned && (
       <p className="text-xs font-medium text-[#616675]">
