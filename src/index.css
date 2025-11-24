@@ -116,3 +116,12 @@
 .test{
   background-color: red;
 }
+
+/* Prevent autofill background tint on light inputs */
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px #f7f7f8 inset;
+  -webkit-text-fill-color: #1c252e;
+  transition: background-color 9999s ease-out;
+}
