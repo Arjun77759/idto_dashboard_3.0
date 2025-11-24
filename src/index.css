@@ -27,6 +27,10 @@
   }
 }
 
+*{
+  font-family: "Inter", sans-serif;
+}
+
 /* Dark mode styles */
 .dark {
   color-scheme: dark;
