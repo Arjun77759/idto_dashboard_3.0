@@ -63,3 +63,23 @@ export async function updateClient(
 export async function deleteClient(clientId: string): Promise<void> {
   await http.delete(`/me/clients/${clientId}`)
 }
+
+/**
+ * Enable a client (API key)
+ * @param clientId - UUID of the client to enable
+ * @returns Response with status and client_id
+ */
+export async function enableClient(clientId: string): Promise<{ status: string; client_id: string }> {
+  const { data } = await http.get<{ status: string; client_id: string }>(`/clients/${clientId}/enable`)
+  return data
+}
+
+/**
+ * Disable a client (API key)
+ * @param clientId - UUID of the client to disable
+ * @returns Response with status and client_id
+ */
+export async function disableClient(clientId: string): Promise<{ status: string; client_id: string }> {
+  const { data } = await http.get<{ status: string; client_id: string }>(`/clients/${clientId}/disable`)
+  return data
+}
