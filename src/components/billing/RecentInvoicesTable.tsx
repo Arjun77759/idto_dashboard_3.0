@@ -202,16 +202,12 @@ const RecentInvoicesTable = () => {
 
         {/* Invoice Table */}
         <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-md shrink-0 w-full overflow-x-auto">
-          <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full min-w-[920px]">
+          <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full min-w-[908px]">
             {/* Table Header */}
             <div className="bg-white flex items-start relative shrink-0 w-full">
-              <div className="h-10 overflow-hidden relative shrink-0 w-12">
-                <div className="absolute bg-[#f7f7f8] border border-[#131b31] border-solid left-1/2 rounded top-3 size-4 translate-x-[-50%]" />
-                <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-              </div>
               <div className="grow h-10 min-h-0 min-w-px relative shrink-0">
                 <div className="h-10 overflow-hidden relative rounded-[inherit] w-full">
-                  <p className="absolute bottom-8 font-normal leading-6 left-0 not-italic right-0 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
+                  <p className="absolute bottom-8 font-normal leading-6 left-4 not-italic right-0 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
                     Invoice ID
                   </p>
                   <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
@@ -255,12 +251,8 @@ const RecentInvoicesTable = () => {
             {loading && (
               Array.from({ length: 6 }).map((_, index) => (
                 <div key={`sk-${index}`} className="flex items-start relative shrink-0 w-full">
-                  <div className="h-10 overflow-hidden relative shrink-0 w-12">
-                    <div className="absolute bg-[#f7f7f8] border border-[#9296a0] border-solid left-1/2 rounded top-3 size-4 translate-x-[-50%]" />
-                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                  </div>
                   <div className="grow h-10 min-h-0 min-w-px relative shrink-0">
-                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-full flex items-center pl-0">
+                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-full flex items-center pl-4">
                       <Skeleton className="h-4 w-40" />
                     </div>
                   </div>
@@ -288,13 +280,9 @@ const RecentInvoicesTable = () => {
             ) : null}
             {!loading && filtered.map((invoice, index) => (
               <div key={index} className="flex items-start relative shrink-0 w-full">
-                <div className="h-10 overflow-hidden relative shrink-0 w-12">
-                  <div className="absolute bg-[#f7f7f8] border border-[#9296a0] border-solid left-1/2 rounded top-3 size-4 translate-x-[-50%]" />
-                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                </div>
                 <div className="grow h-10 min-h-0 min-w-px relative shrink-0">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-full">
-                    <p className="absolute font-normal leading-6 left-0 not-italic right-0 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px]">
+                    <p className="absolute font-normal leading-6 left-4 not-italic right-0 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px]">
                       {invoice.id}
                     </p>
                     <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
