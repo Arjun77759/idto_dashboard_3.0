@@ -86,6 +86,10 @@ const BillingPage = () => {
     }
 
     const taxTotal = taxes.sgst + taxes.cgst
+    const sanitizedGstNumber = gstNumber.trim()
+    const sanitizedCompanyName = companyName.trim()
+    const sanitizedStateName = stateName.trim()
+    const sanitizedBusinessAddress = businessAddress.trim()
 
     initiatePayment({
       amount: parsedAmount,
@@ -96,10 +100,10 @@ const BillingPage = () => {
         email: userProfile?.email || undefined,
         contact: userProfile?.mobile || undefined,
       },
-      ...(hasGst === 'yes' && gstNumber ? { gst_number: gstNumber } : {}),
-      ...(companyName ? { company_name: companyName } : {}),
-      ...(stateName ? { state: stateName } : {}),
-      ...(businessAddress ? { address: businessAddress } : {}),
+      gst_number: hasGst === 'yes' && sanitizedGstNumber ? sanitizedGstNumber : undefined,
+      company_name: sanitizedCompanyName || undefined,
+      state: sanitizedStateName || undefined,
+      address: sanitizedBusinessAddress || undefined,
     })
   }
 
@@ -194,9 +198,8 @@ const BillingPage = () => {
             </div>
 
             <div className="flex flex-col gap-2 text-xs text-[#9296a0]">
-              <div className="flex items-center justify-between">
+              <div>
                 <span>Company Name</span>
-                <button className="text-[#8a95ff] font-medium">Edit</button>
               </div>
               <Input
                 value={companyName}
@@ -207,9 +210,8 @@ const BillingPage = () => {
             </div>
 
             <div className="flex flex-col gap-2 text-xs text-[#9296a0]">
-              <div className="flex items-center justify-between">
+              <div>
                 <span>State</span>
-                <button className="text-[#8a95ff] font-medium">Edit</button>
               </div>
               <Input
                 value={stateName}
@@ -220,9 +222,8 @@ const BillingPage = () => {
             </div>
 
             <div className="flex flex-col gap-2 text-xs text-[#9296a0]">
-              <div className="flex items-center justify-between">
+              <div>
                 <span>Address</span>
-                <button className="text-[#8a95ff] font-medium">Edit</button>
               </div>
               <Textarea
                 value={businessAddress}
