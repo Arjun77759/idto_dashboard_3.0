@@ -70,7 +70,7 @@ export async function deleteClient(clientId: string): Promise<void> {
  * @returns Response with status and client_id
  */
 export async function enableClient(clientId: string): Promise<{ status: string; client_id: string }> {
-  const { data } = await http.get<{ status: string; client_id: string }>(`/clients/${clientId}/enable`)
+  const { data } = await http.get<{ status: string; client_id: string }>(`/me/clients/${clientId}/enable`)
   return data
 }
 
@@ -80,6 +80,6 @@ export async function enableClient(clientId: string): Promise<{ status: string; 
  * @returns Response with status and client_id
  */
 export async function disableClient(clientId: string): Promise<{ status: string; client_id: string }> {
-  const { data } = await http.get<{ status: string; client_id: string }>(`/clients/${clientId}/disable`)
+  const { data } = await http.get<{ status: string; client_id: string }>(`/me/clients/${clientId}/disable`)
   return data
 }
