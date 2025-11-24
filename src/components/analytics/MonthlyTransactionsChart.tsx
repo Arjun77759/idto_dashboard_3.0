@@ -104,7 +104,7 @@ const MonthlyTransactionsChart = () => {
           </Badge>
         </CardHeader>
         <CardContent className="h-[172px] p-0 relative -left-5 top-5">
-          {!loading ? (
+          {loading ? (
             <div className="flex items-center justify-center h-full relative left-10 w-[90%]">
               <div className="w-full h-32 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
             </div>
