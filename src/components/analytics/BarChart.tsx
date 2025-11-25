@@ -8,17 +8,17 @@ import type { UsageMonthlyFilters } from '@/api/usageApi'
 
 const BarChart = () => {
   const { filters } = useAnalyticsFilters()
-  
+
   // Prepare filters for API
   const apiFilters = useMemo<UsageMonthlyFilters | undefined>(() => {
-    const hasFilters = filters.dateRange?.from || 
-                      filters.dateRange?.to ||
-                      filters.region !== 'all' || 
-                      filters.verificationType !== 'all' || 
-                      filters.deviceType !== 'desktop'
-    
+    const hasFilters = filters.dateRange?.from ||
+      filters.dateRange?.to ||
+      filters.region !== 'all' ||
+      filters.verificationType !== 'all' ||
+      filters.deviceType !== 'desktop'
+
     if (!hasFilters) return undefined
-    
+
     return {
       start_date: filters.dateRange?.from ? format(filters.dateRange.from, 'yyyy-MM-dd') : undefined,
       end_date: filters.dateRange?.to ? format(filters.dateRange.to, 'yyyy-MM-dd') : undefined,
@@ -113,13 +113,12 @@ const BarChart = () => {
             ) : (
               categories.map((category, index) => (
                 <div key={category.name} className="bg-white flex flex-col gap-2.5 h-[30px] items-start justify-center overflow-hidden relative rounded shrink-0 w-full">
-                  <div className={`bg-gradient-to-r flex gap-2.5 grow items-center min-h-0 min-w-px overflow-hidden px-[18px] py-0 relative rounded shrink-0 ${category.width} ${
-                    index % 2 === 0 
-                      ? 'from-[#e6e8ff] to-[#8a95ff]' 
-                      : 'from-[#e6fcf5] to-[#3AC828]'
-                  }`}>
-                    <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
-                      {category.name}
+                  <div className={`bg-gradient-to-r flex gap-2.5 grow items-center min-h-0 min-w-px overflow-hidden px-[18px] py-0 relative rounded shrink-0 ${category.width} ${index % 2 === 0
+                      ? 'from-[#E6E8FF] to-[#E6E8FF]'
+                      : 'from-[#E6FCF5] to-[#E6FCF5]'
+                    }`}>
+                    <p className="font-medium capitalize leading-[1.4] relative shrink-0 text-[12px] text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
+                      {category.name.replace(/_/g, ' ')}
                     </p>
                   </div>
                 </div>

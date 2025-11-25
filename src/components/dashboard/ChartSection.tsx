@@ -90,7 +90,7 @@ const ChartSection = () => {
         {
           type:'line',
           data: counts,
-          smooth: true,
+          smooth: false,
           showSymbol: false,
           lineStyle: {
             width: 2.5,
