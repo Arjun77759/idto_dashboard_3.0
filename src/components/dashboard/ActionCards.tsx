@@ -95,7 +95,8 @@ const ActionCards = () => {
     ]
 
     const renderButton = (card: ActionCardConfig) => {
-        const isBalance = card.variant === 'balance1'
+        // const isBalance = card.variant === 'balance1'
+        const isBalance = false
         const isPromo = card.variant === 'promo'
 
         if (isPromo) {
