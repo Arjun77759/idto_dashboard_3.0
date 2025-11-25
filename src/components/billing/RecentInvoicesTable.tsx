@@ -1,13 +1,15 @@
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
 import { useInvoiceDownload } from '@/hooks/useInvoiceDownload'
 import { useRecentInvoices } from '@/hooks/useRecentInvoices'
+import type { InvoiceItem } from '@/hooks/useRecentInvoices'
 import { downloadCsv } from '@/lib/downloadCsv'
 import { motion } from 'framer-motion'
 import { Calendar, Download, RotateCcw, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Button } from '../ui/button'
+import { TableWithPagination } from '@/components/ui/TableWithPagination'
+import type { TableColumn } from '@/components/ui/TableWithPagination'
 
 const RecentInvoicesTable = () => {
   const { data: invoiceData, loading, error } = useRecentInvoices(50)
@@ -29,7 +31,7 @@ const RecentInvoicesTable = () => {
     setDateTo('')
   }
 
-  const filtered = useMemo(() => {
+  const filtered = useMemo<InvoiceItem[]>(() => {
     const normAmount = (amountStr: string | undefined) => {
       if (!amountStr) return 0
       const n = amountStr.replace(/[^0-9.]/g, '')
@@ -100,7 +102,7 @@ const RecentInvoicesTable = () => {
     return null
   }
 
-  const handleDownloadInvoice = async (invoice: { id: string; date_time?: string }) => {
+  const handleDownloadInvoice = async (invoice: InvoiceItem) => {
     const yearMonth = extractYearMonth(invoice.date_time)
     if (!yearMonth) {
       console.error('Unable to extract year/month from invoice date')
@@ -116,6 +118,56 @@ const RecentInvoicesTable = () => {
       setDownloadingInvoiceId(null)
     }
   }
+
+  const columns: TableColumn<InvoiceItem>[] = [
+    {
+      key: 'id',
+      header: 'Invoice ID',
+      render: (row) => row.id
+    },
+    {
+      key: 'date_time',
+      header: 'Date & Time',
+      width: '265px',
+      render: (row) => formatDateTime(row.date_time)
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      width: '171px',
+      render: (row) => <span style={{ color: '#3ac828' }}>{row.status}</span>
+    },
+    {
+      key: 'amount',
+      header: 'Amount',
+      width: '208px',
+      render: (row) => (row.amount ? `₹${Math.round(parseFloat(row.amount))}` : '₹0')
+    },
+    {
+      key: 'action',
+      header: 'Action',
+      width: '120px',
+      align: 'center',
+      render: (row) => (
+        <div className="flex items-center justify-center">
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              handleDownloadInvoice(row)
+            }}
+            disabled={downloadingInvoiceId === row.id}
+            className="flex items-center justify-center gap-1 px-2 py-1 rounded hover:bg-[#e6e8ff] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Download Invoice"
+          >
+            <Download className={`size-4 ${downloadingInvoiceId === row.id ? 'text-[#9296a0]' : 'text-[#0019ff]'}`} />
+            {downloadingInvoiceId === row.id && (
+              <span className="text-[10px] text-[#9296a0]">...</span>
+            )}
+          </button>
+        </div>
+      )
+    }
+  ]
 
 
   return (
@@ -208,137 +260,14 @@ const RecentInvoicesTable = () => {
         </div>
 
         {/* Invoice Table */}
-        <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-md shrink-0 w-full overflow-x-auto">
-          <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full min-w-[908px]">
-            {/* Table Header */}
-            <div className="bg-white flex items-start relative shrink-0 w-full">
-              <div className="grow h-10 min-h-0 min-w-px relative shrink-0">
-                <div className="h-10 overflow-hidden relative rounded-[inherit] w-full">
-                  <p className="absolute bottom-8 font-normal leading-6 left-4 not-italic right-0 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                    Invoice ID
-                  </p>
-                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                </div>
-              </div>
-              <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[265px]">
-                <div className="h-10 overflow-hidden relative rounded-[inherit] w-[265px]">
-                  <p className="absolute bottom-8 font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                    Date & Time
-                  </p>
-                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                </div>
-              </div>
-              <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[171px]">
-                <div className="h-10 overflow-hidden relative rounded-[inherit] w-[171px]">
-                  <p className="absolute bottom-8 font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                    Status
-                  </p>
-                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                </div>
-              </div>
-              <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[208px]">
-                <div className="h-10 overflow-hidden relative rounded-[inherit] w-[208px]">
-                  <p className="absolute bottom-8 font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                    Amount
-                  </p>
-                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                </div>
-              </div>
-              <div className="h-10 overflow-hidden relative shrink-0 w-[120px]">
-                <div className="h-10 overflow-hidden relative rounded-[inherit] w-[120px]">
-                  <p className="absolute bottom-8 font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                    Action
-                  </p>
-                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                </div>
-              </div>
-            </div>
-
-            {/* Table Rows */}
-            {loading && (
-              Array.from({ length: 6 }).map((_, index) => (
-                <div key={`sk-${index}`} className="flex items-start relative shrink-0 w-full">
-                  <div className="grow h-10 min-h-0 min-w-px relative shrink-0">
-                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-full flex items-center pl-4">
-                      <Skeleton className="h-4 w-40" />
-                    </div>
-                  </div>
-                  <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[265px]">
-                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-[265px] flex items-center pl-4">
-                      <Skeleton className="h-4 w-44" />
-                    </div>
-                  </div>
-                  <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[171px]">
-                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-[171px] flex items-center pl-4">
-                      <Skeleton className="h-4 w-16" />
-                    </div>
-                  </div>
-                  <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[208px] flex items-center pl-4">
-                    <Skeleton className="h-4 w-16" />
-                  </div>
-                  <div className="h-10 overflow-hidden relative shrink-0 w-[120px] flex items-center pl-4">
-                    <Skeleton className="h-4 w-12" />
-                  </div>
-                </div>
-              ))
-            )}
-            {error && !loading ? (
-              <div className="p-3 text-sm text-red-600">{error}</div>
-            ) : null}
-            {!loading && filtered.map((invoice, index) => (
-              <div key={index} className="flex items-start relative shrink-0 w-full">
-                <div className="grow h-10 min-h-0 min-w-px relative shrink-0">
-                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-full">
-                    <p className="absolute font-normal leading-6 left-4 not-italic right-0 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px]">
-                      {invoice.id}
-                    </p>
-                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                  </div>
-                </div>
-                <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[265px]">
-                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[265px]">
-                    <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px] whitespace-pre-wrap">
-                      {formatDateTime(invoice.date_time)}
-                    </p>
-                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                  </div>
-                </div>
-                <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[171px]">
-                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[171px]">
-                    <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#3ac828] top-2 tracking-[-0.084px]">
-                      {invoice.status}
-                    </p>
-                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                  </div>
-                </div>
-                <div className="border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[208px]">
-                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[208px]">
-                    <p className="absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px]">
-                      {invoice.amount ? `₹${Math.round(parseFloat(invoice.amount))}` : '₹0'}
-                    </p>
-                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                  </div>
-                </div>
-                <div className="h-10 overflow-hidden relative shrink-0 w-[120px]">
-                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[120px] flex items-center justify-center">
-                    <button
-                      onClick={() => handleDownloadInvoice(invoice)}
-                      disabled={downloadingInvoiceId === invoice.id}
-                      className="flex items-center justify-center gap-1 px-2 py-1 rounded hover:bg-[#e6e8ff] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Download Invoice"
-                    >
-                      <Download className={`size-4 ${downloadingInvoiceId === invoice.id ? 'text-[#9296a0]' : 'text-[#0019ff]'}`} />
-                      {downloadingInvoiceId === invoice.id && (
-                        <span className="text-[10px] text-[#9296a0]">...</span>
-                      )}
-                    </button>
-                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <TableWithPagination
+          data={filtered}
+          columns={columns}
+          loading={loading}
+          error={error}
+          emptyMessage="No invoices found"
+          itemsPerPage={10}
+        />
       </div>
     </motion.div>
   )

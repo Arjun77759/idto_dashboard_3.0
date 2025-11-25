@@ -1,7 +1,9 @@
-import { Skeleton } from '@/components/ui/skeleton'
 import { useRecentInvoices } from '@/hooks/useRecentInvoices'
+import type { InvoiceItem } from '@/hooks/useRecentInvoices'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+import { TableWithPagination } from '@/components/ui/TableWithPagination'
+import type { TableColumn } from '@/components/ui/TableWithPagination'
 
 const InvoicesTable = () => {
   const navigate = useNavigate()
@@ -38,6 +40,32 @@ const InvoicesTable = () => {
     return `₹${numAmount}`
   }
 
+  const columns: TableColumn<InvoiceItem>[] = [
+    {
+      key: 'id',
+      header: 'Invoice ID',
+      render: (row) => row.id
+    },
+    {
+      key: 'date_time',
+      header: 'Date & Time',
+      width: '170px',
+      render: (row) => formatDateTime(row.date_time)
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      width: '112px',
+      render: (row) => <span style={{ color: '#3ac828' }}>{row.status}</span>
+    },
+    {
+      key: 'amount',
+      header: 'Amount',
+      width: '115px',
+      render: (row) => formatAmount(row.amount)
+    }
+  ]
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -66,152 +94,15 @@ const InvoicesTable = () => {
           </div>
         </div>
         <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-lg w-full h-full">
-          <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full overflow-x-auto h-full">
-            {/* Table Header */}
-            {invoices.length > 0 &&
-              <div className="bg-white flex items-start relative w-full">
-                <div className="grow border-r border-b border-[#e7e8ea] border-solid h-10 min-h-0 min-w-0 relative shrink-0">
-                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-full">
-                    <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                      Invoice ID
-                    </p>
-                    <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
-                  </div>
-                </div>
-                <div className="border-r border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[170px]">
-                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[170px]">
-                    <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                      Date & Time
-                    </p>
-                    <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
-                  </div>
-                </div>
-                <div className="border-r border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[112px]">
-                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[112px]">
-                    <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                      Status
-                    </p>
-                    <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
-                  </div>
-                </div>
-                <div className="border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[115px]">
-                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[115px]">
-                    <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                      Amount
-                    </p>
-                    <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
-                  </div>
-                </div>
-              </div>
-            }
-
-            {/* Table Rows */}
-            {loading && (
-              Array.from({ length: 4 }).map((_, index) => (
-                <div key={`sk-${index}`} className={`flex items-start relative w-full ${index % 2 === 0 ? 'bg-[#f7f7f8]' : 'bg-white'}`}>
-                  <div className="grow border-r border-[#e7e8ea] border-solid h-10 min-h-0 min-w-0 relative shrink-0">
-                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-full flex items-center pl-4">
-                      <Skeleton className="h-4 w-24" />
-                    </div>
-                  </div>
-                  <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[170px]">
-                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-[170px] flex items-center pl-4">
-                      <Skeleton className="h-4 w-28" />
-                    </div>
-                  </div>
-                  <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[112px]">
-                    <div className="h-10 overflow-hidden relative rounded-[inherit] w-[112px] flex items-center pl-4">
-                      <Skeleton className="h-4 w-16" />
-                    </div>
-                  </div>
-                  <div className="h-10 overflow-hidden relative shrink-0 w-[115px] flex items-center pl-4">
-                    <Skeleton className="h-4 w-20" />
-                  </div>
-                </div>
-              ))
-            )}
-            {error && !loading && (
-              <div className="p-3 text-sm text-red-600">
-                {typeof error === 'string' ? error : 'Failed to load invoices'}
-              </div>
-            )}
-            {!loading && !error && invoices.length === 0 && (
-              <div className="flex flex-col items-center justify-center p-8 w-full h-full bg-white rounded-xl min-h-[150px]">
-                <svg
-                  width="52"
-                  height="52"
-                  viewBox="0 0 52 52"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="mb-3"
-                >
-                  <rect width="52" height="52" rx="26" fill="#f7f7f8" />
-                  <path
-                    d="M36 18V34C36 35.1046 35.1046 36 34 36H18C16.8954 36 16 35.1046 16 34V18C16 16.8954 16.8954 16 18 16H34C35.1046 16 36 16.8954 36 18Z"
-                    stroke="#c8cacf"
-                    strokeWidth="2"
-                  />
-                  <path
-                    d="M22 24H30"
-                    stroke="#c8cacf"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M22 28H30"
-                    stroke="#c8cacf"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <span className="text-[15px] font-medium text-[#9296a0]">No invoices to display</span>
-                <span className="text-xs text-[#c8cacf] mt-1">You have not made any credit purchases yet.</span>
-              </div>
-            )}
-            {!loading && !error && invoices.length > 0 && invoices.map((invoice, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
-                className={`flex items-start relative w-full ${index % 2 === 0 ? 'bg-[#f7f7f8]' : 'bg-white'
-                  }`}
-              >
-                <div className="grow border-r border-[#e7e8ea] border-solid h-10 min-h-0 min-w-0 relative shrink-0">
-                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-full">
-                    <p className="absolute font-normal leading-[24px] left-4 not-italic right-4 text-[#9296a0] text-[14px] top-2 tracking-[-0.084px]">
-                      {invoice.id}
-                    </p>
-                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                  </div>
-                </div>
-                <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[170px]">
-                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[170px]">
-                    <p className="absolute font-normal leading-[24px] left-4 not-italic right-4 text-[#9296a0] text-[14px] top-2 tracking-[-0.084px] whitespace-pre-wrap">
-                      {formatDateTime(invoice.date_time)}
-                    </p>
-                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                  </div>
-                </div>
-                <div className="border-r border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[112px]">
-                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[112px]">
-                    <p className="absolute font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#3ac828] top-2 tracking-[-0.084px]">
-                      {invoice.status}
-                    </p>
-                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                  </div>
-                </div>
-                <div className="h-10 overflow-hidden relative shrink-0 w-[115px]">
-                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[115px]">
-                    <p className="absolute font-normal leading-[24px] left-4 not-italic right-4 text-[#9296a0] text-[14px] top-2 tracking-[-0.084px]">
-                      {formatAmount(invoice.amount)}
-                    </p>
-                    <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          <TableWithPagination
+            data={invoices}
+            columns={columns}
+            loading={loading}
+            error={error}
+            emptyMessage="No invoices to display"
+            itemsPerPage={10}
+            className="h-full"
+          />
         </div>
       </div>
     </motion.div>
