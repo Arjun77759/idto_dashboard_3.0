@@ -1,13 +1,11 @@
-import { motion } from 'framer-motion'
 import AnalyticsFilters from '@/components/analytics/AnalyticsFilters'
-import AnalyticsStatsGrid from '@/components/analytics/AnalyticsStatsGrid'
-import VerificationVolumeChart from '@/components/analytics/VerificationVolumeChart'
-import MonthlyTransactionsChart from '@/components/analytics/MonthlyTransactionsChart'
 import AnalyticsPieChart from '@/components/analytics/AnalyticsPieChart'
+import AnalyticsStatsGrid from '@/components/analytics/AnalyticsStatsGrid'
 import BarChart from '@/components/analytics/BarChart'
-import AnalyticsLineChart from '@/components/analytics/AnalyticsLineChart'
-import { BarChart3 } from 'lucide-react'
+import MonthlyTransactionsChart from '@/components/analytics/MonthlyTransactionsChart'
+import VerificationVolumeChart from '@/components/analytics/VerificationVolumeChart'
 import { AnalyticsFilterProvider } from '@/contexts/AnalyticsFilterContext'
+import { motion } from 'framer-motion'
 
 const AnalyticsPage = () => {
   return (
