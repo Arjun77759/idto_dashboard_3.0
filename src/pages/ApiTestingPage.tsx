@@ -1,23 +1,19 @@
-import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
 import {
   ChevronRight,
-  FlaskConical,
-  Pin,
-  PinOff,
   Plus,
   Search,
-  Zap,
+  Zap
 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import ApiConfiguration from '@/components/api-testing/ApiConfiguration'
 import ApiResponse from '@/components/api-testing/ApiResponse'
-import { API_ENDPOINTS, type ApiEndpoint } from '@/config/apiEndpoints'
 import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { API_ENDPOINTS, type ApiEndpoint } from '@/config/apiEndpoints'
 import { useMonthlyUsage } from '@/hooks/useMonthlyUsage'
 import { cn } from '@/lib/utils'
 
@@ -112,10 +108,12 @@ const ApiTestingPage = () => {
     >
       <div className="flex flex-wrap items-center gap-4 rounded px-3 py-1.5">
         <div className="flex items-center gap-2">
-          <FlaskConical className="size-6 text-[#131b31]" />
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="22" viewBox="0 0 20 22" fill="none">
+            <path d="M14.75 1.5H12.998V7.06543L19.4238 20.4248C19.5356 20.6572 19.52 20.9311 19.3828 21.1494C19.2456 21.3677 19.0059 21.5 18.748 21.5H0.75C0.492072 21.5 0.251504 21.3678 0.114258 21.1494C-0.0228654 20.9311 -0.0376128 20.6571 0.0742188 20.4248L5.16211 9.85352L5.15625 9.84863L5.17871 9.81934L6.49805 7.0791V1.5H4.75V0H14.75V1.5ZM13.7227 16.4912C13.5797 15.9578 13.0314 15.6414 12.498 15.7842L12.4893 15.7861C11.9559 15.929 11.6395 16.4774 11.7822 17.0107C11.9252 17.5442 12.4734 17.8617 13.0068 17.7188L13.0156 17.7158C13.5489 17.5728 13.8656 17.0246 13.7227 16.4912ZM7.72266 14.4912C7.57973 13.9578 7.03144 13.6414 6.49805 13.7842L6.48926 13.7861C5.95591 13.929 5.63951 14.4774 5.78223 15.0107C5.92517 15.5442 6.47338 15.8617 7.00684 15.7188L7.01562 15.7158C7.54894 15.5728 7.86556 15.0246 7.72266 14.4912ZM7.99707 7.42188L7.22266 9.03027C7.3721 9.0529 7.51844 9.08727 7.66016 9.12891C8.46038 9.36408 9.33152 9.90964 10.1543 10.4375C11.132 11.0646 11.7832 11.0608 12.1758 10.9287C12.487 10.8239 12.737 10.605 12.9102 10.3457L11.4971 7.40723V1.5H7.99707V7.42188Z" fill="#131B31" />
+          </svg>
           <div>
             <p className="text-xl font-semibold text-[#131b31] tracking-[-0.2px]">API Testing</p>
-            <p className="text-xs text-[#616675]">Test and validate endpoints with real-time preview</p>
+
           </div>
         </div>
         <button

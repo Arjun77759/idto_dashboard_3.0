@@ -114,9 +114,11 @@ const BillingPage = () => {
       transition={{ duration: 0.4 }}
       className="bg-[#f7f7f8] flex flex-col gap-6 p-4 sm:p-6 rounded-2xl w-full h-full overflow-y-auto"
     >
-      <header className="flex flex-wrap items-center gap-4 rounded-md">
+      <header className="flex flex-wrap items-center gap-4 rounded-md pl-3">
         <div className="flex items-center gap-3">
-          <CreditCard className="size-6 text-[#141b34]" />
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18" fill="none">
+            <path d="M21.5 16.75C21.4998 17.1641 21.1641 17.5 20.75 17.5H0.75C0.336043 17.4998 0.000175836 17.164 0 16.75V6.5H21.5V16.75ZM9.75 12V13.5H11.75V12H9.75ZM13.75 12V13.5H17.75V12H13.75ZM20.75 0C21.1642 0 21.5 0.335786 21.5 0.75V5H0V0.75C0 0.335894 0.335935 0.000174227 0.75 0H20.75Z" fill="#131B31" />
+          </svg>
           <p className="text-xl font-semibold text-[#131b31] tracking-[-0.2px]">Billing</p>
         </div>
         <div className="ml-auto flex flex-wrap gap-3">
