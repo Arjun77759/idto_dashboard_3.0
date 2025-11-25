@@ -18,6 +18,7 @@ const LoginPage = () => {
   const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({})
   const [submitting, setSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [keepSignedIn, setKeepSignedIn] = useState(true)
 
   // Pre-fill email if passed from register page
   useEffect(() => {
@@ -48,7 +49,7 @@ const LoginPage = () => {
     try {
       setSubmitting(true)
       const res = await login({ email: formData.email, password: formData.password })
-      setAuth({ access_token: res.access_token, user_agent: res.user_agent })
+      setAuth({ access_token: res.access_token, user_agent: res.user_agent }, { persist: keepSignedIn })
       toast({
         title: "Login successful",
         description: "Welcome back! Redirecting to dashboard...",
@@ -88,7 +89,7 @@ const LoginPage = () => {
       const res = await firebaseAuth({ id_token: idToken })
 
       // Store access token
-      setAuth({ access_token: res.access_token, user_agent: 'google' })
+      setAuth({ access_token: res.access_token, user_agent: 'google' }, { persist: keepSignedIn })
 
       toast({
         title: "Login successful",
@@ -125,8 +126,8 @@ const LoginPage = () => {
       </div>
       <div className="flex w-full max-w-[480px] flex-col gap-6 sm:gap-8 mx-auto">
         <div className=" bg-white/90 p-5 sm:p-8 flex flex-col gap-6">
-          <div className="text-center">
-            <h1 className="text-[24px] font-semibold leading-[1.24] text-[#131b31]">Hi, Welcome Back!</h1>
+          <div className="text-center flex flex-col gap-2">
+            <h1 className="text-[24px] font-[500] leading-[1.24] text-[#131b31]">Hi, Welcome Back!</h1>
             <p className="text-[14px] font-medium leading-5 text-[#616675]">Sign in to continue to your dashboard.</p>
           </div>
 
@@ -172,7 +173,12 @@ const LoginPage = () => {
 
             <div className="flex flex-col gap-3 text-[14px] text-[#616675] sm:flex-row sm:items-center sm:justify-between">
               <label className="flex items-center gap-2 font-medium">
-                <input type="checkbox" className="size-4 rounded border-[#d8d9dc] text-[#0019ff] focus:ring-[#0019ff]" />
+                <input
+                  type="checkbox"
+                  checked={keepSignedIn}
+                  onChange={e => setKeepSignedIn(e.target.checked)}
+                  className="size-4 rounded border-[#d8d9dc] text-[#0019ff] focus:ring-[#0019ff]"
+                />
                 Keep me signed in
               </label>
               {/* <a href="#" className="text-left text-[14px] font-medium text-[#616675] underline decoration-[#d7d7de]">

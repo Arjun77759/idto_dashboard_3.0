@@ -87,9 +87,9 @@ const PublicLayout = () => {
     <div className="min-h-screen w-screen bg-gray-50" style={{ fontFamily: '"TikTok Sans", sans-serif' }}>
 
       {/* Main Content with Two Panel Layout */}
-      <main className="flex flex-col lg:flex-row min-h-screen">
+      <main className="flex flex-col lg:flex-row h-screen">
         {/* Left Panel - Content */}
-        <div className="flex-1 lg:max-w-2xl xl:max-w-none lg:min-h-screen flex flex-col">
+        <div className="flex-1 lg:max-w-2xl xl:max-w-none lg:min-h-screen flex flex-col overflow-y-auto bg-white">
           <Outlet />
         </div>
 

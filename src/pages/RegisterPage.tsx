@@ -130,12 +130,12 @@ const RegisterPage = () => {
 
         <div className="bg-white/90 p-5 sm:p-8 flex flex-col gap-6">
           <div className="space-y-2 text-center">
-            <h1 className="text-[24px] font-semibold leading-[1.24] text-[#131b31]">Start your journey with idto</h1>
+            <h1 className="text-[24px] font-[500] leading-[1.24] text-[#131b31]">Start your journey with idto</h1>
             <p className="text-[14px] font-medium leading-5 text-[#616675]">Create your secure, verified workspace.</p>
           </div>
 
-          <form className="space-y-4" onSubmit={handleSubmit} noValidate>
-            <div className="space-y-2">
+          <form className="flex flex-col gap-6" onSubmit={handleSubmit} noValidate>
+            <div className="flex flex-col gap-2">
               <label className="text-[12px] font-medium text-[#616675]">Enter your work email</label>
               <div className="flex h-12 items-center gap-3 rounded-lg border border-[#e7e8ea] bg-[#f7f7f8] px-3">
                 <Mail className="size-5 text-[#9296a0]" strokeWidth={1.5} />
@@ -202,7 +202,7 @@ const RegisterPage = () => {
             </a>
           </p>
 
-          <div className="flex items-center justify-center gap-2 text-[14px] font-medium text-[#616675]">
+          <div className="flex items-center justify-center gap-2 py-2 text-[14px] font-medium text-[#616675]">
             <span>Already have an account?</span>
             <Link to="/login" className="flex items-center gap-1 text-[#006042] underline">
               Login here
