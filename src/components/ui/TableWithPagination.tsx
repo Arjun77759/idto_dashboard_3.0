@@ -155,7 +155,6 @@ export function TableWithPagination<T extends { [key: string]: any }>({
                       className="w-4 h-4 rounded border border-[#131b31] bg-[#f7f7f8] cursor-pointer"
                     />
                   </div>
-                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                 </div>
               </div>
             )}
@@ -179,7 +178,6 @@ export function TableWithPagination<T extends { [key: string]: any }>({
                   >
                     {column.header}
                   </p>
-                  <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
                 </div>
               </div>
             ))}
@@ -219,7 +217,9 @@ export function TableWithPagination<T extends { [key: string]: any }>({
                             className="w-4 h-4 rounded border border-[#9296a0] bg-[#f7f7f8] cursor-pointer"
                           />
                         </div>
-                        <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+                        {rowIndex < paginatedData.length - 1 && (
+                          <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+                        )}
                       </div>
                     </div>
                   )}
@@ -232,7 +232,7 @@ export function TableWithPagination<T extends { [key: string]: any }>({
                       <div
                         key={column.key}
                         className={cn(
-                          colIndex < columns.length - 1 && "border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid",
+                          colIndex < columns.length - 1 && "border-[0px_0px_0px_0px] border-[#e7e8ea] border-solid",
                           "h-[40px] relative shrink-0",
                           !column.width && "flex-1 min-w-0"
                         )}
@@ -248,7 +248,9 @@ export function TableWithPagination<T extends { [key: string]: any }>({
                       >
                             {content}
                           </div>
-                          <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+                          {rowIndex < paginatedData.length - 1 && (
+                            <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
+                          )}
                         </div>
                       </div>
                     )

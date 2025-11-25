@@ -93,7 +93,7 @@ const InvoicesTable = () => {
             </div>
           </div>
         </div>
-        <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-lg w-full h-full">
+        <div className="bg-white relative rounded-lg w-full h-full">
           <TableWithPagination
             data={invoices}
             columns={columns}
