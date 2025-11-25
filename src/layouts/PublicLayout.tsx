@@ -11,9 +11,6 @@ const dashboardImages = [
 ]
 
 // Card positions and transforms from Figma design
-// Positions are relative to their containers
-// Blurred layer container: left-[-177px] top-[371px]
-// Main layer container: left-[-177px] top-[345px]
 const blurredCardConfigs = [
   { left: -177, top: 681.15, rotate: 335, skew: 18.882 },
   { left: 654.26, top: 766.11, rotate: 335, skew: 18.882 },
@@ -34,6 +31,25 @@ const mainCardConfigs = [
   { left: 316.71, top: 661.23, rotate: 335, skew: 18.882 },
   { left: 649.28, top: 506.15, rotate: 335, skew: 18.882 },
   { left: 321.21, top: 895.42, rotate: 335, skew: 18.882 },
+]
+
+// Central content variants for the carousel
+const centralVariants = [
+  {
+    icon: <Workflow className="w-6 h-6 text-white" />,
+    title: 'Ready-made workflows.',
+    description: 'Build, automate, and analyze faster — so your team can focus on what matters most.'
+  },
+  {
+    icon: <Workflow className="w-6 h-6 text-white" />,
+    title: 'Seamless Integrations.',
+    description: 'Connect with your favorite tools to build powerful, automated processes in minutes.'
+  },
+  {
+    icon: <Workflow className="w-6 h-6 text-white" />,
+    title: 'Insights & Analytics.',
+    description: 'Visualize, track, and optimize your workflows using built-in analytics.'
+  }
 ]
 
 const PublicLayout = () => {
@@ -66,6 +82,116 @@ const PublicLayout = () => {
   const handleNext = () => {
     setCurrentSlide((prev) => (prev === 2 ? 0 : prev + 1))
   }
+
+  return (
+    <div className="min-h-screen w-screen bg-gray-50" style={{ fontFamily: '"TikTok Sans", sans-serif' }}>
+
+      {/* Main Content with Two Panel Layout */}
+      <main className="flex flex-col lg:flex-row min-h-screen">
+        {/* Left Panel - Content */}
+        <div className="flex-1 lg:max-w-2xl xl:max-w-none lg:min-h-screen flex flex-col">
+          <Outlet />
+        </div>
+
+        {/* Right Panel - Gradient Design - Hidden on mobile, visible on lg+ */}
+        <div
+          className="flex-1 relative overflow-hidden h-screen flex items-center justify-center"
+          style={{
+            background: `linear-gradient(164deg, var(--Primary-1, #8A95FF) 49.29%, var(--Secondary-1, #54EEBE) 82.41%), radial-gradient(50% 50% at 50% 50%, var(--Secondary-1, #54EEBE) 0%, var(--Primary-1, #8A95FF) 100%), linear-gradient(212deg, var(--Primary-1, #8A95FF) -0.24%, var(--Secondary-3, #00A370) 94.14%)`
+          }}
+        >
+
+          <div className='flex gap-4 items-center justify-between w-full px-[52px] relative top-[-200px]'>
+
+
+            <div
+              className="absolute left-[calc(50%+71px)] z-0 translate-y-[30%] translate-x-[-50%]"
+              style={{
+                width: '344px',
+                height: '344px',
+                borderRadius: '344px',
+                background: 'var(--Secondary-2, #00E59E)',
+                filter: 'blur(78.5px)',
+              }}
+            />
+            <div
+              className="absolute left-[calc(50%-5.5px)] z-1 translate-x-[-50%]"
+              style={{
+                background: 'var(--Primary-3, #0012B5)',
+                borderRadius: '285px',
+                filter: 'blur(82px)',
+                width: '285px',
+                height: '285px',
+              }}
+            />
+
+            <button
+              onClick={handlePrev}
+              className=" bg-[rgba(0,25,255,0.25)] rounded-[60px] p-[16px] z-[10] hover:bg-[rgba(0,25,255,0.35)] transition-colors relative top-[-18px]"
+            >
+              <ChevronLeft className="w-6 h-6 text-white" />
+            </button>
+
+
+            <div className="flex flex-col gap-[32px] items-center z-[10]">
+              <div className="flex gap-[16px] items-start justify-center w-[394px]">
+                {/* Icon Button */}
+                <div className="bg-white/25 border border-white/25 rounded-[60px] shrink-0 p-[16px]">
+                  {centralVariants[currentSlide].icon}
+                </div>
+                {/* Text Block */}
+                <div className="bg-white/25 border border-white/25 rounded-[8px] flex flex-col gap-[10px] items-start p-[16px] flex-1 text-white">
+                  <h2 className="font-medium leading-[1.24] text-[24px] tracking-[-0.24px] w-full">
+                    {centralVariants[currentSlide].title}
+                  </h2>
+                  <p className="font-medium leading-5 text-[14px] tracking-[-0.14px] w-full">
+                    {centralVariants[currentSlide].description}
+                  </p>
+                </div>
+              </div>
+
+              {/* Pagination Dots */}
+              <div className="h-[10px] w-[38px] flex items-center justify-center">
+                <div className="flex gap-1.5 items-center">
+                  {[0, 1, 2].map((index) => (
+                    <button
+                      key={index}
+                      className={`h-2 rounded-full transition-all ${index === currentSlide
+                        ? 'bg-white w-8'
+                        : 'bg-white/50 w-2'
+                        }`}
+                      onClick={() => setCurrentSlide(index)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+
+            <button
+              onClick={handleNext}
+              className="bg-[rgba(0,25,255,0.25)] rounded-[60px] p-[16px] z-[10] hover:bg-[rgba(0,25,255,0.35)] transition-colors relative top-[-18px]"
+            >
+              <ChevronRight className="w-6 h-6 text-white" />
+            </button>
+
+          </div>
+
+          <img
+            src="/public_bg.png"
+            alt="Dashboard"
+            className="absolute left-0 bottom-0 w-full object-cover z-[10px]"
+          />
+          <img
+            src="/public4.png"
+            alt="Dashboard"
+            className="absolute left-0 bottom-0 w-full object-cover z-[20px]"
+          />
+        </div>
+      </main>
+
+    </div>
+  )
 
   return (
     <div className="min-h-screen w-screen bg-gray-50" style={{ fontFamily: '"TikTok Sans", sans-serif' }}>
@@ -189,16 +315,15 @@ const PublicLayout = () => {
             <div className="flex gap-[16px] items-start justify-center w-[394px]">
               {/* Icon Button */}
               <div className="bg-white/25 border border-white/25 rounded-[60px] shrink-0 p-[16px]">
-                <Workflow className="w-6 h-6 text-white" />
+                {centralVariants[currentSlide].icon}
               </div>
-
               {/* Text Block */}
               <div className="bg-white/25 border border-white/25 rounded-[8px] flex flex-col gap-[10px] items-start p-[16px] flex-1 text-white">
                 <h2 className="font-medium leading-[1.24] text-[24px] tracking-[-0.24px] w-full">
-                  Ready-made workflows.
+                  {centralVariants[currentSlide].title}
                 </h2>
                 <p className="font-medium leading-5 text-[14px] tracking-[-0.14px] w-full">
-                  Build, automate, and analyze faster — so your team can focus on what matters most.
+                  {centralVariants[currentSlide].description}
                 </p>
               </div>
             </div>
