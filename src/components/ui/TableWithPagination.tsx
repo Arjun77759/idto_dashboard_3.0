@@ -162,7 +162,7 @@ export function TableWithPagination<T extends { [key: string]: any }>({
               <div
                 key={column.key}
                 className={cn(
-                  colIndex < columns.length - 1 && "border-[0px_1px_0px_0px] border-[#e7e8ea] border-solid",
+                  colIndex > 0 && "border-l border-[#e7e8ea] border-solid",
                   "h-[40px] relative shrink-0",
                   !column.width && "flex-1 min-w-0"
                 )}
@@ -232,7 +232,7 @@ export function TableWithPagination<T extends { [key: string]: any }>({
                       <div
                         key={column.key}
                         className={cn(
-                          colIndex < columns.length - 1 && "border-[0px_0px_0px_0px] border-[#e7e8ea] border-solid",
+                          colIndex > 0 && "border-l border-[#e7e8ea] border-solid",
                           "h-[40px] relative shrink-0",
                           !column.width && "flex-1 min-w-0"
                         )}

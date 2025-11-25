@@ -19,7 +19,7 @@ import { useUserProfileStore } from '@/store/userProfileStore'
 
 const formatCurrency = (value: number) => {
   if (!value) return '-'
-  return `₹${value.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
+  return `${value.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
 }
 
 const BillingPage = () => {
@@ -123,7 +123,7 @@ const BillingPage = () => {
         </div>
         <div className="ml-auto flex flex-wrap gap-3">
           <CreditStat label="Live Credits" value={liveCredits} />
-          <CreditStat label="Testing Credits" value={testingCredits} />
+          {/* <CreditStat label="Testing Credits" value={testingCredits} /> */}
         </div>
       </header>
 

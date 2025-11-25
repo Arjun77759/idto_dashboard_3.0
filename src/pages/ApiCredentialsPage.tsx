@@ -2,19 +2,12 @@ import { motion } from 'framer-motion'
 import { Code, Eye, EyeOff, Copy, Plus } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
 import CreateApiKeyModal from '@/components/api-credentials/CreateApiKeyModal'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 import { getClients, enableClient, disableClient, type Client } from '@/api/clientsApi'
+import { TableWithPagination, type TableColumn } from '@/components/ui/TableWithPagination'
 
 interface ApiKey {
   id: string
@@ -203,6 +196,79 @@ const ApiCredentialsPage = () => {
     }
   }
 
+  const columns: TableColumn<ApiKey>[] = [
+    {
+      key: 'name',
+      header: 'API Key Name',
+      width: '205px',
+      render: (key) => (
+        <span className="text-[14px] text-[#131b31] font-normal">{key.name}</span>
+      ),
+    },
+    {
+      key: 'clientId',
+      header: 'Client ID',
+      render: (key) => (
+        <div className="flex items-center gap-4 w-full">
+          <span className="text-[14px] text-[#9296a0] font-normal">{formatClientId(key)}</span>
+          <div className="flex items-center gap-4 ml-auto">
+            <button
+              onClick={() => toggleKeyVisibility(key.id)}
+              className="cursor-pointer hover:opacity-70 transition-opacity"
+            >
+              {visibleKeys.has(key.id) ? (
+                <EyeOff className="w-4 h-4 text-[#9296a0]" />
+              ) : (
+                <Eye className="w-4 h-4 text-[#9296a0]" />
+              )}
+            </button>
+            <button
+              onClick={() => copyToClipboard(key.clientId)}
+              className="border border-[#e7e8ea] border-solid rounded px-2 py-0.5 flex items-center gap-1 hover:bg-gray-50 transition-colors"
+            >
+              <span className="text-[14px] text-[#9296a0] font-normal">copy</span>
+              <Copy className="w-4 h-4 text-[#9296a0]" />
+            </button>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'createdAt',
+      header: 'Created at',
+      width: '201px',
+      render: (key) => (
+        <span className="text-[14px] text-[#9296a0] font-normal">{key.createdAt}</span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      width: '193px',
+      align: 'center',
+      render: (key) => (
+        <div className="flex items-center justify-center gap-1.5 w-full">
+          <span
+            className={`text-[14px] font-normal ${
+              key.isEnabled ? 'text-[#3ac828]' : 'text-[#9296a0]'
+            }`}
+          >
+            {key.isEnabled ? 'Enabled' : 'Disabled'}
+          </span>
+          <Switch
+            checked={key.isEnabled}
+            onCheckedChange={() => handleToggleKeyStatus(key.id, key.isEnabled)}
+            className={`h-[21px] w-[45px] ${
+              key.isEnabled
+                ? 'data-[state=checked]:bg-[#3ac828] border-[#e7e8ea]'
+                : 'bg-[#f7f7f8] border-[#e7e8ea]'
+            }`}
+          />
+        </div>
+      ),
+    },
+  ]
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -245,93 +311,13 @@ const ApiCredentialsPage = () => {
           </div>
 
           {/* API Keys Table */}
-          <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-md shrink-0 w-full overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent border-b-0">
-                  <TableHead className="h-10 border-r border-[#e7e8ea] border-solid w-[205px] text-[14px] text-[#131b31] font-normal px-4">
-                    API Key Name
-                  </TableHead>
-                  <TableHead className="h-10 border-r border-[#e7e8ea] border-solid flex-1 text-[14px] text-[#131b31] font-normal px-4">
-                    Client ID
-                  </TableHead>
-                  <TableHead className="h-10 border-r border-[#e7e8ea] border-solid w-[201px] text-[14px] text-[#131b31] font-normal px-4">
-                    Created at
-                  </TableHead>
-                  <TableHead className="h-10 border-r border-[#e7e8ea] border-solid w-[193px] text-[14px] text-[#131b31] font-normal text-center px-4">
-                    Status
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {apiKeys.map((key, index) => (
-                  <TableRow
-                    key={key.id}
-                    className={`hover:bg-transparent border-b border-[#e7e8ea] border-solid ${
-                      index === apiKeys.length - 1 ? 'border-b-0' : ''
-                    }`}
-                  >
-                    <TableCell className="h-[45px] border-r border-[#e7e8ea] border-solid w-[205px] text-[14px] text-[#131b31] font-normal px-4">
-                      {key.name}
-                    </TableCell>
-                    <TableCell className="h-[45px] border-r border-[#e7e8ea] border-solid flex-1 relative px-4">
-                      <div className="flex items-center gap-4">
-                        <span className="text-[14px] text-[#9296a0] font-normal">
-                          {formatClientId(key)}
-                        </span>
-                        <div className="flex items-center gap-4 ml-auto">
-                          <button
-                            onClick={() => toggleKeyVisibility(key.id)}
-                            className="cursor-pointer hover:opacity-70 transition-opacity"
-                          >
-                            {visibleKeys.has(key.id) ? (
-                              <EyeOff className="w-4 h-4 text-[#9296a0]" />
-                            ) : (
-                              <Eye className="w-4 h-4 text-[#9296a0]" />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => copyToClipboard(key.clientId)}
-                            className="border border-[#e7e8ea] border-solid rounded px-2 py-0.5 flex items-center gap-1 hover:bg-gray-50 transition-colors"
-                          >
-                            <span className="text-[14px] text-[#9296a0] font-normal">copy</span>
-                            <Copy className="w-4 h-4 text-[#9296a0]" />
-                          </button>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="h-[45px] border-r border-[#e7e8ea] border-solid w-[201px] text-[14px] text-[#9296a0] font-normal px-4">
-                      {key.createdAt}
-                    </TableCell>
-                    <TableCell className="h-[45px] border-r border-[#e7e8ea] border-solid w-[193px] text-center px-4">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <span
-                          className={`text-[14px] font-normal ${
-                            key.isEnabled
-                              ? 'text-[#3ac828]'
-                              : 'text-[#9296a0]'
-                          }`}
-                        >
-                          {key.isEnabled ? 'Enabled' : 'Disabled'}
-                        </span>
-                        <Switch
-                          checked={key.isEnabled}
-                          onCheckedChange={() =>
-                            handleToggleKeyStatus(key.id, key.isEnabled)
-                          }
-                          className={`h-[21px] w-[45px] ${
-                            key.isEnabled
-                              ? 'data-[state=checked]:bg-[#3ac828] border-[#e7e8ea]'
-                              : 'bg-[#f7f7f8] border-[#e7e8ea]'
-                          }`}
-                        />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <TableWithPagination
+            data={apiKeys}
+            columns={columns}
+            itemsPerPage={10}
+            className="w-full items-start"
+            emptyMessage="No API keys available"
+          />
         </div>
       </div>
 
