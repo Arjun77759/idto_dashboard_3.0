@@ -1,17 +1,29 @@
-import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import AnimatedSkeleton from '@/components/AnimatedSkeleton'
-import { ChartContainer, ChartTooltip } from '@/components/ui/chart'
-import type { ChartConfig } from '@/components/ui/chart'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
-import type { TooltipProps } from 'recharts'
-import { Calendar } from 'lucide-react'
-import { useUsageVolumeTimeseries } from '@/hooks/useUsageVolumeTimeseries'
-import { useMemo } from 'react'
-import { useAnalyticsFilters } from '@/contexts/AnalyticsFilterContext'
-import { differenceInMonths, format } from 'date-fns'
 import type { UsageVolumeTimeseriesFilters } from '@/api/usageApi'
+import AnimatedSkeleton from '@/components/AnimatedSkeleton'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import type { ChartConfig } from '@/components/ui/chart'
+import { ChartContainer, ChartTooltip } from '@/components/ui/chart'
+import { useAnalyticsFilters } from '@/contexts/AnalyticsFilterContext'
+import { useUsageVolumeTimeseries } from '@/hooks/useUsageVolumeTimeseries'
+import { format } from 'date-fns'
+import { motion } from 'framer-motion'
+import { Calendar } from 'lucide-react'
+import { useMemo } from 'react'
+import type { TooltipProps } from 'recharts'
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+
+// Month names in order for always showing Jan ... Dec
+const MONTH_ORDER = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+]
+
+// Used for tick label formatting
+const MONTH_SHORT = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+]
 
 const chartConfig = {
   transactions: {
@@ -21,11 +33,13 @@ const chartConfig = {
 } satisfies ChartConfig
 
 const formatMonthLabel = (monthYear: string) => {
+  // Expects label like 'January 2024'
   try {
     const [month, year] = monthYear.split(' ')
-    const shortMonth = month.substring(0, 3)
-    const shortYear = year.substring(2)
-    return `${shortMonth} '${shortYear}`
+    const idx = MONTH_ORDER.findIndex(m => m === month)
+    const shortMonth = idx !== -1 ? MONTH_SHORT[idx] : month.substring(0, 3)
+    const shortYear = year?.substring(2)
+    return `${shortMonth}`
   } catch {
     return monthYear
   }
@@ -59,70 +73,87 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
   )
 }
 
+// Helper: Returns array ["Month YYYY", ...] for every month in full year indicated by 'year'
+function getFullYearMonthLabels(year: number): string[] {
+  return MONTH_ORDER.map(month => `${month} ${year}`)
+}
+
 const MonthlyTransactionsChart = () => {
   const { filters } = useAnalyticsFilters()
   const axisGradientX = 'axisGradientX'
   const axisGradientY = 'axisGradientY'
 
-  // Calculate months back from date range filter (default to 6 months as per requirements)
-  const monthsBack = useMemo(() => {
-    if (filters.dateRange?.from && filters.dateRange?.to) {
-      const months = differenceInMonths(filters.dateRange.to, filters.dateRange.from)
-      return Math.max(1, Math.ceil(months))
+  // Determine the year to show: Use filter if provided, otherwise current year
+  const { year, monthLabels } = useMemo(() => {
+    // If both from/to in filter and within the same year, use that year
+    // If from/to are in different years, fallback to current year (or expand logic as needed)
+    let displayYear: number
+    if (filters.dateRange?.from) {
+      displayYear = filters.dateRange.from.getFullYear()
+    } else {
+      displayYear = new Date().getFullYear()
     }
-    return 6 // Default to 6 months as per requirements
+    return {
+      year: displayYear,
+      monthLabels: getFullYearMonthLabels(displayYear)
+    }
   }, [filters.dateRange])
 
-  // Prepare filters for API
+  // Always request the full year to backend
+  // Compute start_date = Jan 1, end_date = Dec 31 of the year to show
+  const monthsBack = 12
   const apiFilters = useMemo<UsageVolumeTimeseriesFilters | undefined>(() => {
     const hasFilters = filters.region !== 'all' ||
       filters.verificationType !== 'all' ||
       filters.deviceType !== 'desktop'
 
-    if (!hasFilters) return undefined
+    // Always set year range
+    const start = new Date(year, 0, 1)
+    const end = new Date(year, 11, 31)
 
     return {
-      start_date: filters.dateRange?.from ? format(filters.dateRange.from, 'yyyy-MM-dd') : undefined,
-      end_date: filters.dateRange?.to ? format(filters.dateRange.to, 'yyyy-MM-dd') : undefined,
+      start_date: format(start, 'yyyy-MM-dd'),
+      end_date: format(end, 'yyyy-MM-dd'),
       region: filters.region !== 'all' ? filters.region : undefined,
       api_name: filters.verificationType !== 'all' ? filters.verificationType : undefined,
       device_type: filters.deviceType !== 'desktop' ? filters.deviceType : undefined
     }
-  }, [filters.dateRange, filters.region, filters.verificationType, filters.deviceType])
+  }, [filters.region, filters.verificationType, filters.deviceType, year])
 
   const { data: volumeData, loading, error } = useUsageVolumeTimeseries(monthsBack, apiFilters)
 
-  // Log current filter state for debugging
-  console.log('MonthlyTransactionsChart filters:', filters, 'monthsBack:', monthsBack)
+  // Map: { "January 2024" => count, ... }
+  const volumeDataMap = useMemo(() => {
+    const map: Record<string, number> = {}
+    for (const item of volumeData) {
+      map[item.month] = item.count
+    }
+    return map
+  }, [volumeData])
 
-  // Calculate date range from data for badge display
+  // Always show every month for the year. Fill in 0 if missing.
+  const chartData = useMemo(() => {
+    return monthLabels.map(label => ({
+      month: label,
+      transactions: volumeDataMap[label] ?? 0,
+    }))
+  }, [monthLabels, volumeDataMap])
+
+  // The date range badge should say for example: "Jan 2024 - Dec 2024"
   const dateRange = useMemo(() => {
-    if (volumeData.length === 0) return 'Jan 2025 - Aug 2025'
-    const firstMonth = volumeData[0].month
-    const lastMonth = volumeData[volumeData.length - 1].month
-
-    // Format to short version (e.g., "July 2025" -> "Jul 2025")
+    if (monthLabels.length === 0) return '---'
     const formatShort = (monthYear: string) => {
       try {
         const [month, year] = monthYear.split(' ')
-        const shortMonth = month.substring(0, 3)
-        return `${shortMonth} ${year}`
+        const idx = MONTH_ORDER.findIndex(m => m === month)
+        const shortMonth = idx !== -1 ? MONTH_SHORT[idx] : month.substring(0, 3)
+        return `${shortMonth}`
       } catch {
         return monthYear
       }
     }
-
-    return `${formatShort(firstMonth)} - ${formatShort(lastMonth)}`
-  }, [volumeData])
-
-  // Map volume data to transactions format
-  const chartData = useMemo(() =>
-    volumeData.map(item => ({
-      month: item.month,
-      transactions: item.count
-    })),
-    [volumeData]
-  )
+    return `${formatShort(monthLabels[0])} - ${formatShort(monthLabels[monthLabels.length - 1])}`
+  }, [monthLabels])
 
   const { domainMax, ticks } = useMemo(() => {
     if (!chartData.length) {
@@ -183,16 +214,16 @@ const MonthlyTransactionsChart = () => {
               <BarChart data={chartData} margin={{ top: 5, right: 12, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3AC828" />
+                    <stop offset="0%" stopColor="#54EEBE" />
                     <stop offset="100%" stopColor="#8a95ff" />
                   </linearGradient>
                   <linearGradient id={axisGradientX} x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#35c0c0" />
-                    <stop offset="100%" stopColor="#7c6cf7" />
+                    <stop offset="0%" stopColor="#54EEBE" />
+                    <stop offset="100%" stopColor="#8A95FF" />
                   </linearGradient>
                   <linearGradient id={axisGradientY} x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#35c0c0" />
-                    <stop offset="100%" stopColor="#7c6cf7" />
+                    <stop offset="0%" stopColor="#54EEBE" />
+                    <stop offset="100%" stopColor="#8A95FF" />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
@@ -203,18 +234,23 @@ const MonthlyTransactionsChart = () => {
                 />
                 <XAxis
                   dataKey="month"
-                  axisLine={{ strokeWidth: 2, stroke: `url(#${axisGradientX})` }}
+                  axisLine={true}
                   tickLine={false}
                   tick={{ fontSize: 11, fill: '#949494', fontFamily: 'Roboto', fontWeight: 500 }}
                   interval={0}
                   tickFormatter={formatMonthLabel}
+                  minTickGap={0}
+                  stroke="#54EEBE"
+                  allowDataOverflow={false}
+                // No need for domain, chartData always Jan ... Dec now
                 />
                 <YAxis
-                  axisLine={{ strokeWidth: 2, stroke: `url(#${axisGradientY})` }}
+                  axisLine={true}
                   tickLine={false}
                   tick={{ fontSize: 11, fill: '#949494', fontFamily: 'Roboto', fontWeight: 500 }}
                   domain={[0, domainMax]}
                   ticks={ticks}
+                  stroke="#54EEBE"
                 />
                 <ChartTooltip
                   cursor={{ fill: 'rgba(0,0,0,0.04)' }}
@@ -223,8 +259,7 @@ const MonthlyTransactionsChart = () => {
                 <Bar
                   dataKey="transactions"
                   fill="url(#barGradient)"
-                  radius={[6, 6, 0, 0]}
-                  maxBarSize={10}
+                  maxBarSize={15}
                 />
               </BarChart>
             </ChartContainer>
