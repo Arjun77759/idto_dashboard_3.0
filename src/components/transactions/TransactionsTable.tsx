@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { TableWithPagination, type TableColumn } from '@/components/ui/TableWithPagination'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { format } from 'date-fns'
 import { parseTransactionTimestamp } from '@/lib/utils'
 import type { Transaction } from '@/hooks/useTransactions'
@@ -22,10 +23,6 @@ const TransactionsTable = ({
   const handleCopyId = (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
     navigator.clipboard.writeText(id)
-  }
-
-  const getStatusColor = (status: string) => {
-    return status?.toLowerCase() === 'success' ? '#3AC828' : '#ff4d4f'
   }
 
   const formatDateTime = (timestamp: string) => {
@@ -72,14 +69,7 @@ const TransactionsTable = ({
       key: 'status',
       header: 'Status',
       width: '148px',
-      render: (row) => (
-        <span 
-          className="capitalize"
-          style={{ color: getStatusColor(row.status) }}
-        >
-          {row.status}
-        </span>
-      )
+      render: (row) => <StatusBadge status={row.status} />
     },
     {
       key: 'actions',

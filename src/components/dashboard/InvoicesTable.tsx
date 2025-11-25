@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { TableWithPagination } from '@/components/ui/TableWithPagination'
 import type { TableColumn } from '@/components/ui/TableWithPagination'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 
 const InvoicesTable = () => {
   const navigate = useNavigate()
@@ -56,7 +57,7 @@ const InvoicesTable = () => {
       key: 'status',
       header: 'Status',
       width: '112px',
-      render: (row) => <span style={{ color: '#3ac828' }}>{row.status}</span>
+      render: (row) => <StatusBadge status={row.status} />
     },
     {
       key: 'amount',

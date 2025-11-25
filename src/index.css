@@ -32,8 +32,8 @@
   }
 
   body {
-    font-family: "Manrope", "Space Grotesk", "Inter", system-ui, -apple-system,
-      BlinkMacSystemFont, sans-serif;
+    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+      sans-serif;
     min-height: 100vh;
     background-color: #f7f7f8;
     color: #131b31;

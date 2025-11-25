@@ -5,11 +5,12 @@ import { useRecentInvoices } from '@/hooks/useRecentInvoices'
 import type { InvoiceItem } from '@/hooks/useRecentInvoices'
 import { downloadCsv } from '@/lib/downloadCsv'
 import { motion } from 'framer-motion'
-import { Calendar, Download, RotateCcw, Search } from 'lucide-react'
+import { Download, RotateCcw, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Button } from '../ui/button'
 import { TableWithPagination } from '@/components/ui/TableWithPagination'
 import type { TableColumn } from '@/components/ui/TableWithPagination'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 
 const RecentInvoicesTable = () => {
   const { data: invoiceData, loading, error } = useRecentInvoices(50)
@@ -135,7 +136,7 @@ const RecentInvoicesTable = () => {
       key: 'status',
       header: 'Status',
       width: '171px',
-      render: (row) => <span style={{ color: '#3ac828' }}>{row.status}</span>
+      render: (row) => <StatusBadge status={row.status} />
     },
     {
       key: 'amount',
@@ -216,15 +217,15 @@ const RecentInvoicesTable = () => {
         {/* Filter Bar */}
         <div className="flex flex-wrap gap-2 h-auto sm:h-10 items-center justify-between relative shrink-0 w-full">
           <div className="flex flex-wrap gap-2 h-full items-center min-h-0 min-w-px relative shrink-0">
-            <div className="bg-white border border-[#e7e8ea] border-solid h-10 relative rounded-lg shrink-0">
-              <div className="flex gap-2 h-full items-center justify-center overflow-hidden px-2 py-2 relative rounded-[inherit]">
-                <Calendar className="size-4 text-[#9296a0]" />
+            <div className="bg-white h-10 relative rounded-lg shrink-0">
+              <div className="flex gap-2 h-full items-center justify-center overflow-hidden pr-2 py-2 relative rounded-[inherit]">
+                {/* <Calendar className="size-4 text-[#9296a0]" /> */}
                 <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-7 w-[140px] text-[12px]" />
                 <span className="text-[#9296a0] text-[12px]">-</span>
                 <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-7 w-[140px] text-[12px]" />
               </div>
             </div>
-            <div className="bg-white border border-[#e7e8ea] border-solid h-10 relative rounded-lg shrink-0">
+            <div className="bg-white h-10 relative rounded-lg shrink-0">
               <div className="flex gap-2 h-full items-center justify-center overflow-hidden px-2 py-2 relative rounded-[inherit] w-[180px]">
                 <Select value={status} onValueChange={(v) => setStatus(v as any)}>
                   <SelectTrigger className="h-7 text-[12px]">
@@ -239,7 +240,7 @@ const RecentInvoicesTable = () => {
                 </Select>
               </div>
             </div>
-            <div className="bg-white border border-[#e7e8ea] border-solid h-10 relative rounded-lg shrink-0">
+            <div className="bg-white h-10 relative rounded-lg shrink-0">
               <div className="flex gap-2 h-full items-center justify-center overflow-hidden px-2 py-2 relative rounded-[inherit]">
                 <span className="text-[12px] text-[#9296a0]">Amount</span>
                 <Input placeholder="Min" value={amountMin} onChange={(e) => setAmountMin(e.target.value)} className="h-7 w-20 text-[12px]" />
