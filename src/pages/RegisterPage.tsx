@@ -113,7 +113,7 @@ const RegisterPage = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-white px-4 py-8 sm:py-12 flex flex-col">
+    <div className="min-h-screen w-full bg-white px-4 py-8 sm:py-12 flex flex-col gap-[40px]">
       <div className="flex items-center px-10">
         <svg xmlns="http://www.w3.org/2000/svg" width="57" height="32" viewBox="0 0 57 32" fill="none">
           <path d="M17.5745 20.5918H11.0039V27.4367H17.5745V20.5918Z" fill="#00E59E" />
@@ -128,13 +128,13 @@ const RegisterPage = () => {
 
       <div className="flex w-full max-w-[480px] flex-col gap-6 sm:gap-8 mx-auto">
 
-        <div className="bg-white/90 p-5 sm:p-8">
+        <div className="bg-white/90 p-5 sm:p-8 flex flex-col gap-6">
           <div className="space-y-2 text-center">
             <h1 className="text-[24px] font-semibold leading-[1.24] text-[#131b31]">Start your journey with idto</h1>
             <p className="text-[14px] font-medium leading-5 text-[#616675]">Create your secure, verified workspace.</p>
           </div>
 
-          <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
+          <form className="space-y-4" onSubmit={handleSubmit} noValidate>
             <div className="space-y-2">
               <label className="text-[12px] font-medium text-[#616675]">Enter your work email</label>
               <div className="flex h-12 items-center gap-3 rounded-lg border border-[#e7e8ea] bg-[#f7f7f8] px-3">
@@ -164,7 +164,7 @@ const RegisterPage = () => {
             </button>
           </form>
 
-          <div className="my-6 space-y-6">
+          <div className="space-y-4">
             <div className="h-px w-full bg-[#e7e8ea]" />
             <div className="flex flex-col items-center gap-3 text-[14px] text-[#616675] sm:flex-row sm:justify-center">
               <span className="font-medium">Or continue with</span>
@@ -202,7 +202,7 @@ const RegisterPage = () => {
             </a>
           </p>
 
-          <div className="mt-4 flex items-center justify-center gap-2 text-[14px] font-medium text-[#616675]">
+          <div className="flex items-center justify-center gap-2 text-[14px] font-medium text-[#616675]">
             <span>Already have an account?</span>
             <Link to="/login" className="flex items-center gap-1 text-[#006042] underline">
               Login here

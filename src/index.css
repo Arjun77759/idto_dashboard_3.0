@@ -1,7 +1,7 @@
+@import url("https://fonts.googleapis.com/css2?family=TikTok+Sans:opsz,wght@12..36,300..900&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 @layer base {
   :root {
     --radius: 0.5rem;
@@ -14,7 +14,7 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-  
+
   .dark {
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -27,11 +27,7 @@
   }
 }
 
-*{
-  font-family: "Inter", sans-serif;
-}
-
-/* Dark mode styles */
+Ø/* Dark mode styles */
 .dark {
   color-scheme: dark;
   background-color: #0f0f0f;
@@ -113,7 +109,7 @@
   scrollbar-color: #e5e7eb transparent;
 }
 
-.test{
+.test {
   background-color: red;
 }
 
