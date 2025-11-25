@@ -1,37 +1,9 @@
 import { getAccessToken } from '@/lib/auth'
 import { ChevronLeft, ChevronRight, Workflow } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
-// Dashboard card images - using placeholder URLs, replace with actual dashboard screenshots
-const dashboardImages = [
-  "/public1.png",
-  "/public2.png",
-  "/public3.png",
-]
 
-// Card positions and transforms from Figma design
-const blurredCardConfigs = [
-  { left: -177, top: 681.15, rotate: 335, skew: 18.882 },
-  { left: 654.26, top: 766.11, rotate: 335, skew: 18.882 },
-  { left: 488.11, top: 371.01, rotate: 335, skew: 18.882 },
-  { left: 155.56, top: 526.08, rotate: 335, skew: 18.882 },
-  { left: -15.85, top: 842.3, rotate: 335, skew: 18.882 },
-  { left: 316.71, top: 687.23, rotate: 335, skew: 18.882 },
-  { left: 649.28, top: 532.15, rotate: 335, skew: 18.882 },
-  { left: 321.21, top: 921.42, rotate: 335, skew: 18.882 },
-]
-
-const mainCardConfigs = [
-  { left: -177, top: 655.15, rotate: 335, skew: 18.882 },
-  { left: 654.26, top: 740.12, rotate: 335, skew: 18.882 },
-  { left: 488.11, top: 345.01, rotate: 335, skew: 18.882 },
-  { left: 155.56, top: 500.08, rotate: 335, skew: 18.882 },
-  { left: -15.85, top: 816.3, rotate: 335, skew: 18.882 },
-  { left: 316.71, top: 661.23, rotate: 335, skew: 18.882 },
-  { left: 649.28, top: 506.15, rotate: 335, skew: 18.882 },
-  { left: 321.21, top: 895.42, rotate: 335, skew: 18.882 },
-]
 
 // Central content variants for the carousel
 const centralVariants = [
@@ -57,6 +29,20 @@ const PublicLayout = () => {
   const token = useMemo(() => getAccessToken(), [])
   const location = useLocation()
   const [currentSlide, setCurrentSlide] = useState(0)
+  //@ts-ignore
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Automatically rotate slide every 2s (2000ms)
+  useEffect(() => {
+    intervalRef.current = setInterval(() => {
+      setCurrentSlide(prev => (prev === 2 ? 0 : prev + 1))
+    }, 2000)
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+      }
+    }
+  }, [])
 
   // Don't redirect if we're on the KYC callback page - it needs to process the callback even if authenticated
   const isKYCCallback = location.pathname.includes('/kyc-callback')

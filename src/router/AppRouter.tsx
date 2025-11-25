@@ -36,6 +36,10 @@ const publicRoutes = [
     element: <RegisterPage />
   },
   {
+    path: 'signup',
+    element: <RegisterPage />
+  },
+  {
     path: 'check-inbox',
     element: <CheckInboxPage />
   },
