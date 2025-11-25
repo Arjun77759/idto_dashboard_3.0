@@ -17,7 +17,7 @@ const AnalyticsPieChart = () => {
   const chartData = useMemo(() => {
     if (!data || !data.total_verifications || data.total_verifications.count === 0) {
       return [
-        { name: 'Completed', value: 10, color: '#54eebe', gradientId: 'successGradient' },
+        { name: 'Completed', value: 10, color: '#3AC828', gradientId: 'successGradient' },
         { name: 'Failed', value: 0, color: '#f7f7f8', gradientId: 'failedGradient' },
       ]
     }
@@ -30,7 +30,7 @@ const AnalyticsPieChart = () => {
     const failedPercentage = total > 0 ? Math.round((failed / total) * 100) : 0
 
     return [
-      { name: 'Completed', value: successPercentage, color: '#54eebe', gradientId: 'successGradient' },
+      { name: 'Completed', value: successPercentage, color: '#3AC828', gradientId: 'successGradient' },
       { name: 'Failed', value: failedPercentage, color: '#f7f7f8', gradientId: 'failedGradient' },
     ]
   }, [data])
@@ -122,7 +122,7 @@ const AnalyticsPieChart = () => {
               <svg width="211" height="102" viewBox="0 0 211 102" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                   <linearGradient id="successGradient" x1="105.5" y1="8" x2="105.5" y2="102" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#54EEBE" />
+                    <stop stopColor="#3AC828" />
                     <stop offset="1" stopColor="#8A95FF" />
                   </linearGradient>
                 </defs>
@@ -159,7 +159,7 @@ const AnalyticsPieChart = () => {
                         className="w-3 h-3 rounded-full" 
                         style={{ 
                           backgroundColor: item.name === 'Completed' ? 'transparent' : item.color,
-                          backgroundImage: item.name === 'Completed' ? 'linear-gradient(to bottom, #54EEBE, #8A95FF)' : 'none'
+                          backgroundImage: item.name === 'Completed' ? 'linear-gradient(to bottom, #3AC828, #8A95FF)' : 'none'
                         }}
                       />
                       <span className="text-[11px] text-[#616675] font-medium">

@@ -119,7 +119,7 @@ const MonthlyTransactionsChart = () => {
               <BarChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
               <defs>
                 <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#54eebe" />
+                  <stop offset="0%" stopColor="#3AC828" />
                   <stop offset="100%" stopColor="#8a95ff" />
                 </linearGradient>
               </defs>

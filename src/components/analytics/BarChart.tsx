@@ -116,7 +116,7 @@ const BarChart = () => {
                   <div className={`bg-gradient-to-r flex gap-2.5 grow items-center min-h-0 min-w-px overflow-hidden px-[18px] py-0 relative rounded shrink-0 ${category.width} ${
                     index % 2 === 0 
                       ? 'from-[#e6e8ff] to-[#8a95ff]' 
-                      : 'from-[#e6fcf5] to-[#54eebe]'
+                      : 'from-[#e6fcf5] to-[#3AC828]'
                   }`}>
                     <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
                       {category.name}

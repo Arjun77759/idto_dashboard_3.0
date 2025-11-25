@@ -30,7 +30,7 @@ const TransactionsTable = ({
   }
 
   const getStatusColor = (status: string) => {
-    return status?.toLowerCase() === 'success' ? '#54eebe' : '#ff4d4f'
+    return status?.toLowerCase() === 'success' ? '#3AC828' : '#ff4d4f'
   }
 
   const formatDateTime = (timestamp: string) => {

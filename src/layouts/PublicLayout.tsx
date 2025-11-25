@@ -97,7 +97,7 @@ const PublicLayout = () => {
         <div
           className="flex-1 relative overflow-hidden h-screen flex items-center justify-center"
           style={{
-            background: `linear-gradient(164deg, var(--Primary-1, #8A95FF) 49.29%, var(--Secondary-1, #54EEBE) 82.41%), radial-gradient(50% 50% at 50% 50%, var(--Secondary-1, #54EEBE) 0%, var(--Primary-1, #8A95FF) 100%), linear-gradient(212deg, var(--Primary-1, #8A95FF) -0.24%, var(--Secondary-3, #00A370) 94.14%)`
+            background: `linear-gradient(164deg, var(--Primary-1, #8A95FF) 49.29%, var(--Secondary-1, #3AC828) 82.41%), radial-gradient(50% 50% at 50% 50%, var(--Secondary-1, #3AC828) 0%, var(--Primary-1, #8A95FF) 100%), linear-gradient(212deg, var(--Primary-1, #8A95FF) -0.24%, var(--Secondary-3, #00A370) 94.14%)`
           }}
         >
 
