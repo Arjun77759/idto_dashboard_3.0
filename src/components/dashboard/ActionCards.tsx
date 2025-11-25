@@ -35,7 +35,7 @@ const ActionCards = () => {
     const handleOpenDocs = () =>
         window.open('https://idtoai.readme.io/reference/idtoai-verification-apis', '_blank', 'noopener,noreferrer')
     const handleStartCustomizing = () =>
-        window.open('https://idtoai.readme.io/docs/sdk-customization', '_blank', 'noopener,noreferrer')
+        window.open('https://idto.ai/demo', '_blank', 'noopener,noreferrer')
 
     const renderBalanceValue = () => {
         if (loading) return <Skeleton className="h-8 w-24" />

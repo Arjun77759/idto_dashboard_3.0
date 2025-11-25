@@ -300,7 +300,7 @@ const Sidebar = () => {
         <DropdownMenuTrigger asChild>
           <button className="flex gap-2.5 items-center justify-between px-2 py-1 relative w-full hover:bg-gray-50 rounded transition-colors cursor-pointer">
             <div className="flex gap-2.5 items-center">
-              <div className="overflow-hidden relative shrink-0 size-[30px] bg-[#f0f0f0] rounded-full flex items-center justify-center">
+              <div className="relative shrink-0 size-[30px] bg-[#f0f0f0] rounded-full flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" viewBox="0 0 27 27" fill="none">
                   <path opacity="0.4" d="M13.4375 0C6.01617 0 0 6.01617 0 13.4375C0 20.8588 6.01617 26.875 13.4375 26.875C14.3675 26.875 15.2754 26.7805 16.1522 26.6007C16.6926 26.4898 16.9628 26.4344 17.0362 26.2422C17.1096 26.05 16.9202 25.795 16.5415 25.285C15.7693 24.2452 15.3125 22.9572 15.3125 21.5625C15.3125 18.1107 18.1107 15.3125 21.5625 15.3125C22.9572 15.3125 24.2452 15.7693 25.285 16.5415C25.795 16.9202 26.05 17.1096 26.2422 17.0362C26.4344 16.9628 26.4898 16.6926 26.6007 16.1522C26.7805 15.2754 26.875 14.3675 26.875 13.4375C26.875 6.01617 20.8588 0 13.4375 0Z" fill="#8A95FF" />
                   <path d="M9.35996 10.3125C9.35996 8.06758 11.1821 6.25 13.4269 6.25C15.6718 6.25 17.4939 8.06758 17.4939 10.3125C17.4939 12.5574 15.6718 14.375 13.4269 14.375C11.1821 14.375 9.35996 12.5574 9.35996 10.3125Z" fill="#8A95FF" />
