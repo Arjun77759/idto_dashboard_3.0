@@ -1,12 +1,13 @@
-import { motion } from 'framer-motion'
-import { Search, FileSpreadsheet, Download, Calendar, RotateCcw } from 'lucide-react'
-import { useRecentInvoices } from '@/hooks/useRecentInvoices'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useMemo, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { downloadCsv } from '@/lib/downloadCsv'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useInvoiceDownload } from '@/hooks/useInvoiceDownload'
+import { useRecentInvoices } from '@/hooks/useRecentInvoices'
+import { downloadCsv } from '@/lib/downloadCsv'
+import { motion } from 'framer-motion'
+import { Calendar, Download, RotateCcw, Search } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Button } from '../ui/button'
 
 const RecentInvoicesTable = () => {
   const { data: invoiceData, loading, error } = useRecentInvoices(50)
@@ -140,17 +141,23 @@ const RecentInvoicesTable = () => {
             </div>
           </div>
           <div className="flex flex-wrap gap-2 sm:gap-3 items-center relative shrink-0 w-full sm:w-auto">
-            <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid relative rounded-lg shrink-0 flex-1 sm:flex-none">
-              <button
-                onClick={handleExportCSV}
-                className="flex gap-2 items-center justify-center overflow-hidden px-3 py-3.5 relative rounded-[inherit] w-full"
-              >
-                <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
-                  Export CSV
-                </p>
-                <FileSpreadsheet className="size-4 text-[#0019ff]" />
-              </button>
-            </div>
+            <Button
+              onClick={handleExportCSV}
+              className="flex justify-center items-center gap-2 border-0"
+              style={{
+                padding: "14px 8px",
+                borderRadius: "8px",
+                background: "var(--Primary-0, #E6E8FF)",
+              }}
+            >
+              <p className="font-medium leading-[1.4] text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre text-[#0019ff]">
+                Export CSV
+              </p>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="15" viewBox="0 0 14 15" fill="none">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M13.667 11.862L11.1956 14.3334L10.2528 13.3906L11.1147 12.5287L7.39085 12.5287L7.39085 11.1954L11.1147 11.1954L10.2528 10.3334L11.1956 9.39062L13.667 11.862Z" fill="#0019FF" />
+                <path d="M12.3333 0.651515C12.3333 0.291693 12.0427 0 11.6842 0H4.92411L0 4.94226V13.6818C0 14.0416 0.290623 14.3333 0.649123 14.3333H5.84204V13.0303H1.29818V5.86367H5.84204L5.84204 1.30306H11.035V7.83336H12.3333V0.651515Z" fill="#0019FF" />
+              </svg>
+            </Button>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
-import { motion } from 'framer-motion'
-import { useRecentInvoices } from '@/hooks/useRecentInvoices'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useRecentInvoices } from '@/hooks/useRecentInvoices'
+import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 
 const InvoicesTable = () => {
@@ -18,12 +18,12 @@ const InvoicesTable = () => {
       // Split date and time
       const parts = dateTime.split(' ')
       if (parts.length !== 2) return dateTime
-      
+
       const [date, time] = parts
       const [year, month, day] = date.split('-')
-      
+
       if (!year || !month || !day || !time) return dateTime
-      
+
       const shortYear = year.substring(2)
       return `${day}/${month}/${shortYear} ${time}`
     } catch (error) {
@@ -43,9 +43,9 @@ const InvoicesTable = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.5 }}
-      className="grow bg-white border border-[#e7e8ea] border-solid min-w-0 relative rounded-2xl shrink-0 max-w-full min-h-[280px]"
+      className="grow bg-white border border-[#e7e8ea] border-solid min-w-0 relative rounded-2xl shrink-0 max-w-full min-h-[280px] h-full"
     >
-      <div className="flex flex-col gap-6 items-start overflow-hidden p-4 relative rounded-[inherit] w-full">
+      <div className="flex flex-col gap-6 items-start overflow-hidden p-4 relative rounded-[inherit] w-full h-full">
         <div className="flex items-center justify-between relative w-full">
           <div className="content-center flex flex-wrap gap-2 items-center relative rounded-3 shrink-0 w-[238px]">
             <div className="flex flex-col items-start justify-center relative rounded-3 shrink-0">
@@ -65,44 +65,46 @@ const InvoicesTable = () => {
             </div>
           </div>
         </div>
-        <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-lg w-full">
-          <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full overflow-x-auto">
+        <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-lg w-full h-full">
+          <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full overflow-x-auto h-full">
             {/* Table Header */}
-            <div className="bg-white flex items-start relative w-full">
-              <div className="grow border-r border-b border-[#e7e8ea] border-solid h-10 min-h-0 min-w-0 relative shrink-0">
-                <div className="h-10 overflow-hidden relative rounded-[inherit] w-full">
-                  <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                    Invoice ID
-                  </p>
-                  <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
+            {invoices.length > 0 &&
+              <div className="bg-white flex items-start relative w-full">
+                <div className="grow border-r border-b border-[#e7e8ea] border-solid h-10 min-h-0 min-w-0 relative shrink-0">
+                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-full">
+                    <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
+                      Invoice ID
+                    </p>
+                    <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
+                  </div>
+                </div>
+                <div className="border-r border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[170px]">
+                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[170px]">
+                    <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
+                      Date & Time
+                    </p>
+                    <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
+                  </div>
+                </div>
+                <div className="border-r border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[112px]">
+                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[112px]">
+                    <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
+                      Status
+                    </p>
+                    <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
+                  </div>
+                </div>
+                <div className="border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[115px]">
+                  <div className="h-10 overflow-hidden relative rounded-[inherit] w-[115px]">
+                    <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
+                      Amount
+                    </p>
+                    <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
+                  </div>
                 </div>
               </div>
-              <div className="border-r border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[170px]">
-                <div className="h-10 overflow-hidden relative rounded-[inherit] w-[170px]">
-                  <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                    Date & Time
-                  </p>
-                  <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
-                </div>
-              </div>
-              <div className="border-r border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[112px]">
-                <div className="h-10 overflow-hidden relative rounded-[inherit] w-[112px]">
-                  <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                    Status
-                  </p>
-                  <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
-                </div>
-              </div>
-              <div className="border-b border-[#e7e8ea] border-solid h-10 relative shrink-0 w-[115px]">
-                <div className="h-10 overflow-hidden relative rounded-[inherit] w-[115px]">
-                  <p className="absolute bottom-8 font-normal leading-[24px] left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]">
-                    Amount
-                  </p>
-                  <div className="absolute bg-white bottom-0 h-px left-0 right-0" />
-                </div>
-              </div>
-            </div>
-            
+            }
+
             {/* Table Rows */}
             {loading && (
               Array.from({ length: 4 }).map((_, index) => (
@@ -134,8 +136,36 @@ const InvoicesTable = () => {
               </div>
             )}
             {!loading && !error && invoices.length === 0 && (
-              <div className="flex items-center justify-center p-8 text-sm text-[#9296a0] w-full">
-                No data available
+              <div className="flex flex-col items-center justify-center p-8 w-full h-full bg-white rounded-xl min-h-[150px]">
+                <svg
+                  width="52"
+                  height="52"
+                  viewBox="0 0 52 52"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="mb-3"
+                >
+                  <rect width="52" height="52" rx="26" fill="#f7f7f8" />
+                  <path
+                    d="M36 18V34C36 35.1046 35.1046 36 34 36H18C16.8954 36 16 35.1046 16 34V18C16 16.8954 16.8954 16 18 16H34C35.1046 16 36 16.8954 36 18Z"
+                    stroke="#c8cacf"
+                    strokeWidth="2"
+                  />
+                  <path
+                    d="M22 24H30"
+                    stroke="#c8cacf"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M22 28H30"
+                    stroke="#c8cacf"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <span className="text-[15px] font-medium text-[#9296a0]">No invoices to display</span>
+                <span className="text-xs text-[#c8cacf] mt-1">You have not made any credit purchases yet.</span>
               </div>
             )}
             {!loading && !error && invoices.length > 0 && invoices.map((invoice, index) => (
@@ -144,9 +174,8 @@ const InvoicesTable = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
-                className={`flex items-start relative w-full ${
-                  index % 2 === 0 ? 'bg-[#f7f7f8]' : 'bg-white'
-                }`}
+                className={`flex items-start relative w-full ${index % 2 === 0 ? 'bg-[#f7f7f8]' : 'bg-white'
+                  }`}
               >
                 <div className="grow border-r border-[#e7e8ea] border-solid h-10 min-h-0 min-w-0 relative shrink-0">
                   <div className="h-10 overflow-hidden relative rounded-[inherit] w-full">
