@@ -127,8 +127,8 @@ const BillingPage = () => {
         </div>
       </header>
 
-      <section className="flex flex-col gap-6 rounded-2xl border border-[#e7e8ea] bg-white p-6">
-        <div className="border-b border-[#e7e8ea] pb-4">
+      <section className="flex flex-col gap-4 rounded-2xl border border-[#e7e8ea] bg-white p-6">
+        <div className="border-b border-[#e7e8ea] pb-4 flex flex-col gap-2">
           <p className="text-sm font-bold text-[#616675]">Add Live Credits</p>
           <p className="text-xs text-[#9296a0]">1 Credit = 1 Rupee</p>
         </div>
@@ -163,7 +163,7 @@ const BillingPage = () => {
             </Button>
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 w-[327px] mx-auto">
             <div>
               <p className="text-xs text-[#c8cacf]">Do you have GST number?</p>
               <RadioGroup
@@ -237,13 +237,15 @@ const BillingPage = () => {
           </div>
 
           <div className="flex flex-col gap-4 justify-between">
-            <div className='flex flex-col gap-4'>
+            <div className='flex flex-col gap-4 h-full'>
               <p className="text-xs text-[#9296a0]">Order Summary</p>
-              <div className="flex flex-col gap-4 rounded-lg bg-[#f7f7f8] p-4 text-xs text-[#9296a0]">
-                <SummaryRow label="Credits" value={parsedAmount ? `${parsedAmount} Credits` : '-'} />
-                <SummaryRow label="Desired Amount" value={formatCurrency(parsedAmount)} />
-                <SummaryRow label="SGST @ 9%" value={formatCurrency(taxes.sgst)} />
-                <SummaryRow label="CGST @ 9%" value={formatCurrency(taxes.cgst)} />
+              <div className="flex flex-col gap-4 rounded-lg bg-[#f7f7f8] p-4 text-xs text-[#9296a0] justify-between h-full">
+                <div className='flex flex-col gap-2'>
+                  <SummaryRow label="Credits" value={parsedAmount ? `${parsedAmount} Credits` : '-'} />
+                  <SummaryRow label="Desired Amount" value={formatCurrency(parsedAmount)} />
+                  <SummaryRow label="SGST @ 9%" value={formatCurrency(taxes.sgst)} />
+                  <SummaryRow label="CGST @ 9%" value={formatCurrency(taxes.cgst)} />
+                </div>
                 <div className="border-t border-[#c8cacf] pt-3 text-sm font-semibold text-[#131b31]">
                   <SummaryRow label="Final Amount" value={formatCurrency(taxes.finalAmount)} bold />
                 </div>
