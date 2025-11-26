@@ -127,7 +127,7 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
     },
     {
       id: 'director-kyc',
-      title: 'Director KYC with Digilocker',
+      title: 'KYC with Digilocker',
       icon: Lock,
       isActive: currentStep === 'director-kyc',
       isCompleted: currentStepIndex > 4

@@ -48,7 +48,7 @@ const DirectorKYCForm = ({ onNext: _onNext, onPrevious: _onPrevious, showPreviou
         {/* Header */}
         <div className="flex flex-col items-start relative shrink-0 w-full">
           <p className="font-bold leading-7 relative shrink-0 text-lg text-[#616675] tracking-[-0.18px] w-full">
-            Director KYC with Digilocker
+            KYC with Digilocker
           </p>
           <div className="flex gap-2 items-center px-0 py-2 relative shrink-0 w-full">
             <p className="font-normal leading-[1.4] grow min-h-px min-w-px relative shrink-0 text-xs text-[#9296a0] tracking-[-0.12px]">

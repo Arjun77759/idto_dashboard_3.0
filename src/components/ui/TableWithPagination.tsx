@@ -197,7 +197,7 @@ export function TableWithPagination<T extends { [key: string]: any }>({
                 <div
                   key={rowId}
                   className={cn(
-                    "bg-white flex items-start relative shrink-0 w-full",
+                    "bg-white flex items-start relative shrink-0 w-full text-[#9296a0]",
                     rowIndex % 2 === 0 && "bg-[#f7f7f8]",
                     onRowClick && "cursor-pointer hover:bg-[#f0f4ff]"
                   )}
@@ -241,7 +241,7 @@ export function TableWithPagination<T extends { [key: string]: any }>({
                         <div className="h-[40px] overflow-hidden relative rounded-[inherit] w-full">
                       <div
                         className={cn(
-                          "absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#9296a0] top-2 tracking-[-0.084px]",
+                          "absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] top-2 tracking-[-0.084px]",
                           column.align === 'center' && "left-1/2 translate-x-[-50%] text-center right-auto",
                           column.align === 'right' && "left-auto right-4 text-right"
                         )}

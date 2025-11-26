@@ -16,6 +16,8 @@ import { useMonthlyUsage } from '@/hooks/useMonthlyUsage'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 import { useRazorpay } from '@/hooks/useRazorpay'
 import { useUserProfileStore } from '@/store/userProfileStore'
+import CurrentBalanceCard from '@/components/billing/CurrentBalanceCard'
+import ApiUsageTable from '@/components/billing/ApiUsageTable'
 
 const formatCurrency = (value: number) => {
   if (!value) return '-'
@@ -293,6 +295,11 @@ const BillingPage = () => {
           </div>
         </div>
       </section>
+
+      <div className='flex gap-4'>
+        <CurrentBalanceCard/>
+        <ApiUsageTable/>
+      </div>
 
       <div className="flex flex-col gap-6">
         <RecentInvoicesTable />
