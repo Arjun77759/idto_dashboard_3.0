@@ -12,6 +12,7 @@ export type UserProfile = {
   gst_number?: string | null
   mobile?: string | null
   business_address?: string | null
+  business_state?: string | null
   industry?: string | null
   brand_name?: string | null
   registered_name?: string | null

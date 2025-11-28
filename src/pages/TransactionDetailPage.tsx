@@ -19,7 +19,7 @@ const TransactionDetailPage = () => {
   const formattedData = useMemo(() => {
     if (!transaction) return null
 
-    const statusColor = transaction.status?.toLowerCase() === 'success' ? '#54eebe' : '#ff4d4f'
+    const statusColor = transaction.status?.toLowerCase() === 'success' ? '#3AC828' : '#ff4d4f'
     
     // Format date
     let formattedDate = 'N/A'

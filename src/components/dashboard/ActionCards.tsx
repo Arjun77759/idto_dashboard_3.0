@@ -4,12 +4,7 @@ import { BookOpen, Code, FileText, Plus, SlidersHorizontal } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { Skeleton } from '@/components/ui/skeleton'
-import { Spinner } from '@/components/ui/spinner'
 import { useUsageCredits } from '@/hooks/useUsageCredits'
-import { useSimulationModeModal } from '@/contexts/SimulationModeModalContext'
-import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
-import { useRazorpay } from '@/hooks/useRazorpay'
-import { useUserProfileStore } from '@/store/userProfileStore'
 
 type CardButton = {
     label: string
@@ -33,47 +28,14 @@ const promoIllustration = '/mock_mobile.png'
 const ActionCards = () => {
     const navigate = useNavigate()
     const { data, loading, error } = useUsageCredits()
-    const { openModal } = useSimulationModeModal()
-    const { data: onboardingStatus } = useOnboardingStatus()
-    const { initiatePayment, loading: paymentLoading } = useRazorpay()
-    const userProfile = useUserProfileStore((state) => state.data)
-    const isProduction = Boolean(onboardingStatus?.is_onboarded)
-
     const handleRecharge = () => {
-        if (!isProduction) {
-            openModal()
-        } else {
-            // Open Razorpay checkout for recharge
-            initiatePayment({
-                amount: 1000, // Default amount ₹1000, can be made configurable later
-                tax: 0, // Tax amount (can be calculated based on GST if needed)
-                description: 'Account Recharge',
-                prefill: {
-                    name: userProfile?.name || '',
-                    email: userProfile?.email || '',
-                    contact: userProfile?.mobile || '',
-                },
-                // Optional GST details from user profile
-                ...(userProfile?.gst_number && { gst_number: userProfile.gst_number }),
-                ...(userProfile?.brand_name && { company_name: userProfile.brand_name }),
-                ...(userProfile?.business_address && { address: userProfile.business_address }),
-                onSuccess: (response) => {
-                    console.log('Payment successful:', response)
-                    // Response includes: status, internal_payment_id, razorpay_payment_id, new_balance
-                    // You may want to refresh the balance here
-                    // The balance is already updated on the backend
-                },
-                onError: (error) => {
-                    console.error('Payment failed:', error)
-                },
-            })
-        }
+        navigate('/billing')
     }
     const handleStartTesting = () => navigate('/api-testing')
     const handleOpenDocs = () =>
         window.open('https://idtoai.readme.io/reference/idtoai-verification-apis', '_blank', 'noopener,noreferrer')
     const handleStartCustomizing = () =>
-        window.open('https://idtoai.readme.io/docs/sdk-customization', '_blank', 'noopener,noreferrer')
+        window.open('https://idto.ai/demo', '_blank', 'noopener,noreferrer')
 
     const renderBalanceValue = () => {
         if (loading) return <Skeleton className="h-8 w-24" />
@@ -133,18 +95,16 @@ const ActionCards = () => {
     ]
 
     const renderButton = (card: ActionCardConfig) => {
-        const isBalance = card.variant === 'balance'
+        // const isBalance = card.variant === 'balance1'
+        const isBalance = false
         const isPromo = card.variant === 'promo'
-        const isRechargeButton = card.id === 'balance'
-        const isLoading = isRechargeButton && paymentLoading
 
         if (isPromo) {
             return (
                 <button
                     type="button"
                     onClick={card.button.action}
-                    disabled={isLoading}
-                    className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#fff7ea] text-[12px] font-medium tracking-[-0.12px] text-[#b47d1f] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#fff7ea] text-[12px] font-medium tracking-[-0.12px] text-[#b47d1f]"
                 >
                     <span>{card.button.label}</span>
                     {card.button.icon && <card.button.icon className="size-4 text-[#b47d1f]" />}
@@ -154,16 +114,14 @@ const ActionCards = () => {
 
         const wrapperClasses = [
             'h-10 w-full rounded-lg border border-[#e7e8ea]',
-            !isBalance ? 'bg-[#e6e8ff]' : '',
-            isLoading ? 'opacity-50' : ''
+            !isBalance ? 'bg-[#e6e8ff]' : ''
         ]
             .filter(Boolean)
             .join(' ')
 
         const buttonClasses = [
             'flex h-10 w-full items-center justify-center gap-2 rounded-lg px-3 text-[12px] font-medium tracking-[-0.12px]',
-            isBalance ? 'text-white' : 'text-[#0019ff]',
-            isLoading ? 'cursor-not-allowed' : ''
+            isBalance ? 'text-white' : 'text-[#0019ff]'
         ]
             .filter(Boolean)
             .join(' ')
@@ -180,20 +138,12 @@ const ActionCards = () => {
                 <button 
                     type="button" 
                     onClick={card.button.action} 
-                    disabled={isLoading}
                     className={buttonClasses}
                 >
-                    {isLoading ? (
-                        <>
-                            <Spinner className={`size-4 ${isBalance ? 'text-white' : 'text-[#0019ff]'}`} />
-                            <span>Processing...</span>
-                        </>
-                    ) : (
-                        <>
-                            <span>{card.button.label}</span>
-                            {card.button.icon && <card.button.icon className={`size-4 ${isBalance ? 'text-white' : 'text-[#0019ff]'}`} />}
-                        </>
-                    )}
+                    <>
+                        <span>{card.button.label}</span>
+                        {card.button.icon && <card.button.icon className={`size-4 ${isBalance ? 'text-white' : 'text-[#0019ff]'}`} />}
+                    </>
                 </button>
             </div>
         )

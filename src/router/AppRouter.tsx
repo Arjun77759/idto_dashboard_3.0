@@ -15,6 +15,7 @@ import TransactionsPage from '../pages/TransactionsPage'
 import UsersPage from '../pages/UsersPage'
 import CreatePassword from '@/pages/CreatePassword'
 import KYCCallbackPage from '@/pages/KYCCallbackPage'
+import ApiCredentialsPage from '../pages/ApiCredentialsPage'
 
 // Refactored route configuration for better readability and maintainability
 const publicRoutes = [
@@ -32,6 +33,10 @@ const publicRoutes = [
   },
   {
     path: 'register',
+    element: <RegisterPage />
+  },
+  {
+    path: 'signup',
     element: <RegisterPage />
   },
   {
@@ -90,6 +95,13 @@ const apiTestingRoutes = [
   }
 ]
 
+const apiCredentialsRoutes = [
+  {
+    index: true,
+    element: <ApiCredentialsPage />
+  }
+]
+
 const transactionsRoutes = [
   {
     index: true,
@@ -136,6 +148,11 @@ const router = createBrowserRouter([
     path: '/api-testing',
     element: <PrivateLayout />,
     children: apiTestingRoutes,
+  },
+  {
+    path: '/api-credentials',
+    element: <PrivateLayout />,
+    children: apiCredentialsRoutes,
   },
   {
     path: '/transactions',

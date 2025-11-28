@@ -30,8 +30,8 @@ interface TransactionsFiltersProps {
   onLocationChange?: (location: string) => void
 }
 
-const TransactionsFilters = ({ 
-  onExportCsv, 
+const TransactionsFilters = ({
+  onExportCsv,
   onReset,
   onSearchChange,
   onDateChange,
@@ -40,7 +40,7 @@ const TransactionsFilters = ({
   onLocationChange
 }: TransactionsFiltersProps) => {
   const { data: usageData, loading } = useUsageMonthly()
-  
+
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [date, setDate] = useState<DateRange | undefined>(undefined)
   const [documentType, setDocumentType] = useState<string>('')
@@ -109,16 +109,24 @@ const TransactionsFilters = ({
             />
           </div>
         </div>
-        
+
         <div className="flex flex-wrap gap-2 sm:gap-3 items-center relative shrink-0 w-full sm:w-auto">
-          <Button 
+          <Button
             onClick={onExportCsv}
-            className="bg-[#e6e8ff] hover:bg-[#d0d4ff] text-[#0019ff] border-0 px-2 py-3.5 h-auto rounded-lg flex-1 sm:flex-none"
+            className="flex justify-center items-center gap-2 border-0"
+            style={{
+              padding: "14px 8px",
+              borderRadius: "8px",
+              background: "var(--Primary-0, #E6E8FF)",
+            }}
           >
-            <p className="font-medium leading-[1.4] text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre">
+            <p className="font-medium leading-[1.4] text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre text-[#0019ff]">
               Export CSV
             </p>
-            <FileSpreadsheet className="size-4 ml-2 text-[#0019ff]" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="15" viewBox="0 0 14 15" fill="none">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M13.667 11.862L11.1956 14.3334L10.2528 13.3906L11.1147 12.5287L7.39085 12.5287L7.39085 11.1954L11.1147 11.1954L10.2528 10.3334L11.1956 9.39062L13.667 11.862Z" fill="#0019FF" />
+              <path d="M12.3333 0.651515C12.3333 0.291693 12.0427 0 11.6842 0H4.92411L0 4.94226V13.6818C0 14.0416 0.290623 14.3333 0.649123 14.3333H5.84204V13.0303H1.29818V5.86367H5.84204L5.84204 1.30306H11.035V7.83336H12.3333V0.651515Z" fill="#0019FF" />
+            </svg>
           </Button>
         </div>
       </div>
@@ -160,7 +168,7 @@ const TransactionsFilters = ({
               />
             </PopoverContent>
           </Popover>
-          
+
           {/* Document Type Filter */}
           {/* <Select value={documentType} onValueChange={handleDocumentTypeChange} disabled={loading}>
             <SelectTrigger className="h-10 w-[180px] px-2 py-3.5 text-[12px] font-medium text-[#9296a0] border-[#e7e8ea]">
@@ -178,7 +186,7 @@ const TransactionsFilters = ({
               )}
             </SelectContent>
           </Select> */}
-          
+
           {/* Status Filter */}
           <Select value={status} onValueChange={handleStatusChange}>
             <SelectTrigger className="h-10 w-[130px] px-2 py-3.5 text-[12px] font-medium text-[#9296a0] border-[#e7e8ea]">
@@ -189,7 +197,7 @@ const TransactionsFilters = ({
               <SelectItem value="failed">Failed</SelectItem>
             </SelectContent>
           </Select>
-          
+
           {/* Location Filter - Note: Backend API support pending (region parameter) */}
           {/* <Select value={location} onValueChange={handleLocationChange}>
             <SelectTrigger className="h-10 w-[140px] px-2 py-3.5 text-[12px] font-medium text-[#9296a0] border-[#e7e8ea]">
@@ -203,10 +211,10 @@ const TransactionsFilters = ({
             </SelectContent>
           </Select> */}
         </div>
-        
-        <Button 
+
+        <Button
           onClick={handleResetFilters}
-          variant="outline" 
+          variant="outline"
           className="border-[#e7e8ea] h-10 rounded-lg px-2 py-3.5"
         >
           <span className="font-medium text-[12px] text-[#9296a0] text-nowrap">Reset</span>

@@ -80,10 +80,10 @@ const CurrentBalanceCard = () => {
           </p>
           <div className="h-2.5 relative rounded-[30px] shrink-0 w-full bg-gray-200">
             {loading ? (
-              <div className="absolute h-2.5 left-0 top-0 w-1/2 bg-gradient-to-r from-[#8a95ff] to-[#54eebe] rounded-[30px] animate-pulse"></div>
+              <div className="absolute h-2.5 left-0 top-0 w-1/2 bg-gradient-to-r from-[#8a95ff] to-[#3AC828] rounded-[30px] animate-pulse"></div>
             ) : (
               <div
-                className="absolute h-2.5 left-0 top-0 bg-gradient-to-r from-[#8a95ff] to-[#54eebe] rounded-[30px]"
+                className="absolute h-2.5 left-0 top-0 bg-gradient-to-r from-[#8a95ff] to-[#3AC828] rounded-[30px]"
                 style={{ width: `${Math.min(100, Math.max(0, data && data.total ? (data.used / data.total) * 100 : 0))}%` }}
               ></div>
             )}

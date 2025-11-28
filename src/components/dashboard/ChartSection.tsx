@@ -1,10 +1,12 @@
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useUsageVolumeTimeseries } from '@/hooks/useUsageVolumeTimeseries'
+import * as echarts from 'echarts'
+import ReactECharts from 'echarts-for-react'
 import { motion } from 'framer-motion'
 import { Calendar } from 'lucide-react'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts'
-import { useUsageVolumeTimeseries } from '@/hooks/useUsageVolumeTimeseries'
-import { Skeleton } from '@/components/ui/skeleton'
+import { useMemo } from 'react'
 
 const ChartSection = () => {
   const { data, loading, error } = useUsageVolumeTimeseries(5)
@@ -12,14 +14,139 @@ const ChartSection = () => {
   // Format month labels to shorter version (e.g., "July 2025" -> "Jul '25")
   const formatMonth = (monthYear: string) => {
     try {
-      const [month, year] = monthYear.split(' ')
+      const [month] = monthYear.split(' ')
       const shortMonth = month.substring(0, 3) // First 3 letters
-      const shortYear = year.substring(2) // Last 2 digits
-      return `${shortMonth} '${shortYear}`
+      return `${shortMonth}`
     } catch {
       return monthYear
     }
   }
+
+  const chartOptions = useMemo(() => {
+    const months = data.map(point => formatMonth(point.month))
+    const counts = data.map(point => point.count)
+
+    return {
+      grid: {
+        left: -30,
+        right: 20,
+        top: 10,
+        bottom: 20,
+        containLabel: true,
+      },
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: '#fff',
+        borderColor: '#e7e8ea',
+        borderWidth: 1,
+        textStyle: {
+          color: '#616675',
+          fontSize: 12
+        },
+        formatter: (params: any) => {
+          const [point] = params
+          if (!point) return ''
+          return `
+            <div>
+              <div style="font-size: 11px; color: #9296a0">${point.axisValue}</div>
+              <div style="font-weight:600;color:#111827">${point.data} verifications</div>
+            </div>
+          `
+        },
+        axisPointer: {
+          type: 'line',
+          lineStyle: {
+            color: '#00A370'
+          }
+        },
+        extraCssText: 'border-radius:8px;padding:8px 10px;'
+      },
+      xAxis: {
+        type: 'category',
+        data: months,
+        boundaryGap: false,
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: {
+          color: '#616675',
+          fontSize: 11,
+          rotate: -15,
+          margin: 16
+        },
+        splitLine: {
+          show: true,
+          lineStyle: {
+            color: '#f0f0f0',
+            type: 'solid'
+          }
+        }
+      },
+      yAxis: {
+        type: 'value',
+        show: false,
+        min: (value: { min: number }) => Math.max(0, value.min - 20)
+      },
+      series: [
+        {
+          type:'line',
+          data: counts,
+          smooth: false,
+          showSymbol: false,
+          lineStyle: {
+            width: 2.5,
+            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+              { offset: 0, color: '#0019FF' },
+              { offset: 0.5, color: '#00C0A7' },
+              { offset: 1, color: '#00A370' }
+            ])
+          },
+          areaStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: 'rgba(0, 163, 112, 0.25)' },
+              { offset: 1, color: 'rgba(0, 25, 255, 0)' }
+            ])
+          }
+        },
+        {
+          type: 'scatter',
+          data: counts,
+          symbol: 'circle',
+          symbolSize: 12,
+          itemStyle: {
+            color: '#ffffff',
+            shadowBlur: 18,
+            shadowColor: 'rgba(0, 25, 255, 0.35)'
+          },
+          zlevel: 2
+        },
+        {
+          type: 'scatter',
+          data: counts,
+          symbol: 'circle',
+          symbolSize: 8,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 1, 1, [
+              { offset: 0, color: '#00A370' },
+              { offset: 1, color: '#0019FF' }
+            ]),
+            borderColor: '#ffffff',
+            borderWidth: 0
+          },
+          zlevel: 3
+        },
+        {
+          type: 'scatter',
+          data: counts,
+          symbol: 'circle',
+          symbolSize: 2.5,
+          itemStyle: {
+            color: '#ffffff'
+          },
+          zlevel: 4
+        }
+      ]
+    }
+  }, [data])
 
   return (
     <motion.div
@@ -50,48 +177,13 @@ const ChartSection = () => {
               {typeof error === 'string' ? error : 'Failed to load chart data'}
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data} margin={{ top: 10, right: 15, left: 15, bottom: 20 }}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#f0f0f0"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="month"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fontSize: 11, fill: '#616675' }}
-                tickFormatter={formatMonth}
-                angle={-15}
-                textAnchor="end"
-                height={50}
-                interval={0}
-                className='text-[#616675] text-xs'
-              />
-              <YAxis
-                hide
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #e7e8ea',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  color: '#616675'
-                }}
-                labelStyle={{ color: '#616675', fontSize: '12px' }}
-              />
-              <Line
-                type="monotone"
-                dataKey="count"
-                 stroke="#3b82f6"
-                strokeWidth={2}
-                dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
-              />
-              </LineChart>
-            </ResponsiveContainer>
+            <ReactECharts
+              option={chartOptions}
+              notMerge
+              lazyUpdate
+              style={{ height: '100%', width: '100%' }}
+              opts={{ renderer: 'svg' }}
+            />
           )}
         </CardContent>
       </Card>

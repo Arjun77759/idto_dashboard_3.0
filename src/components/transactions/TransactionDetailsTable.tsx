@@ -10,7 +10,7 @@ interface TransactionDetailsTableProps {
 const TransactionDetailsTable = ({ details }: TransactionDetailsTableProps) => {
   const getValueColor = (field: string, value: string) => {
     if (field === 'Status') {
-      return value === 'Success' ? '#54eebe' : '#ff4d4f'
+      return value === 'Success' ? '#3AC828' : '#ff4d4f'
     }
     return '#9296a0' // Default color
   }
