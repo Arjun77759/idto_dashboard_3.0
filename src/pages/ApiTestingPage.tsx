@@ -3,7 +3,9 @@ import {
   ChevronRight,
   Plus,
   Search,
-  Zap
+  Zap,
+  Eye,
+  Code2
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -13,8 +15,9 @@ import ApiResponse from '@/components/api-testing/ApiResponse'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { API_ENDPOINTS, type ApiEndpoint } from '@/config/apiEndpoints'
+import type { ApiEndpoint } from '@/config/apiEndpoints'
 import { useMonthlyUsage } from '@/hooks/useMonthlyUsage'
+import { useOpenApiEndpoints, getAllCategories, getAllMethods, getTagsByCategory } from '@/hooks/useOpenApiEndpoints'
 import { cn } from '@/lib/utils'
 
 const formatCredits = (value?: number | null) => {
@@ -25,15 +28,18 @@ const formatCredits = (value?: number | null) => {
 const ApiTestingPage = () => {
   const navigate = useNavigate()
   const { data: usageData, loading: usageLoading } = useMonthlyUsage()
+  const { data: apiEndpoints, loading: endpointsLoading } = useOpenApiEndpoints()
 
   const [searchQuery, setSearchQuery] = useState('')
   const [solutionFilter, setSolutionFilter] = useState<'All' | string>('All')
   const [typeFilter, setTypeFilter] = useState<'All' | string>('All')
+  const [tagFilter, setTagFilter] = useState<'All' | string>('All')
   const [showSavedOnly, setShowSavedOnly] = useState(false)
   const [savedApis, setSavedApis] = useState<string[]>([])
   const [selectedApi, setSelectedApi] = useState<string | null>(null)
   const [apiResponse, setApiResponse] = useState<any>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [showSampleResponse, setShowSampleResponse] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -54,18 +60,28 @@ const ApiTestingPage = () => {
     window.localStorage.setItem('idto-saved-api-testing', JSON.stringify(savedApis))
   }, [savedApis])
 
+  // Reset tag filter when solution filter changes
+  useEffect(() => {
+    setTagFilter('All')
+  }, [solutionFilter])
+
   const solutionOptions = useMemo(
-    () => ['All', ...Array.from(new Set(API_ENDPOINTS.map((api) => api.category)))],
-    []
+    () => getAllCategories(apiEndpoints),
+    [apiEndpoints]
   )
   const typeOptions = useMemo(
-    () => ['All', ...Array.from(new Set(API_ENDPOINTS.map((api) => api.method)))],
-    []
+    () => getAllMethods(apiEndpoints),
+    [apiEndpoints]
+  )
+  const tagOptions = useMemo(
+    () => getTagsByCategory(apiEndpoints, solutionFilter),
+    [apiEndpoints, solutionFilter]
   )
 
   const filteredApis = useMemo(() => {
+    if (!apiEndpoints) return []
     const query = searchQuery.trim().toLowerCase()
-    return API_ENDPOINTS.filter((api) => {
+    return apiEndpoints.filter((api) => {
       const matchesSearch =
         !query ||
         api.name.toLowerCase().includes(query) ||
@@ -73,10 +89,11 @@ const ApiTestingPage = () => {
         api.shortDescription.toLowerCase().includes(query)
       const matchesSolution = solutionFilter === 'All' || api.category === solutionFilter
       const matchesType = typeFilter === 'All' || api.method === typeFilter
+      const matchesTag = tagFilter === 'All' || (api.tags && api.tags.includes(tagFilter))
       const matchesSaved = !showSavedOnly || savedApis.includes(api.id)
-      return matchesSearch && matchesSolution && matchesType && matchesSaved
+      return matchesSearch && matchesSolution && matchesType && matchesTag && matchesSaved
     })
-  }, [searchQuery, solutionFilter, typeFilter, showSavedOnly, savedApis])
+  }, [apiEndpoints, searchQuery, solutionFilter, typeFilter, tagFilter, showSavedOnly, savedApis])
 
   const remainingCredits = usageLoading ? '...' : formatCredits(usageData?.balance)
 
@@ -87,6 +104,7 @@ const ApiTestingPage = () => {
   const handleSelectApi = (apiId: string) => {
     setSelectedApi(apiId)
     setApiResponse(null)
+    setShowSampleResponse(false)
     setIsSheetOpen(true)
   }
 
@@ -156,12 +174,14 @@ const ApiTestingPage = () => {
               </SelectContent>
             </Select>
 
-            <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value)}>
-              <SelectTrigger className="h-10 w-[160px] border-[#e7e8ea] bg-[#f7f7f8] text-xs text-[#616675]">
-                <SelectValue placeholder="Type" />
+           
+
+            <Select value={tagFilter} onValueChange={(value) => setTagFilter(value)}>
+              <SelectTrigger className="h-10 w-[200px] border-[#e7e8ea] bg-[#f7f7f8] text-xs text-[#616675]">
+                <SelectValue placeholder="Tag" />
               </SelectTrigger>
               <SelectContent>
-                {typeOptions.map((option) => (
+                {tagOptions.map((option) => (
                   <SelectItem key={option} value={option}>
                     {option}
                   </SelectItem>
@@ -176,7 +196,11 @@ const ApiTestingPage = () => {
           </div>
 
           <div className="min-h-[400px] border-t-[1px] border-[#e7e8ea] p-3">
-            {filteredApis.length === 0 ? (
+            {endpointsLoading ? (
+              <div className="flex h-64 flex-col items-center justify-center gap-2 text-center text-[#9296a0]">
+                <p className="text-sm font-medium">Loading API endpoints...</p>
+              </div>
+            ) : filteredApis.length === 0 ? (
               <div className="flex h-64 flex-col items-center justify-center gap-2 text-center text-[#9296a0]">
                 <p className="text-sm font-medium">No APIs match the current filters</p>
                 <p className="text-xs">Try adjusting your search or filter selections.</p>
@@ -201,16 +225,62 @@ const ApiTestingPage = () => {
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-3xl">
           <SheetHeader className="border-b border-[#e7e8ea] pb-4 text-left">
-            <SheetTitle className="text-lg font-semibold text-[#131b31]">
-              {selectedApi ? API_ENDPOINTS.find((api) => api.id === selectedApi)?.name : 'API Details'}
-            </SheetTitle>
-            <SheetDescription className="text-xs text-[#616675]">
-              Configure inputs and view responses without leaving the catalog.
-            </SheetDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <SheetTitle className="text-lg font-semibold text-[#131b31]">
+                  {selectedApi ? apiEndpoints?.find((api) => api.id === selectedApi)?.name : 'API Details'}
+                </SheetTitle>
+                <SheetDescription className="text-xs text-[#616675]">
+                  Configure inputs and view responses without leaving the catalog.
+                </SheetDescription>
+              </div>
+              {selectedApi && apiEndpoints && (
+                <button
+                  type="button"
+                  onClick={() => setShowSampleResponse(!showSampleResponse)}
+                  className="flex items-center gap-2 rounded-lg border border-[#e7e8ea] bg-white px-3 py-2 text-xs font-medium text-[#616675] transition hover:bg-[#f7f7f8]"
+                >
+                  {showSampleResponse ? (
+                    <>
+                      <Code2 className="size-4" />
+                      Hide Sample
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="size-4" />
+                      View Sample
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </SheetHeader>
           <div className="mt-6 flex flex-col gap-4 pb-8">
-            <ApiConfiguration selectedApi={selectedApi} onApiRun={handleApiRun} />
-            <ApiResponse response={apiResponse} />
+            {showSampleResponse && selectedApi && apiEndpoints ? (
+              <div className="bg-white border border-[#e7e8ea] rounded-2xl p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Code2 className="size-5 text-[#0019ff]" />
+                  <h3 className="text-sm font-semibold text-[#131b31]">Sample Response</h3>
+                </div>
+                <div className="bg-gray-50 border border-[#e7e8ea] rounded-lg p-4 max-h-96 overflow-auto">
+                  <pre className="text-[11px] text-[#616675] font-mono leading-relaxed whitespace-pre-wrap">
+                    {(() => {
+                      const selectedApiData = apiEndpoints.find((api) => api.id === selectedApi)
+                      const sampleOutput = selectedApiData?.sampleOutput
+                      if (typeof sampleOutput === 'string') {
+                        return sampleOutput
+                      }
+                      return JSON.stringify(sampleOutput || {}, null, 2)
+                    })()}
+                  </pre>
+                </div>
+              </div>
+            ) : (
+              <>
+                <ApiConfiguration selectedApi={selectedApi} apiEndpoints={apiEndpoints} onApiRun={handleApiRun} loading={endpointsLoading} />
+                <ApiResponse response={apiResponse} />
+              </>
+            )}
           </div>
         </SheetContent>
       </Sheet>

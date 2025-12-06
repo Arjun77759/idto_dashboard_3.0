@@ -25,6 +25,7 @@ export interface ApiEndpoint {
   method: 'POST' | 'GET' | 'PUT' | 'DELETE'
   contentType: 'application/json' | 'multipart/form-data'
   category: 'Identity Verification' | 'Business Verification' | 'Document Verification' | 'Data Linkage' | 'DigiLocker' | 'Vehicle Verification'
+  tags?: string[] // OpenAPI tags
   sampleInput: Record<string, InputField>
   sampleOutput: Record<string, any> | string
 }
