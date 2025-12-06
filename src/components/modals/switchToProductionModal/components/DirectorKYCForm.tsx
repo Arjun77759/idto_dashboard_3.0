@@ -10,9 +10,10 @@ interface DirectorKYCFormProps {
   isLoading?: boolean
   initialData?: OnboardingStatus | null
   stepsStatus?: OnboardingStepsStatus
+  onSkip?: () => void
 }
 
-const DirectorKYCForm = ({ onNext: _onNext, onPrevious: _onPrevious, showPrevious: _showPrevious = false, isLoading: externalLoading = false, initialData: _initialData, stepsStatus: _stepsStatus }: DirectorKYCFormProps) => {
+const DirectorKYCForm = ({ onNext: _onNext, onPrevious: _onPrevious, showPrevious: _showPrevious = false, isLoading: externalLoading = false, initialData: _initialData, stepsStatus: _stepsStatus, onSkip: _onSkip }: DirectorKYCFormProps) => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -29,13 +30,13 @@ const DirectorKYCForm = ({ onNext: _onNext, onPrevious: _onPrevious, showPreviou
 
       // Redirect to DigiLocker authentication URL
       window.location.href = digilockerUrl
-      
+
       // Note: User will be redirected away, so we don't call onNext() here
       // The callback page will handle the next step
     } catch (err: any) {
       console.error('DigiLocker initiation error:', err)
       setError(
-        err?.message || 
+        err?.message ||
         'Failed to initiate DigiLocker verification. Please try again.'
       )
       setIsLoading(false)
@@ -43,8 +44,8 @@ const DirectorKYCForm = ({ onNext: _onNext, onPrevious: _onPrevious, showPreviou
   }
 
   return (
-    <div className="bg-white border border-[#e7e8ea] border-solid grow h-full min-h-px min-w-px relative rounded shrink-0">
-      <div className="flex flex-col gap-4 items-start p-6 relative rounded-[inherit] size-full">
+    <div className="bg-white border border-[#e7e8ea] border-solid h-full min-h-0 w-full relative rounded overflow-hidden flex flex-col">
+      <div className="flex flex-col gap-4 items-start p-6 relative rounded-[inherit] w-full min-h-0">
         {/* Header */}
         <div className="flex flex-col items-start relative shrink-0 w-full">
           <p className="font-bold leading-7 relative shrink-0 text-lg text-[#616675] tracking-[-0.18px] w-full">
@@ -105,9 +106,28 @@ const DirectorKYCForm = ({ onNext: _onNext, onPrevious: _onPrevious, showPreviou
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 items-center justify-end relative shrink-0 w-full">
-          <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid relative rounded-lg shrink-0">
+        {/* Action Buttons - pinned to bottom */}
+        <div className="flex items-center justify-between w-full gap-3 mt-auto">
+          <div className="flex items-center justify-start">
+            <button
+              type="button"
+              onClick={() => {
+                setIsLoading(true)
+                // prefer explicit skip handler if provided, otherwise fall back to onNext()
+                if (typeof _onSkip === 'function') {
+                  _onSkip()
+                } else {
+                  _onNext?.()
+                }
+              }}
+              disabled={isLoading || externalLoading}
+              className="px-4 py-2 rounded-lg border border-[#44bd42] bg-white text-[#44bd42] font-medium hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Skip
+            </button>
+          </div>
+
+          <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid relative rounded-lg">
             <button
               onClick={handleContinue}
               disabled={isLoading || externalLoading}

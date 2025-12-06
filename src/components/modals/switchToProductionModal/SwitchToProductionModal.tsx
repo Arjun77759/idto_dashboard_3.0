@@ -5,6 +5,10 @@ import { useIsMobile } from '../../../hooks/use-mobile'
 import { useOnboardingStatus } from '../../../hooks/useOnboardingStatus'
 import { useOnboardingSteps } from '../../../hooks/useOnboardingSteps'
 import { ModalHeader, StepperProgress, StepForm } from './components'
+import DirectorKYCForm from './components/DirectorKYCForm'
+// try to use the store helpers first; fall back to direct axios call if needed
+import { fetchOnboardingStatus, resetOnboardingStore } from '@/store/onboardingStore'
+import axiosInstance from '@/api/axiosInstance'
 import { Info, Building2, Building, CreditCard, Lock, ArrowRight, Monitor, Smartphone } from 'lucide-react'
 
 interface SwitchToProductionModalProps {
@@ -25,10 +29,10 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
   useEffect(() => {
     if (!stepsStatus.loading && isOpen) {
       const stepOrder = ['basic-details', 'business-info', 'business-pan', 'gstin', 'director-kyc']
-      
+
       // Find the first incomplete step
       let firstIncompleteStep = 'basic-details'
-      
+
       if (!stepsStatus.basicDetails) {
         firstIncompleteStep = 'basic-details'
       } else if (!stepsStatus.businessInfo) {
@@ -40,9 +44,9 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
       } else {
         firstIncompleteStep = 'director-kyc'
       }
-      
+
       setCurrentStep(firstIncompleteStep)
-      
+
       // If at least one step is completed, go directly to stepper mode
       if (stepsStatus.basicDetails || stepsStatus.businessInfo || stepsStatus.businessPAN || stepsStatus.gstin) {
         setIsInStepperMode(true)
@@ -67,7 +71,7 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
     // Move to next incomplete step
     const currentIndex = stepOrder.indexOf(currentStep)
     const nextIndex = currentIndex + 1
-    
+
     if (nextIndex < stepOrder.length) {
       setCurrentStep(stepOrder[nextIndex])
     } else {
@@ -225,90 +229,123 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
             <StepperProgress steps={stepperSteps} />
 
             {/* Right Panel - Step Form */}
-            <StepForm
-              currentStep={currentStep}
-              onNext={handleStepNext}
-              onPrevious={handleStepPrevious}
-              showPrevious={true}
-              isLoading={isLoading}
-              initialData={onboardingData.data}
-              stepsStatus={stepsStatus}
-            />
+            {currentStep === 'director-kyc' ? (
+              <DirectorKYCForm
+                onNext={handleStepNext}
+                onPrevious={handleStepPrevious}
+                showPrevious={true}
+                isLoading={isLoading}
+                initialData={onboardingData.data}
+                stepsStatus={stepsStatus}
+                onSkip={async () => {
+                  // Ensure we re-run the /onboard/check API so the store updates to production
+                  try {
+                    // clear cached state if store exposes a reset/invalidate helper
+                    if (typeof resetOnboardingStore === 'function') {
+                      resetOnboardingStore()
+                    }
+                    // call the store fetch (preferred)
+                    await fetchOnboardingStatus()
+                  } catch (err) {
+                    // fallback: call the endpoint directly to guarantee network request
+                    try {
+                      await axiosInstance.get('/onboard/check')
+                    } catch (err2) {
+                      console.error('Failed to refresh onboarding status', err2)
+                    }
+                  } finally {
+                    // proceed to confirm + close modal regardless of fetch result
+                    onConfirm()
+                    onClose()
+                  }
+                }}
+              />
+            ) : (
+              <StepForm
+                currentStep={currentStep}
+                onNext={handleStepNext}
+                onPrevious={handleStepPrevious}
+                showPrevious={true}
+                isLoading={isLoading}
+                initialData={onboardingData.data}
+                stepsStatus={stepsStatus}
+              />
+            )}
           </div>
         ) : (
           // Initial Welcome Mode
           <div className="border border-[#e7e8ea] border-solid flex items-start justify-between relative rounded w-full">
             {/* Left Panel */}
-          <div className="bg-white flex-1 flex flex-col gap-4 items-start p-6 relative rounded shrink-0">
-            <div className="flex flex-col items-start relative shrink-0 w-full">
-              <p className="font-bold leading-8 relative shrink-0 text-2xl text-[#616675] tracking-[-0.24px] w-full">
-                Hi, Welcome!
-              </p>
-              <div className="flex gap-2 items-center px-0 py-2 relative shrink-0">
-                <p className="font-normal text-wrap leading-[1.4] text-xs text-[#9296a0] tracking-[-0.12px]">
+            <div className="bg-white flex-1 flex flex-col gap-4 items-start p-6 relative rounded shrink-0">
+              <div className="flex flex-col items-start relative shrink-0 w-full">
+                <p className="font-bold leading-8 relative shrink-0 text-2xl text-[#616675] tracking-[-0.24px] w-full">
+                  Hi, Welcome!
+                </p>
+                <div className="flex gap-2 items-center px-0 py-2 relative shrink-0">
+                  <p className="font-normal text-wrap leading-[1.4] text-xs text-[#9296a0] tracking-[-0.12px]">
+                    Finish these steps to verify your business and get dashboard access. Details are required for compliance.
+                  </p>
+                </div>
+              </div>
+
+              {/* Step-by-step guide */}
+              <div className="border border-[#e7e8ea] border-solid flex flex-col gap-4 items-start p-4 relative rounded shrink-0 w-full">
+                <p className="font-bold leading-6 min-w-full relative shrink-0 text-base text-[#131b31] tracking-[-0.16px] w-[min-content]">
+                  Step-by-step guide
+                </p>
+                <div className="flex flex-col gap-2 items-start relative shrink-0 w-full">
+                  {verificationSteps.map((step, index) => (
+                    <div key={index} className="flex gap-2 items-center px-3 py-1.5 relative rounded shrink-0 w-full">
+                      <step.icon className="size-4 text-[#9296a0]" />
+                      <p className="font-medium leading-[1.4] not-italic relative shrink-0 text-xs text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
+                        {step.title}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Info section */}
+              <div className="flex gap-2 items-start px-0 py-2 relative shrink-0 w-full">
+                <Info className="size-6 text-[#9296a0]" />
+                <p className="font-normal leading-[1.4] text-xs text-[#9296a0] tracking-[-0.12px]">
                   Finish these steps to verify your business and get dashboard access. Details are required for compliance.
                 </p>
               </div>
-            </div>
 
-            {/* Step-by-step guide */}
-            <div className="border border-[#e7e8ea] border-solid flex flex-col gap-4 items-start p-4 relative rounded shrink-0 w-full">
-              <p className="font-bold leading-6 min-w-full relative shrink-0 text-base text-[#131b31] tracking-[-0.16px] w-[min-content]">
-                Step-by-step guide
-              </p>
-              <div className="flex flex-col gap-2 items-start relative shrink-0 w-full">
-                {verificationSteps.map((step, index) => (
-                  <div key={index} className="flex gap-2 items-center px-3 py-1.5 relative rounded shrink-0 w-full">
-                    <step.icon className="size-4 text-[#9296a0]" />
-                    <p className="font-medium leading-[1.4] not-italic relative shrink-0 text-xs text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
-                      {step.title}
-                    </p>
-                  </div>
-                ))}
+              {/* Action Button */}
+              <div className="flex gap-10 items-center justify-end relative shrink-0 w-full">
+                <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid relative rounded-lg shrink-0">
+                  <button
+                    onClick={handleStartVerification}
+                    disabled={isLoading}
+                    className="flex gap-2 items-center justify-center px-8 py-3.5 relative rounded-[inherit] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-[#0019ff] border-t-transparent rounded-full animate-spin" />
+                        <p className="font-bold leading-4 relative text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
+                          Starting...
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="font-bold leading-4 relative text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
+                          Start Verification
+                        </p>
+                        <ArrowRight className="size-4 text-[#0019ff]" />
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Info section */}
-            <div className="flex gap-2 items-start px-0 py-2 relative shrink-0 w-full">
-              <Info className="size-6 text-[#9296a0]" />
-              <p className="font-normal leading-[1.4] text-xs text-[#9296a0] tracking-[-0.12px]">
-                Finish these steps to verify your business and get dashboard access. Details are required for compliance.
-              </p>
-            </div>
-
-            {/* Action Button */}
-            <div className="flex gap-10 items-center justify-end relative shrink-0 w-full">
-              <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid relative rounded-lg shrink-0">
-                <button
-                  onClick={handleStartVerification}
-                  disabled={isLoading}
-                  className="flex gap-2 items-center justify-center px-8 py-3.5 relative rounded-[inherit] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-[#0019ff] border-t-transparent rounded-full animate-spin" />
-                      <p className="font-bold leading-4 relative text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
-                        Starting...
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="font-bold leading-4 relative text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
-                        Start Verification
-                      </p>
-                      <ArrowRight className="size-4 text-[#0019ff]" />
-                    </>
-                  )}
-                </button>
-              </div>
+            {/* Right Panel - Dashboard Preview */}
+            <div className="bg-white flex-1 flex flex-col gap-4 items-start p-6 relative rounded shrink-0">
+              <img alt="Production Switch" className="block w-full h-auto object-contain" src={'https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/production_switch.png'} />
             </div>
           </div>
-
-          {/* Right Panel - Dashboard Preview */}
-          <div className="bg-white flex-1 flex flex-col gap-4 items-start p-6 relative rounded shrink-0">
-            <img alt="Production Switch" className="block w-full h-auto object-contain" src={'https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/production_switch.png'} />
-          </div>
-        </div>
         )}
       </div>
     </div>
