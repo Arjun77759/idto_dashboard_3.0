@@ -2,30 +2,33 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Settings, Terminal } from 'lucide-react'
-import { getApiById } from '@/config/apiEndpoints'
+import type { ApiEndpoint } from '@/config/apiEndpoints'
+import { getApiById } from '@/hooks/useOpenApiEndpoints'
 import http from '@/api/axiosInstance'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 
 interface ApiConfigurationProps {
   selectedApi: string | null
+  apiEndpoints: ApiEndpoint[] | null
   onApiRun: (response: any) => void
   loading?: boolean
 }
 
-const ApiConfiguration = ({ selectedApi, onApiRun, loading: pageLoading = false }: ApiConfigurationProps) => {
+const ApiConfiguration = ({ selectedApi, apiEndpoints, onApiRun, loading: pageLoading = false }: ApiConfigurationProps) => {
   const [inputValues, setInputValues] = useState<Record<string, any>>({})
   const [isLoading, setIsLoading] = useState(false)
   const { data: onboardingStatus } = useOnboardingStatus()
   const isSandboxMode = !Boolean(onboardingStatus?.is_onboarded)
 
-  const apiConfig = selectedApi ? getApiById(selectedApi) : null
+  const apiConfig = selectedApi ? getApiById(apiEndpoints, selectedApi) : null
 
   // Initialize input values when API changes
   useEffect(() => {
     if (apiConfig) {
       const initialValues: Record<string, any> = {}
       Object.entries(apiConfig.sampleInput).forEach(([key, field]) => {
-        initialValues[key] = field.example
+        // Don't set initial value, let placeholder show the example
+        initialValues[key] = ''
       })
       setInputValues(initialValues)
     }
@@ -218,7 +221,7 @@ const ApiConfiguration = ({ selectedApi, onApiRun, loading: pageLoading = false 
                   value={inputValues[key] || ''}
                   onChange={(e) => handleInputChange(key, e.target.value)}
                   onKeyDown={handleKeyPress}
-                  placeholder={String(field.example)}
+                  placeholder={field.example ? `e.g., ${String(field.example)}` : ''}
                   className="w-full max-w-md border-[#e7e8ea] h-10"
                 />
               )}

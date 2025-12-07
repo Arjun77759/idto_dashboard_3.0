@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Code, Eye, EyeOff, Copy, Plus } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
@@ -8,6 +8,8 @@ import CreateApiKeyModal from '@/components/api-credentials/CreateApiKeyModal'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 import { getClients, enableClient, disableClient, type Client } from '@/api/clientsApi'
 import { TableWithPagination, type TableColumn } from '@/components/ui/TableWithPagination'
+import SwitchToProductionModal from '@/components/modals/switchToProductionModal/SwitchToProductionModal'
+import { fetchOnboardingStatus } from '@/store/onboardingStore'
 
 interface ApiKey {
   id: string
@@ -23,6 +25,8 @@ const ApiCredentialsPage = () => {
   const isProduction = Boolean(onboardingStatus?.is_onboarded)
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set())
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isSwitchToProductionModalOpen, setIsSwitchToProductionModalOpen] = useState(false)
+  const pendingActionRef = useRef<(() => void) | null>(null)
 
   // Mock data for non-production environments
   const mockApiKeys: ApiKey[] = [
@@ -100,6 +104,22 @@ const ApiCredentialsPage = () => {
   }, [isProduction])
 
   const toggleKeyVisibility = (keyId: string) => {
+    if (!isProduction) {
+      pendingActionRef.current = () => {
+        setVisibleKeys((prev) => {
+          const newSet = new Set(prev)
+          if (newSet.has(keyId)) {
+            newSet.delete(keyId)
+          } else {
+            newSet.add(keyId)
+          }
+          return newSet
+        })
+      }
+      setIsSwitchToProductionModalOpen(true)
+      return
+    }
+
     setVisibleKeys((prev) => {
       const newSet = new Set(prev)
       if (newSet.has(keyId)) {
@@ -112,6 +132,18 @@ const ApiCredentialsPage = () => {
   }
 
   const copyToClipboard = (text: string) => {
+    if (!isProduction) {
+      pendingActionRef.current = () => {
+        navigator.clipboard.writeText(text)
+        toast({
+          title: 'Copied to clipboard',
+          description: 'API key has been copied to your clipboard.',
+        })
+      }
+      setIsSwitchToProductionModalOpen(true)
+      return
+    }
+
     navigator.clipboard.writeText(text)
     toast({
       title: 'Copied to clipboard',
@@ -132,12 +164,15 @@ const ApiCredentialsPage = () => {
 
   const handleToggleKeyStatus = async (keyId: string, currentStatus: boolean) => {
     if (!isProduction) {
-      // For non-production, just update local state
-      setApiKeys((prev) =>
-        prev.map((key) =>
-          key.id === keyId ? { ...key, isEnabled: !currentStatus } : key
+      pendingActionRef.current = async () => {
+        // For non-production, just update local state
+        setApiKeys((prev) =>
+          prev.map((key) =>
+            key.id === keyId ? { ...key, isEnabled: !currentStatus } : key
+          )
         )
-      )
+      }
+      setIsSwitchToProductionModalOpen(true)
       return
     }
 
@@ -168,6 +203,14 @@ const ApiCredentialsPage = () => {
   }
 
   const handleCreateApiKey = () => {
+    if (!isProduction) {
+      pendingActionRef.current = () => {
+        setIsCreateModalOpen(true)
+      }
+      setIsSwitchToProductionModalOpen(true)
+      return
+    }
+
     setIsCreateModalOpen(true)
   }
 
@@ -326,6 +369,34 @@ const ApiCredentialsPage = () => {
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={handleCreateSuccess}
+      />
+
+      {/* Switch to Production Modal */}
+      <SwitchToProductionModal
+        isOpen={isSwitchToProductionModalOpen}
+        onClose={() => {
+          setIsSwitchToProductionModalOpen(false)
+          pendingActionRef.current = null
+        }}
+        onConfirm={async () => {
+          // Refresh onboarding status to check if user is now in production
+          try {
+            const updatedStatus = await fetchOnboardingStatus()
+            // Only execute the pending action if user is now in production
+            if (updatedStatus?.is_onboarded && pendingActionRef.current) {
+              pendingActionRef.current()
+            }
+          } catch (error) {
+            // If refresh fails, still try to execute the action
+            // The action handlers will check isProduction themselves
+            if (pendingActionRef.current) {
+              pendingActionRef.current()
+            }
+          } finally {
+            pendingActionRef.current = null
+            setIsSwitchToProductionModalOpen(false)
+          }
+        }}
       />
     </motion.div>
   )

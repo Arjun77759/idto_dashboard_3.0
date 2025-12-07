@@ -20,7 +20,7 @@ instance.interceptors.request.use((config) => {
 instance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error?.response?.status === 401 || error?.response?.status === 403) {
+    if (error?.response?.status === 401) {
       clearAuth()
       window.location.href = '/login'
     }

@@ -10,9 +10,9 @@ export type MonthlyUsage = {
 
 // Mock data to use in development/non-production environments
 const mockMonthlyUsage: MonthlyUsage = {
-  balance: 1200,
-  used: 300,
-  total: 1500,
+  balance: 6905.65,
+  used: 687.6,
+  total: 10000,
 }
 
 type Listener = () => void
