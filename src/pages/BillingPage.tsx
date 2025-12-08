@@ -314,6 +314,15 @@ const BillingPage = () => {
             </DialogDescription>
           </DialogHeader>
           <BankTransferDetails desiredAmount={taxes.finalAmount} />
+          <div className="mt-4 rounded-lg border border-[#e7e8ea] bg-[#fff4e6] p-3">
+            <p className="text-xs text-[#616675]">
+              <span className="font-semibold text-[#131b31]">Note:</span> After depositing the money, please send an email to{' '}
+              <a href="mailto:info@idto.ai" className="text-[#0019ff] underline">
+                info@idto.ai
+              </a>{' '}
+              to get priority credit.
+            </p>
+          </div>
           <DialogFooter className="mt-4 flex w-full justify-end">
             <Button onClick={() => setShowBankDetailsModal(false)} className="rounded-lg bg-[#0019ff] text-white">
               Okay, Got It
