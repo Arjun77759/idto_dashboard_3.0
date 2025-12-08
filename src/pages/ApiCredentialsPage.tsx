@@ -1,15 +1,15 @@
-import { motion } from 'framer-motion'
-import { Code, Eye, EyeOff, Copy, Plus } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
+import { disableClient, enableClient, getClients, type Client } from '@/api/clientsApi'
+import CreateApiKeyModal from '@/components/api-credentials/CreateApiKeyModal'
+import SwitchToProductionModal from '@/components/modals/switchToProductionModal/SwitchToProductionModal'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
-import { useToast } from '@/hooks/use-toast'
-import CreateApiKeyModal from '@/components/api-credentials/CreateApiKeyModal'
-import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
-import { getClients, enableClient, disableClient, type Client } from '@/api/clientsApi'
 import { TableWithPagination, type TableColumn } from '@/components/ui/TableWithPagination'
-import SwitchToProductionModal from '@/components/modals/switchToProductionModal/SwitchToProductionModal'
+import { useToast } from '@/hooks/use-toast'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 import { fetchOnboardingStatus } from '@/store/onboardingStore'
+import { motion } from 'framer-motion'
+import { Code, Copy, Eye, EyeOff, Plus } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 interface ApiKey {
   id: string
@@ -30,27 +30,7 @@ const ApiCredentialsPage = () => {
 
   // Mock data for non-production environments
   const mockApiKeys: ApiKey[] = [
-    {
-      id: '1',
-      name: 'Default API Key',
-      clientId: 'sk_live_1234567890abcdefghijklmnopqrstuvwxyz',
-      createdAt: '04/17/23  16:56:07',
-      isEnabled: true,
-    },
-    {
-      id: '2',
-      name: 'Test API Key',
-      clientId: 'sk_test_0987654321zyxwvutsrqponmlkjihgfedcba',
-      createdAt: '04/17/23  16:56:07',
-      isEnabled: true,
-    },
-    {
-      id: '3',
-      name: 'Production API Key',
-      clientId: 'sk_prod_abcdefghijklmnopqrstuvwxyz1234567890',
-      createdAt: '04/17/23  16:56:07',
-      isEnabled: false,
-    },
+
   ]
 
   const [apiKeys, setApiKeys] = useState<ApiKey[]>(mockApiKeys)
@@ -292,20 +272,18 @@ const ApiCredentialsPage = () => {
       render: (key) => (
         <div className="flex items-center justify-center gap-1.5 w-full">
           <span
-            className={`text-[14px] font-normal ${
-              key.isEnabled ? 'text-[#3ac828]' : 'text-[#9296a0]'
-            }`}
+            className={`text-[14px] font-normal ${key.isEnabled ? 'text-[#3ac828]' : 'text-[#9296a0]'
+              }`}
           >
             {key.isEnabled ? 'Enabled' : 'Disabled'}
           </span>
           <Switch
             checked={key.isEnabled}
             onCheckedChange={() => handleToggleKeyStatus(key.id, key.isEnabled)}
-            className={`h-[21px] w-[45px] ${
-              key.isEnabled
-                ? 'data-[state=checked]:bg-[#3ac828] border-[#e7e8ea]'
-                : 'bg-[#f7f7f8] border-[#e7e8ea]'
-            }`}
+            className={`h-[21px] w-[45px] ${key.isEnabled
+              ? 'data-[state=checked]:bg-[#3ac828] border-[#e7e8ea]'
+              : 'bg-[#f7f7f8] border-[#e7e8ea]'
+              }`}
           />
         </div>
       ),
