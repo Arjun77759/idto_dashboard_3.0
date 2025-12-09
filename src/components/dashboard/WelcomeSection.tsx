@@ -4,17 +4,17 @@ import { ArrowUpRight, Play, X } from 'lucide-react'
 import SwitchToProductionModal from '@/components/modals/switchToProductionModal/SwitchToProductionModal'
 
 export const LOGO_SRC =
-  'https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/dashboard_2.0/idto_color_logo.png'
+  'https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/Dashboard+walkthrough+v1.mov'
 
 const WelcomeSection = () => {
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false)
-
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false)
   const handleClose = () => {
     console.log('Close welcome section')
   }
 
   const handlePlayVideo = () => {
-    console.log('Play video')
+    setIsVideoPlaying(true)
   }
 
   const handleSwitchMode = () => {
@@ -88,20 +88,22 @@ const WelcomeSection = () => {
             </div>
           </div>
 
-          <div className="bg-white border border-[#f0f0f4] overflow-hidden rounded-2xl w-full lg:w-[420px] h-[180px] sm:h-[200px] lg:h-[223px] flex items-center justify-center">
-
-            <button
-              onClick={handlePlayVideo}
-              className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative"
-            >
-              <div className="[grid-area:1_/_1] ml-0 mt-0 relative size-[60px] sm:size-[70px] lg:size-[79px]">
-                <div className='bg-[#E6E8FF] rounded-full size-[60px] sm:size-[70px] lg:size-[79px]' />
-              </div>
-              <div className="[grid-area:1_/_1] ml-4 sm:ml-5 lg:ml-6 mt-4 sm:mt-5 lg:mt-6 relative size-6 sm:size-7 lg:size-8">
-                <Play className="size-6 sm:size-7 lg:size-8 text-[#3143e6]" />
-              </div>
-            </button>
-          </div>
+          {isVideoPlaying ? <video controls autoPlay src={LOGO_SRC} className="bg-white border border-[#f0f0f4] overflow-hidden rounded-2xl w-full lg:w-[420px] h-[180px] sm:h-[200px] lg:h-[223px] flex items-center justify-center object-cover" /> : (
+            <div className="bg-white relative border border-[#f0f0f4] overflow-hidden rounded-2xl w-full lg:w-[420px] h-[180px] sm:h-[200px] lg:h-[223px] flex items-center justify-center">
+              <video muted src={LOGO_SRC} className="bg-white border absolute top-0 left-0 w-full h-full border-[#f0f0f4] overflow-hidden rounded-2xl w-full lg:w-[420px] h-[180px] sm:h-[200px] lg:h-[223px] flex items-center justify-center object-cover" />
+              <button
+                onClick={handlePlayVideo}
+                className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative"
+              >
+                <div className="[grid-area:1_/_1] ml-0 mt-0 relative size-[60px] sm:size-[70px] lg:size-[79px]">
+                  <div className='bg-[#E6E8FF] rounded-full size-[60px] sm:size-[70px] lg:size-[79px]' />
+                </div>
+                <div className="[grid-area:1_/_1] ml-4 sm:ml-5 lg:ml-6 mt-4 sm:mt-5 lg:mt-6 relative size-6 sm:size-7 lg:size-8">
+                  <Play className="size-6 sm:size-7 lg:size-8 text-[#3143e6]" />
+                </div>
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <SwitchToProductionModal

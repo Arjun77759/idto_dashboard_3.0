@@ -59,6 +59,9 @@ const ProductionBanner = () => (
       <span> — Follow the setup guide below to start populating your dashboard with real data.</span>
     </p>
     <button
+      onClick={() => {
+        window.open('https://drive.google.com/file/d/1vV3UIcOSrKOvh0_L_qFAPzMoKwroDMsI/view?usp=sharing', '_blank')
+      }}
       type="button"
       className="bg-[#e6e8ff] border border-[#e7e8ea] flex items-center gap-2 h-10 px-4 rounded-[35px] text-[#0019ff] text-[12px] font-bold tracking-[-0.12px] whitespace-nowrap"
     >
