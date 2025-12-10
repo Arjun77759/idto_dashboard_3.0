@@ -18,9 +18,9 @@ type UsageOverview = {
 // Good mock data for credits 
 function getMockUsageCredits(): UsageCredits {
   return {
-    balance: 7420.50,
-    last_recharge: '2024-06-25 14:35:08',
-    last_recharge_amount: '3000'
+    balance: 0,
+    last_recharge: '',
+    last_recharge_amount: '0'
   }
 }
 
