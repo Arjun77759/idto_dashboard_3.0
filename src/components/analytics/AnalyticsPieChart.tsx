@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { useAnalyticsFilters } from '@/contexts/AnalyticsFilterContext'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 import { useUsageOverview } from '@/hooks/useUsageOverview'
 import * as echarts from 'echarts'
 import ReactECharts from 'echarts-for-react'
@@ -40,6 +41,7 @@ const AnalyticsPieChart = () => {
   const completedValue = chartData.find(item => item.name === 'Completed')?.value ?? 0
   const failedValue = chartData.find(item => item.name === 'Failed')?.value ?? 0
   const visibleTotal = Math.max(1, completedValue + failedValue)
+
 
   const pieOptions = useMemo(() => ({
     animationDuration: 600,
@@ -127,6 +129,8 @@ const AnalyticsPieChart = () => {
 
   // Format percentage for display
   const formatPercentage = (value: number) => `${value}%`
+  const { data: onboardingStatus } = useOnboardingStatus()
+  const isProduction = Boolean(onboardingStatus?.is_onboarded)
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -165,7 +169,7 @@ const AnalyticsPieChart = () => {
                     Completed
                   </span>
                   <span className="text-2xl font-semibold text-[#131b31] leading-tight">
-                    {formatPercentage(completedValue)}
+                    {isProduction ? formatPercentage(completedValue) : '0%'}
                   </span>
                 </div>
               </div>

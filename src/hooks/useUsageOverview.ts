@@ -14,10 +14,10 @@ export type UsageOverview = {
 function getMockUsageOverview(): UsageComparisonResponse {
   const now = new Date()
   return {
-    total_verifications: { count: 314, change_percent: 13.7 },
-    successful_verifications: { count: 290, change_percent: 21.3 },
-    failed_verifications: { count: 24, change_percent: 4.7 },
-    monthly_spend: { amount: 1287.51, change_percent: 2.4 },
+    total_verifications: { count: 0, change_percent: 0 },
+    successful_verifications: { count: 0, change_percent: 0 },
+    failed_verifications: { count: 0, change_percent: 0 },
+    monthly_spend: { amount: 0, change_percent: 0 },
     period: {
       requested_month: now.getMonth() + 1,
       current_year: now.getFullYear(),

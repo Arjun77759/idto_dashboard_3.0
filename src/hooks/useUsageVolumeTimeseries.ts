@@ -26,7 +26,7 @@ function getMockUsageVolumeTimeseries(monthsBack: number = 5): UsageVolumePoint[
     d.setMonth(now.getMonth() - i)
     arr.push({
       month: formatMonthYear(d),
-      count: 180 + Math.floor(Math.random() * 60) + i * 30 // rising trend, capped randomness
+      count: 0
     })
   }
   return arr

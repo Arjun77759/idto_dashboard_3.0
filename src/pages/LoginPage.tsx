@@ -6,6 +6,7 @@ import { setAuth } from '../lib/auth'
 import { useToast } from '@/hooks/use-toast'
 import { signInWithPopup } from 'firebase/auth'
 import { auth, googleProvider } from '../lib/firebase'
+import TermsOfServiceModal from '../components/modals/TermsOfServiceModal'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -19,6 +20,7 @@ const LoginPage = () => {
   const [submitting, setSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [keepSignedIn, setKeepSignedIn] = useState(true)
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false)
 
   // Pre-fill email if passed from register page
   useEffect(() => {
@@ -231,9 +233,13 @@ const LoginPage = () => {
 
           <p className="text-center text-[14px] font-medium leading-5 text-[#616675]">
             By signing-up, you agree to our{' '}
-            <a href="#" className="text-[#8a95ff] underline">
+            <button
+              type="button"
+              onClick={() => setIsTermsModalOpen(true)}
+              className="text-[#8a95ff] underline hover:opacity-80"
+            >
               Terms of Service.
-            </a>
+            </button>
           </p>
 
           <div className="flex items-center justify-center gap-2 text-[14px] font-medium text-[#616675]">
@@ -245,6 +251,11 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
+      
+      <TermsOfServiceModal 
+        isOpen={isTermsModalOpen} 
+        onClose={() => setIsTermsModalOpen(false)} 
+      />
     </div>
   )
 }
