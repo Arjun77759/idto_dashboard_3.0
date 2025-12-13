@@ -32,6 +32,7 @@ export async function register(payload: RegisterPayload): Promise<RegisterRespon
 export type CreatePasswordPayload = {
   customer_id: string
   password: string
+  token?: string
 }
 
 export type CreatePasswordResponse = {
@@ -72,5 +73,35 @@ export type ResendEmailResponse = {
 
 export async function resendVerificationEmail(payload: ResendEmailPayload): Promise<ResendEmailResponse> {
   const { data } = await http.post<ResendEmailResponse>('/onboard/resend-email', payload)
+  return data
+}
+
+export type RequestPasswordResetPayload = {
+  email: string
+}
+
+export type RequestPasswordResetResponse = {
+  status: string
+  customer_id?: string
+  email_sent?: boolean
+}
+
+export async function requestPasswordReset(payload: RequestPasswordResetPayload): Promise<RequestPasswordResetResponse> {
+  const { data } = await http.post<RequestPasswordResetResponse>('/onboard/request-password-reset', payload)
+  return data
+}
+
+export type ResendPasswordResetPayload = {
+  email: string
+}
+
+export type ResendPasswordResetResponse = {
+  status: 'resent' | 'already_set'
+  customer_id?: string
+  email_sent?: boolean
+}
+
+export async function resendPasswordReset(payload: ResendPasswordResetPayload): Promise<ResendPasswordResetResponse> {
+  const { data } = await http.post<ResendPasswordResetResponse>('/onboard/resend-reset-email', payload)
   return data
 }
