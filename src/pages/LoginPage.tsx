@@ -183,9 +183,9 @@ const LoginPage = () => {
                 />
                 Keep me signed in
               </label>
-              {/* <a href="#" className="text-left text-[14px] font-medium text-[#616675] underline decoration-[#d7d7de]">
+              <Link to="/forgot-password" className="text-left text-[14px] font-medium text-[#616675] underline decoration-[#d7d7de]">
                 Forgot password?
-              </a> */}
+              </Link>
             </div>
 
             {errors.form ? <p className="text-[13px] text-red-600">{errors.form}</p> : null}

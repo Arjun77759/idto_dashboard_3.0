@@ -16,6 +16,8 @@ import UsersPage from '../pages/UsersPage'
 import CreatePassword from '@/pages/CreatePassword'
 import KYCCallbackPage from '@/pages/KYCCallbackPage'
 import ApiCredentialsPage from '../pages/ApiCredentialsPage'
+import ForgetPasswordPage from '../pages/ForgetPasswordPage'
+import ResetPasswordCheckInboxPage from '../pages/ResetPasswordCheckInboxPage'
 
 // Refactored route configuration for better readability and maintainability
 const publicRoutes = [
@@ -50,6 +52,14 @@ const publicRoutes = [
   {
     path: 'kyc-callback',
     element: <KYCCallbackPage />
+  },
+  {
+    path: 'forgot-password',
+    element: <ForgetPasswordPage />
+  },
+  {
+    path: 'reset-password-check-inbox',
+    element: <ResetPasswordCheckInboxPage />
   }
 ]
 

@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import { Lock, MoveRight, Eye, EyeOff } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -18,10 +17,14 @@ const CreatePassword = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
+  // Check if token exists to determine if this is a reset password flow
+  const token = searchParams.get('token')
+  const isResetPassword = !!token
+
   // Check if customer_id exists
   useEffect(() => {
     const customerId = searchParams.get('customer_id')
-    
+
     if (!customerId) {
       toast({
         title: 'Invalid link',
@@ -34,7 +37,7 @@ const CreatePassword = () => {
 
   const validate = () => {
     const next: { password?: string; confirmPassword?: string } = {}
-    
+
     if (!formData.password) {
       next.password = 'Password is required'
     } else if (formData.password.length < 8) {
@@ -48,13 +51,13 @@ const CreatePassword = () => {
     } else if (!/[^A-Za-z0-9]/.test(formData.password)) {
       next.password = 'Password must contain at least one special character'
     }
-    
+
     if (!formData.confirmPassword) {
       next.confirmPassword = 'Please confirm your password'
     } else if (formData.password !== formData.confirmPassword) {
       next.confirmPassword = "Passwords don't match"
     }
-    
+
     setErrors(next)
     return Object.keys(next).length === 0
   }
@@ -63,9 +66,9 @@ const CreatePassword = () => {
     e.preventDefault()
     setErrors({})
     if (!validate()) return
-    
+
     const customerId = searchParams.get('customer_id')
-    
+
     if (!customerId) {
       setErrors((prev) => ({ ...prev, form: 'Missing customer ID. Please use the link from your email.' }))
       toast({
@@ -75,30 +78,33 @@ const CreatePassword = () => {
       })
       return
     }
-    
+
     try {
       setSubmitting(true)
       await createPassword({
         customer_id: customerId,
-        password: formData.password
+        password: formData.password,
+        ...(token && { token })
       })
-      
+
       toast({
-        title: 'Password created successfully',
-        description: 'Your password has been set. Redirecting to login...',
+        title: isResetPassword ? 'Password reset successfully' : 'Password created successfully',
+        description: isResetPassword
+          ? 'Your password has been reset. Redirecting to login...'
+          : 'Your password has been set. Redirecting to login...',
       })
-      
-      // Navigate to login after successful password creation
+
+      // Navigate to login after successful password creation/reset
       setTimeout(() => {
         navigate('/login')
       }, 1500)
     } catch (err: any) {
       const detail = err?.response?.data?.detail
-      const message = detail || err?.response?.data?.message || 'Failed to create password'
+      const message = detail || err?.response?.data?.message || (isResetPassword ? 'Failed to reset password' : 'Failed to create password')
       setErrors((prev) => ({ ...prev, form: message }))
-      
+
       toast({
-        title: 'Failed to create password',
+        title: isResetPassword ? 'Failed to reset password' : 'Failed to create password',
         description: message,
         variant: 'destructive',
       })
@@ -115,142 +121,120 @@ const CreatePassword = () => {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      className="bg-white flex flex-col gap-6 sm:gap-8 lg:gap-12 items-center p-4 sm:p-6 lg:p-10 relative w-full min-h-screen"
-    >
+    <div className="min-h-screen w-full bg-white px-4 py-8 sm:py-12 flex flex-col gap-[40px]">
       {/* Logo */}
-      <div className="flex gap-2 items-center px-0 py-1.5 relative w-full max-w-sm sm:max-w-md">
-        <div className="h-6 sm:h-8 overflow-hidden relative w-10 sm:w-14">
-          <img alt="" className="block max-w-none size-full" src={'https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/dashboard_2.0/idto_logo_black.png'} />
-        </div>
+      <div className="flex items-center px-10">
+        <svg xmlns="http://www.w3.org/2000/svg" width="57" height="32" viewBox="0 0 57 32" fill="none">
+          <path d="M17.5745 20.5918H11.0039V27.4367H17.5745V20.5918Z" fill="#00E59E" />
+          <path d="M17.5748 16.0283V9.1834H11.0042V4.62012H4.43359V20.5916H11.0042V16.0283H17.5748Z" fill="#0019FF" />
+          <path d="M23.3594 9.37695C22.97 9.37695 22.6384 9.51956 22.3647 9.80159C22.0909 10.0868 21.957 10.429 21.957 10.8378C21.957 11.2466 22.0939 11.5889 22.3647 11.8741C22.6354 12.1561 22.967 12.2987 23.3594 12.2987C23.7518 12.2987 24.0803 12.1561 24.3541 11.8741C24.6248 11.592 24.7617 11.2466 24.7617 10.8378C24.7617 10.429 24.6248 10.0868 24.3541 9.80159C24.0803 9.51956 23.7518 9.37695 23.3594 9.37695Z" fill="#131B31" />
+          <path d="M24.6403 13.2432H22.082V22.8736H24.6403V13.2432Z" fill="#131B31" />
+          <path d="M35.1131 9.19922H32.5548V14.3678H32.494C32.2263 13.8861 31.8491 13.5153 31.3624 13.2523C30.8757 12.9893 30.2916 12.8593 29.6133 12.8593C28.7311 12.8593 27.9737 13.0653 27.3409 13.4773C26.7082 13.8893 26.2306 14.4723 25.899 15.2265C25.5705 15.9808 25.4062 16.8617 25.4062 17.8663C25.4062 18.8708 25.5766 19.736 25.9143 20.4902C26.2519 21.2444 26.7538 21.8306 27.417 22.2489C28.0801 22.6672 28.8832 22.8764 29.8292 22.8764C30.608 22.8764 31.2742 22.7211 31.8248 22.4105C32.3753 22.1 32.8134 21.6658 33.1419 21.1113H33.7899V22.6831H36.3785V20.0497H35.1161V9.19922H35.1131ZM32.5579 18.3004C32.5579 19.0071 32.3541 19.5617 31.9495 19.961C31.5449 20.3634 30.9973 20.5631 30.3099 20.5631C29.5281 20.5631 28.944 20.3222 28.5547 19.8405C28.1653 19.3589 27.9706 18.6997 27.9706 17.8663C27.9706 17.0328 28.1653 16.3737 28.5547 15.892C28.944 15.4103 29.5311 15.1695 30.3099 15.1695C30.9973 15.1695 31.5449 15.3692 31.9495 15.7716C32.3541 16.1741 32.5579 16.7255 32.5579 17.4321V18.3004Z" fill="#131B31" />
+          <path d="M40.1978 15.3307H42.3089V13.2455H40.1674V10.3555H37.673V13.2455H36.0547V15.3307H37.6426V20.7559C37.6426 21.4721 37.8251 22.0045 38.1901 22.3531C38.5552 22.7017 39.0662 22.876 39.7233 22.876H42.5279V20.7908H40.2009V15.3339L40.1978 15.3307Z" fill="#131B31" />
+          <path d="M51.8479 15.2012C51.4463 14.4534 50.8775 13.8734 50.1383 13.4678C49.3991 13.0622 48.5261 12.8594 47.5192 12.8594C46.5123 12.8594 45.618 13.0622 44.8696 13.4678C44.1183 13.8734 43.5434 14.4534 43.1357 15.2012C42.7312 15.9491 42.5273 16.8332 42.5273 17.8505C42.5273 18.8677 42.7342 19.7645 43.1449 20.5155C43.5555 21.2666 44.1335 21.8465 44.8788 22.2553C45.624 22.6673 46.5001 22.8732 47.504 22.8732C48.5078 22.8732 49.3869 22.6704 50.1292 22.2648C50.8744 21.8592 51.4463 21.2793 51.8479 20.525C52.2494 19.7708 52.4502 18.8867 52.4502 17.8695C52.4502 16.8522 52.2494 15.9554 51.8479 15.2044V15.2012ZM49.2744 19.8311C48.8637 20.3191 48.2736 20.5599 47.504 20.5599C46.7344 20.5599 46.126 20.3159 45.7092 19.8311C45.2925 19.343 45.0856 18.6839 45.0856 17.8505C45.0856 17.017 45.2925 16.3611 45.7092 15.8857C46.126 15.4104 46.7222 15.1727 47.504 15.1727C48.2857 15.1727 48.8637 15.4104 49.2744 15.8857C49.685 16.3611 49.8919 17.017 49.8919 17.8505C49.8919 18.6839 49.685 19.3462 49.2744 19.8311Z" fill="#131B31" />
+        </svg>
       </div>
+      <div className="flex w-full max-w-[480px] flex-col gap-6 sm:gap-8 mx-auto">
+        <div className="bg-white/90 p-5 sm:p-8 flex flex-col gap-6">
+          <div className="text-center flex flex-col gap-2">
+            <h1 className="text-[24px] font-[500] leading-[1.24] text-[#131b31]">
+              {isResetPassword ? 'Set a New Password' : 'Create Password'}
+            </h1>
+            <p className="text-[14px] font-medium leading-5 text-[#616675]">
+              {isResetPassword
+                ? 'Enter your new password below'
+                : 'Set a strong password to secure your account'}
+            </p>
+          </div>
 
-      {/* Create Password Card */}
-      <div className="flex flex-col gap-6 sm:gap-8 items-center p-4 sm:p-5 relative rounded w-full max-w-sm sm:max-w-md lg:max-w-lg xl:w-[480px]">
-        {/* Title Section */}
-        <div className="flex flex-col gap-3 sm:gap-4 items-start relative w-full">
-          <h1 className="font-bold leading-[1.24] relative text-[24px] sm:text-[28px] lg:text-[32px] text-[#131b31] tracking-[-0.24px] sm:tracking-[-0.28px] lg:tracking-[-0.32px] w-full">
-            Create Password
-          </h1>
-          <p className="font-normal leading-[1.4] relative text-[12px] sm:text-[13px] text-[#616675] tracking-[-0.12px] w-full">
-            Set a strong password to secure your account
-          </p>
-        </div>
-
-        {/* Form Section */}
-        <form className="flex flex-col gap-4 items-center relative w-full" onSubmit={handleSubmit} noValidate>
-          <div className="flex flex-col gap-4 sm:gap-6 items-start relative w-full">
-            {/* Password Field */}
-            <div className="flex flex-col gap-1 items-start relative w-full">
-              <label className="flex gap-2.5 items-center overflow-hidden relative w-full">
-                <p className="font-medium leading-[1.4] relative text-[12px] text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
-                  Password
-                </p>
+          <form className="space-y-6" onSubmit={handleSubmit} noValidate>
+            <div className="space-y-2">
+              <label className="text-[12px] font-medium text-[#616675]">
+                {isResetPassword ? 'New Password' : 'Password'}
               </label>
-              <div className="bg-[#f7f7f8] border border-[#e7e8ea] border-solid flex gap-2 h-10 sm:h-12 items-center px-3 py-2 relative rounded-[6px] w-full">
-                <div className="overflow-hidden relative shrink-0 size-4 sm:size-5">
-                  <div className="absolute inset-[0.5%_8.33%]">
-                    <Lock className='size-4 sm:size-5 text-[#9296A0]' strokeWidth={2} color='#9296A0' />
-                  </div>
-                </div>
-                <div className="flex gap-2 grow items-center justify-center min-h-px min-w-px relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Enter your password"
-                    className="font-medium grow leading-[1.5] min-h-px min-w-px relative text-[14px] sm:text-[16px] text-[#1c252e] tracking-[-0.14px] sm:tracking-[-0.16px] bg-transparent border-none outline-none w-full"
-                  />
-                </div>
+              <div className="flex h-12 items-center gap-3 rounded-lg border border-[#e7e8ea] bg-[#f7f7f8] px-3">
+                <Lock className="size-5 text-[#9296a0]" strokeWidth={1.5} />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Enter your password"
+                  className="w-full border-none bg-transparent text-[16px] font-medium text-[#1c252e] outline-none placeholder:text-[#9296a0]"
+                />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="flex items-center justify-center shrink-0"
+                  className="text-[#9296a0] transition hover:text-[#616675]"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? (
-                    <EyeOff className='size-4 sm:size-5 text-[#9296A0]' strokeWidth={2} />
-                  ) : (
-                    <Eye className='size-4 sm:size-5 text-[#9296A0]' strokeWidth={2} />
-                  )}
+                  {showPassword ? <Eye className="size-5" strokeWidth={1.75} /> : <EyeOff className="size-5" strokeWidth={1.75} />}
                 </button>
               </div>
-              {errors.password ? (
-                <p className="text-[12px] text-red-600">{errors.password}</p>
-              ) : null}
+              {errors.password ? <p className="text-[12px] text-red-600">{errors.password}</p> : null}
             </div>
 
-            {/* Confirm Password Field */}
-            <div className="flex flex-col gap-1 items-start relative w-full">
-              <label className="flex gap-2.5 items-center overflow-hidden relative w-full">
-                <p className="font-medium leading-[1.4] relative text-[12px] text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
-                  Confirm Password
-                </p>
-              </label>
-              <div className="bg-[#f7f7f8] border border-[#e7e8ea] border-solid flex gap-2 h-10 sm:h-12 items-center px-3 py-2 relative rounded-[6px] w-full">
-                <div className="overflow-hidden relative shrink-0 size-4 sm:size-5">
-                  <div className="absolute inset-[0.5%_8.33%]">
-                    <Lock className='size-4 sm:size-5 text-[#9296A0]' strokeWidth={2} color='#9296A0' />
-                  </div>
-                </div>
-                <div className="flex gap-2 grow items-center justify-center min-h-px min-w-px relative">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="Confirm your password"
-                    className="font-medium grow leading-[1.5] min-h-px min-w-px relative text-[14px] sm:text-[16px] text-[#1c252e] tracking-[-0.14px] sm:tracking-[-0.16px] bg-transparent border-none outline-none w-full"
-                  />
-                </div>
+            <div className="space-y-2">
+              <label className="text-[12px] font-medium text-[#616675]">Confirm Password</label>
+              <div className="flex h-12 items-center gap-3 rounded-lg border border-[#e7e8ea] bg-[#f7f7f8] px-3">
+                <Lock className="size-5 text-[#9296a0]" strokeWidth={1.5} />
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Confirm your password"
+                  className="w-full border-none bg-transparent text-[16px] font-medium text-[#1c252e] outline-none placeholder:text-[#9296a0]"
+                />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="flex items-center justify-center shrink-0"
+                  className="text-[#9296a0] transition hover:text-[#616675]"
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showConfirmPassword ? (
-                    <EyeOff className='size-4 sm:size-5 text-[#9296A0]' strokeWidth={2} />
-                  ) : (
-                    <Eye className='size-4 sm:size-5 text-[#9296A0]' strokeWidth={2} />
-                  )}
+                  {showConfirmPassword ? <Eye className="size-5" strokeWidth={1.75} /> : <EyeOff className="size-5" strokeWidth={1.75} />}
                 </button>
               </div>
-              {errors.confirmPassword ? (
-                <p className="text-[12px] text-red-600">{errors.confirmPassword}</p>
-              ) : null}
+              {errors.confirmPassword ? <p className="text-[12px] text-red-600">{errors.confirmPassword}</p> : null}
+              <div>
+                {isResetPassword ? (
+                  <p className="text-[12px] font-medium text-[#616675]">
+                    Must be at least 8 characters, including a number
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-[12px] font-medium text-[#616675] mb-1">Password must contain:</p>
+                    <ul className="text-[12px] text-[#616675] space-y-0.5 ml-4 list-disc">
+                      <li>At least 8 characters</li>
+                      <li>One uppercase letter</li>
+                      <li>One lowercase letter</li>
+                      <li>One number</li>
+                      <li>One special character</li>
+                    </ul>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Password Requirements */}
-          <div className="w-full">
-            <p className="text-[11px] text-[#616675] leading-[1.4]">Password must contain:</p>
-            <ul className="text-[11px] text-[#616675] leading-[1.4] mt-1 space-y-0.5">
-              <li>• At least 8 characters</li>
-              <li>• One uppercase letter</li>
-              <li>• One lowercase letter</li>
-              <li>• One number</li>
-              <li>• One special character</li>
-            </ul>
-          </div>
+            {errors.form ? <p className="text-[13px] text-red-600">{errors.form}</p> : null}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="bg-[#e6e8ff] disabled:opacity-70 border border-[#e7e8ea] border-solid flex gap-2 items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 relative rounded-lg w-full h-10 sm:h-auto"
-          >
-            <p className="font-bold leading-4 relative text-[12px] sm:text-[13px] text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
-              {submitting ? 'Creating Password...' : 'Create Password'}
-            </p>
-            <div className="overflow-hidden relative shrink-0 size-3 sm:size-4">
-              <MoveRight className='size-3 sm:size-4 text-[#0019ff]' strokeWidth={2} color='#0019ff' />
-            </div>
-          </button>
-        </form>
+            {/* Password Requirements */}
+
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#e7e8ea] bg-[#e6e8ff] text-[12px] font-bold text-[#0019ff] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {submitting
+                ? (isResetPassword ? 'Resetting Password...' : 'Creating Password...')
+                : (isResetPassword ? 'Reset Password' : 'Create Password')}
+              <MoveRight className="size-4" strokeWidth={2} />
+            </button>
+          </form>
+        </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
