@@ -2,6 +2,7 @@ import BasicDetailsForm from './BasicDetailsForm'
 import BusinessInfoForm from './BusinessInfoForm'
 import BusinessPANForm from './BusinessPANForm'
 import GSTINForm from './GSTINForm'
+import PANAndGSTForm from './PANAndGSTForm'
 import DirectorKYCForm from './DirectorKYCForm'
 import type { OnboardingStatus } from '@/hooks/useOnboardingStatus'
 import type { OnboardingStepsStatus } from '@/hooks/useOnboardingSteps'
@@ -23,6 +24,9 @@ const StepForm = ({ currentStep, onNext, onPrevious, showPrevious = false, isLoa
         return <BasicDetailsForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} initialData={initialData} stepsStatus={stepsStatus} />
       case 'business-info':
         return <BusinessInfoForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} initialData={initialData} stepsStatus={stepsStatus} />
+      case 'pan-gst':
+        return <PANAndGSTForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} initialData={initialData} stepsStatus={stepsStatus} />
+      // Keep old step names for backward compatibility if needed
       case 'business-pan':
         return <BusinessPANForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} initialData={initialData} stepsStatus={stepsStatus} />
       case 'gstin':

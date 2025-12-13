@@ -6,6 +6,7 @@ import { Outlet, Navigate } from 'react-router-dom'
 import { getAccessToken } from '@/lib/auth'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 import EnvironmentStatus from '@/components/dashboard/EnvironmentStatus'
+import CompanyHeader from '@/components/dashboard/CompanyHeader'
 import SimulationModeModal from '@/components/modals/simulationModeModal/SimulationModeModal'
 import { useSimulationModeModal } from '@/contexts/SimulationModeModalContext'
 import SwitchToProductionModal from '@/components/modals/switchToProductionModal/SwitchToProductionModal'
@@ -67,14 +68,19 @@ const PrivateLayout = () => {
           transition={{ duration: 0.5 }}
           className="flex flex-col gap-4 sm:gap-5 items-start p-4 sm:p-6 relative w-full h-full overflow-y-auto"
         >
-          <div className='flex items-center gap-4'>
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 block md:hidden"
-            >
-              {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-            <EnvironmentStatus />
+          <div className='flex items-start justify-between w-full gap-4'>
+            <div className='flex items-start gap-4 flex-1'>
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 block md:hidden mt-1"
+              >
+                {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+              <div className="flex flex-col gap-3 w-full">
+                <CompanyHeader />
+                <EnvironmentStatus />
+              </div>
+            </div>
           </div>
           <Outlet />
         </motion.div>

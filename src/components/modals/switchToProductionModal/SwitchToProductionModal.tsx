@@ -28,7 +28,7 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
   // Determine the first incomplete step
   useEffect(() => {
     if (!stepsStatus.loading && isOpen) {
-      const stepOrder = ['basic-details', 'business-info', 'business-pan', 'gstin', 'director-kyc']
+      const stepOrder = ['basic-details', 'business-info', 'pan-gst', 'director-kyc']
 
       // Find the first incomplete step
       let firstIncompleteStep = 'basic-details'
@@ -37,10 +37,9 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
         firstIncompleteStep = 'basic-details'
       } else if (!stepsStatus.businessInfo) {
         firstIncompleteStep = 'business-info'
-      } else if (!stepsStatus.businessPAN) {
-        firstIncompleteStep = 'business-pan'
-      } else if (!stepsStatus.gstin) {
-        firstIncompleteStep = 'gstin'
+      } else if (!stepsStatus.businessPAN || !stepsStatus.gstin) {
+        // Combined step: both PAN and GST must be completed
+        firstIncompleteStep = 'pan-gst'
       } else {
         firstIncompleteStep = 'director-kyc'
       }
@@ -53,6 +52,8 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
       }
     }
   }, [stepsStatus, isOpen])
+
+  const stepOrder = ['basic-details', 'business-info', 'pan-gst', 'director-kyc']
 
   const handleStartVerification = async () => {
     setIsLoading(true)
@@ -97,7 +98,6 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
     }
   }
 
-  const stepOrder = ['basic-details', 'business-info', 'business-pan', 'gstin', 'director-kyc']
   const currentStepIndex = stepOrder.indexOf(currentStep)
 
   const stepperSteps = [
@@ -116,25 +116,18 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
       isCompleted: currentStepIndex > 1
     },
     {
-      id: 'business-pan',
-      title: 'Provide your business PAN',
+      id: 'pan-gst',
+      title: 'Provide your Business PAN & GST',
       icon: Building,
-      isActive: currentStep === 'business-pan',
+      isActive: currentStep === 'pan-gst',
       isCompleted: currentStepIndex > 2
-    },
-    {
-      id: 'gstin',
-      title: 'Provide your GSTIN number',
-      icon: CreditCard,
-      isActive: currentStep === 'gstin',
-      isCompleted: currentStepIndex > 3
     },
     {
       id: 'director-kyc',
       title: 'KYC with Digilocker',
       icon: Lock,
       isActive: currentStep === 'director-kyc',
-      isCompleted: currentStepIndex > 4
+      isCompleted: currentStepIndex > 3
     }
   ]
 
@@ -149,11 +142,7 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
     },
     {
       icon: Building,
-      title: 'Provide your business PAN'
-    },
-    {
-      icon: CreditCard,
-      title: 'Provide your GSTIN number'
+      title: 'Provide your Business PAN & GST'
     },
     {
       icon: Lock,
