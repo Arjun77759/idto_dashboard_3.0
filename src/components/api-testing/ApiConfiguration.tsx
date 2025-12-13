@@ -6,6 +6,7 @@ import type { ApiEndpoint } from '@/config/apiEndpoints'
 import { getApiById } from '@/hooks/useOpenApiEndpoints'
 import http from '@/api/axiosInstance'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
+import ArrayOfObjectsInput from './ArrayOfObjectsInput'
 
 interface ApiConfigurationProps {
   selectedApi: string | null
@@ -30,18 +31,23 @@ const ApiConfiguration = ({
   const isSandboxMode = !Boolean(onboardingStatus?.is_onboarded)
 
   const apiConfig = selectedApi ? getApiById(apiEndpoints, selectedApi) : null
+  const isEsignApi = apiConfig?.id === 'esign' || apiConfig?.tags?.includes('eSign')
 
   // Initialize input values when API changes
   useEffect(() => {
     if (apiConfig) {
       const initialValues: Record<string, any> = {}
       Object.entries(apiConfig.sampleInput).forEach(([key, field]) => {
-        // Don't set initial value, let placeholder show the example
-        initialValues[key] = ''
+        // For eSign array fields, initialize with empty array
+        if (isEsignApi && (key === 'documents' || key === 'signers_info')) {
+          initialValues[key] = []
+        } else {
+          initialValues[key] = ''
+        }
       })
       setInputValues(initialValues)
     }
-  }, [apiConfig])
+  }, [apiConfig, isEsignApi])
 
   const handleRunApi = async () => {
     if (!apiConfig) return
@@ -86,11 +92,37 @@ const ApiConfiguration = ({
     // Production mode - make actual API call
     try {
       let response
+      let requestPayload = { ...inputValues }
+      
+      // For eSign, transform signers_info structure
+      // In UI, page_number, sequence, and trigger_esign_request are stored inside signer_position
+      // But in API, they need to be at the same level as signer_position
+      if (isEsignApi && requestPayload.signers_info && Array.isArray(requestPayload.signers_info)) {
+        requestPayload.signers_info = requestPayload.signers_info.map((signer: any) => {
+          const transformed = { ...signer }
+          if (transformed.signer_position) {
+            // Extract page_number, sequence, and trigger_esign_request from signer_position
+            if (transformed.signer_position.page_number !== undefined) {
+              transformed.page_number = transformed.signer_position.page_number
+              delete transformed.signer_position.page_number
+            }
+            if (transformed.signer_position.sequence !== undefined) {
+              transformed.sequence = transformed.signer_position.sequence
+              delete transformed.signer_position.sequence
+            }
+            if (transformed.signer_position.trigger_esign_request !== undefined) {
+              transformed.trigger_esign_request = transformed.signer_position.trigger_esign_request
+              delete transformed.signer_position.trigger_esign_request
+            }
+          }
+          return transformed
+        })
+      }
       
       // Handle different content types
       if (apiConfig.contentType === 'multipart/form-data') {
         const formData = new FormData()
-        Object.entries(inputValues).forEach(([key, value]) => {
+        Object.entries(requestPayload).forEach(([key, value]) => {
           if (value instanceof File) {
             formData.append(key, value)
           } else {
@@ -101,7 +133,7 @@ const ApiConfiguration = ({
           headers: { 'Content-Type': 'multipart/form-data' }
         })
       } else {
-        response = await http.post(apiConfig.endpoint, inputValues)
+        response = await http.post(apiConfig.endpoint, requestPayload)
       }
 
       const responseTime = Date.now() - startTime
@@ -215,50 +247,69 @@ const ApiConfiguration = ({
 
         {/* Configuration Form */}
         <div className="flex flex-col gap-4 items-start relative shrink-0 w-full overflow-y-auto">
-          {Object.entries(apiConfig.sampleInput).map(([key, field]) => (
-            <div key={key} className="flex flex-col gap-1.5 items-start relative shrink-0 w-full">
-              <label className="font-medium leading-[1.4] text-[12px] text-[#616675] tracking-[-0.12px]">
-                {key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                {field.required && <span className="text-red-500 ml-1">*</span>}
-              </label>
-              
-              {field.type === 'file' ? (
-                <Input
-                  type="file"
-                  onChange={(e) => handleInputChange(key, e.target.files?.[0])}
-                  className="w-full max-w-md"
-                />
-              ) : field.type === 'boolean' ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={inputValues[key] || false}
-                    onChange={(e) => handleInputChange(key, e.target.checked)}
-                    className="h-4 w-4"
+          {Object.entries(apiConfig.sampleInput).map(([key, field]) => {
+            // For eSign, use ArrayOfObjectsInput for documents and signers_info
+            const isArrayOfObjects = isEsignApi && (key === 'documents' || key === 'signers_info')
+            
+            return (
+              <div key={key} className="flex flex-col gap-1.5 items-start relative shrink-0 w-full">
+                {isArrayOfObjects ? (
+                  <ArrayOfObjectsInput
+                    fieldName={key}
+                    field={field}
+                    value={inputValues[key] || []}
+                    onChange={(value) => handleInputChange(key, value)}
+                    onKeyPress={handleKeyPress}
                   />
-                  <span className="text-[12px] text-[#9296a0]">{field.description}</span>
-                </div>
-              ) : (
-                <Input
-                  type={field.type === 'number' ? 'number' : field.type === 'email' ? 'email' : field.type === 'date' ? 'date' : 'text'}
-                  value={inputValues[key] || ''}
-                  onChange={(e) => handleInputChange(key, e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  placeholder={field.example ? `e.g., ${String(field.example)}` : ''}
-                  className="w-full max-w-md border-[#e7e8ea] h-10"
-                />
-              )}
-              
-              {field.description && (
-                <p className="font-normal text-[11px] text-[#9296a0]">
-                  {field.description}
-                </p>
-              )}
-              <p className="font-normal text-[11px] text-[#9296a0]">
-                Example: {String(field.example)}
-              </p>
-            </div>
-          ))}
+                ) : (
+                  <>
+                    <label className="font-medium leading-[1.4] text-[12px] text-[#616675] tracking-[-0.12px]">
+                      {key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                      {field.required && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    
+                    {field.type === 'file' ? (
+                      <Input
+                        type="file"
+                        onChange={(e) => handleInputChange(key, e.target.files?.[0])}
+                        className="w-full max-w-md"
+                      />
+                    ) : field.type === 'boolean' ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={inputValues[key] || false}
+                          onChange={(e) => handleInputChange(key, e.target.checked)}
+                          className="h-4 w-4"
+                        />
+                        <span className="text-[12px] text-[#9296a0]">{field.description}</span>
+                      </div>
+                    ) : (
+                      <Input
+                        type={field.type === 'number' ? 'number' : field.type === 'email' ? 'email' : field.type === 'date' ? 'date' : 'text'}
+                        value={inputValues[key] || ''}
+                        onChange={(e) => handleInputChange(key, e.target.value)}
+                        onKeyDown={handleKeyPress}
+                        placeholder={field.example ? `e.g., ${String(field.example)}` : ''}
+                        className="w-full max-w-md border-[#e7e8ea] h-10"
+                      />
+                    )}
+                    
+                    {field.description && (
+                      <p className="font-normal text-[11px] text-[#9296a0]">
+                        {field.description}
+                      </p>
+                    )}
+                    {!isArrayOfObjects && (
+                      <p className="font-normal text-[11px] text-[#9296a0]">
+                        Example: {String(field.example)}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>
