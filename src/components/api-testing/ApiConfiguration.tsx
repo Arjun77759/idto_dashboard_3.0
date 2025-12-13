@@ -12,9 +12,18 @@ interface ApiConfigurationProps {
   apiEndpoints: ApiEndpoint[] | null
   onApiRun: (response: any) => void
   loading?: boolean
+  isSubscribed?: boolean
+  isProduction?: boolean
 }
 
-const ApiConfiguration = ({ selectedApi, apiEndpoints, onApiRun, loading: pageLoading = false }: ApiConfigurationProps) => {
+const ApiConfiguration = ({ 
+  selectedApi, 
+  apiEndpoints, 
+  onApiRun, 
+  loading: pageLoading = false,
+  isSubscribed = true,
+  isProduction = false
+}: ApiConfigurationProps) => {
   const [inputValues, setInputValues] = useState<Record<string, any>>({})
   const [isLoading, setIsLoading] = useState(false)
   const { data: onboardingStatus } = useOnboardingStatus()
@@ -36,6 +45,20 @@ const ApiConfiguration = ({ selectedApi, apiEndpoints, onApiRun, loading: pageLo
 
   const handleRunApi = async () => {
     if (!apiConfig) return
+
+    // Check if API is subscribed in production mode
+    if (isProduction && !isSubscribed) {
+      onApiRun({
+        success: false,
+        error: {
+          message: `This API is not enabled for your account.`,
+          detail: `Please contact support to enable "${apiConfig.name}" API for your subscription.`
+        },
+        statusCode: 403,
+        message: 'API access denied'
+      })
+      return
+    }
 
     setIsLoading(true)
     const startTime = Date.now()

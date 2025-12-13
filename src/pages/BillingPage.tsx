@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Building, CreditCard, IndianRupee, Plus } from 'lucide-react'
+import { Building, CreditCard, IndianRupee, Plus, AlertTriangle, ArrowRight } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -18,6 +18,8 @@ import { useRazorpay } from '@/hooks/useRazorpay'
 import { useUserProfileStore } from '@/store/userProfileStore'
 import CurrentBalanceCard from '@/components/billing/CurrentBalanceCard'
 import ApiUsageTable from '@/components/billing/ApiUsageTable'
+import SwitchToProductionModal from '@/components/modals/switchToProductionModal/SwitchToProductionModal'
+import { fetchOnboardingStatus } from '@/store/onboardingStore'
 
 const formatCurrency = (value: number) => {
   if (!value) return '-'
@@ -40,6 +42,7 @@ const BillingPage = () => {
   const [stateName, setStateName] = useState<string>(userProfile?.business_state ?? '')
   const [businessAddress, setBusinessAddress] = useState<string>(userProfile?.business_address ?? '')
   const [showBankDetailsModal, setShowBankDetailsModal] = useState(false)
+  const [isSwitchToProductionModalOpen, setIsSwitchToProductionModalOpen] = useState(false)
 
   useEffect(() => {
     setGstNumber(userProfile?.gst_number ?? '')
@@ -130,12 +133,38 @@ const BillingPage = () => {
       </header>
 
       <section className="flex flex-col gap-4 rounded-2xl border border-[#e7e8ea] bg-white p-6">
-        <div className="border-b border-[#e7e8ea] pb-4 flex flex-col gap-2">
-          <p className="text-sm font-bold text-[#616675]">Add Live Credits</p>
-          <p className="text-xs text-[#9296a0]">1 Credit = 1 Rupee</p>
-        </div>
+        {!isProduction ? (
+          // Simulation Mode Message
+          <div className="flex flex-col items-center justify-center gap-6 py-12 px-6">
+            <div className="flex flex-col items-center gap-4 text-center">
+              <div className="flex items-center justify-center size-16 rounded-full bg-[#fff7ea]">
+                <AlertTriangle className="size-8 text-[#b47d1f]" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <p className="text-lg font-semibold text-[#131b31]">
+                  You are in Simulation Mode
+                </p>
+                <p className="text-sm text-[#616675] max-w-md">
+                  Please switch to production to see billing details and add credits.
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={() => setIsSwitchToProductionModalOpen(true)}
+              className="flex items-center gap-2 rounded-lg bg-[#b47d1f] px-6 py-3 text-sm font-medium text-white hover:bg-[#9d6a1a]"
+            >
+              <span>Switch to Production</span>
+              <ArrowRight className="size-4" />
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="border-b border-[#e7e8ea] pb-4 flex flex-col gap-2">
+              <p className="text-sm font-bold text-[#616675]">Add Live Credits</p>
+              <p className="text-xs text-[#9296a0]">1 Credit = 1 Rupee</p>
+            </div>
 
-        <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)_280px]">
+            <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)_280px]">
           <div className="flex flex-col gap-4">
             <Label className="text-xs text-[#616675]">Enter Credit Amount</Label>
             <Input
@@ -294,6 +323,8 @@ const BillingPage = () => {
             </Button>
           </div>
         </div>
+          </>
+        )}
       </section>
 
       <div className='flex gap-4'>
@@ -330,6 +361,24 @@ const BillingPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Switch to Production Modal */}
+      <SwitchToProductionModal
+        isOpen={isSwitchToProductionModalOpen}
+        onClose={() => setIsSwitchToProductionModalOpen(false)}
+        onConfirm={async () => {
+          // Refresh onboarding status to check if user is now in production
+          try {
+            const updatedStatus = await fetchOnboardingStatus()
+            if (updatedStatus?.is_onboarded) {
+              setIsSwitchToProductionModalOpen(false)
+            }
+          } catch (error) {
+            // If refresh fails, still close the modal
+            setIsSwitchToProductionModalOpen(false)
+          }
+        }}
+      />
     </motion.div>
   )
 }
