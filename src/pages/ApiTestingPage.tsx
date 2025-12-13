@@ -5,7 +5,8 @@ import {
   Search,
   Zap,
   Eye,
-  Code2
+  Code2,
+  Info
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -18,6 +19,8 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import type { ApiEndpoint } from '@/config/apiEndpoints'
 import { useMonthlyUsage } from '@/hooks/useMonthlyUsage'
 import { useOpenApiEndpoints, getAllCategories, getAllMethods, getTagsByCategory } from '@/hooks/useOpenApiEndpoints'
+import { useApiSubscriptions } from '@/hooks/useApiSubscriptions'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 import { cn } from '@/lib/utils'
 
 const formatCredits = (value?: number | null) => {
@@ -25,10 +28,48 @@ const formatCredits = (value?: number | null) => {
   return value.toLocaleString('en-IN', { maximumFractionDigits: 2 })
 }
 
+/**
+ * Maps API subscription names from backend to API endpoint IDs
+ * Handles variations in naming conventions
+ */
+const mapSubscriptionNameToApiId = (apiName: string, apiEndpoints: ApiEndpoint[]): string | null => {
+  if (!apiEndpoints) return null
+  
+  const normalizedName = apiName.toLowerCase().trim()
+  
+  // Direct match by ID
+  const directMatch = apiEndpoints.find(api => api.id.toLowerCase() === normalizedName)
+  if (directMatch) return directMatch.id
+  
+  // Match by name (case-insensitive)
+  const nameMatch = apiEndpoints.find(api => 
+    api.name.toLowerCase() === normalizedName || 
+    api.name.toLowerCase().replace(/\s+/g, '_') === normalizedName
+  )
+  if (nameMatch) return nameMatch.id
+  
+  // Fuzzy matching - try to match parts of the name
+  // e.g., "PAN" -> "pan_verification", "Aadhar OKYC" -> "aadhaar_otp"
+  const fuzzyMatch = apiEndpoints.find(api => {
+    const apiNameLower = api.name.toLowerCase()
+    const apiIdLower = api.id.toLowerCase()
+    return (
+      apiNameLower.includes(normalizedName.split(' ')[0]) ||
+      apiIdLower.includes(normalizedName.split(' ')[0].replace(/\s+/g, '_'))
+    )
+  })
+  if (fuzzyMatch) return fuzzyMatch.id
+  
+  return null
+}
+
 const ApiTestingPage = () => {
   const navigate = useNavigate()
   const { data: usageData, loading: usageLoading } = useMonthlyUsage()
   const { data: apiEndpoints, loading: endpointsLoading } = useOpenApiEndpoints()
+  const { data: subscribedApis, loading: subscriptionsLoading } = useApiSubscriptions()
+  const { data: onboardingStatus } = useOnboardingStatus()
+  const isProduction = Boolean(onboardingStatus?.is_onboarded)
 
   const [searchQuery, setSearchQuery] = useState('')
   const [solutionFilter, setSolutionFilter] = useState<'All' | string>('All')
@@ -41,6 +82,17 @@ const ApiTestingPage = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [showSampleResponse, setShowSampleResponse] = useState(false)
 
+  // Get subscribed API IDs
+  const subscribedApiIds = useMemo(() => {
+    if (!subscribedApis || !apiEndpoints || subscribedApis.length === 0) return new Set<string>()
+    return new Set(
+      subscribedApis
+        .map(sub => mapSubscriptionNameToApiId(sub.api_name, apiEndpoints))
+        .filter((id): id is string => id !== null)
+    )
+  }, [subscribedApis, apiEndpoints])
+
+  // Load saved APIs from localStorage
   useEffect(() => {
     if (typeof window === 'undefined') return
     const stored = window.localStorage.getItem('idto-saved-api-testing')
@@ -54,6 +106,16 @@ const ApiTestingPage = () => {
     }
     setSavedApis(['pan_verification'])
   }, [])
+
+  // Auto-pin subscribed APIs when they load
+  useEffect(() => {
+    if (subscribedApiIds.size === 0) return
+    
+    setSavedApis(prev => {
+      const combined = [...new Set([...prev, ...Array.from(subscribedApiIds)])]
+      return combined
+    })
+  }, [subscribedApiIds])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -81,7 +143,9 @@ const ApiTestingPage = () => {
   const filteredApis = useMemo(() => {
     if (!apiEndpoints) return []
     const query = searchQuery.trim().toLowerCase()
-    return apiEndpoints.filter((api) => {
+    
+    // Show all APIs, but we'll check subscription when user tries to run
+    const filtered = apiEndpoints.filter((api) => {
       const matchesSearch =
         !query ||
         api.name.toLowerCase().includes(query) ||
@@ -92,6 +156,15 @@ const ApiTestingPage = () => {
       const matchesTag = tagFilter === 'All' || (api.tags && api.tags.includes(tagFilter))
       const matchesSaved = !showSavedOnly || savedApis.includes(api.id)
       return matchesSearch && matchesSolution && matchesType && matchesTag && matchesSaved
+    })
+    
+    // Sort: pinned APIs first, then others
+    return filtered.sort((a, b) => {
+      const aIsPinned = savedApis.includes(a.id)
+      const bIsPinned = savedApis.includes(b.id)
+      if (aIsPinned && !bIsPinned) return -1
+      if (!aIsPinned && bIsPinned) return 1
+      return 0
     })
   }, [apiEndpoints, searchQuery, solutionFilter, typeFilter, tagFilter, showSavedOnly, savedApis])
 
@@ -107,6 +180,7 @@ const ApiTestingPage = () => {
     setShowSampleResponse(false)
     setIsSheetOpen(true)
   }
+
 
   const toggleSaveApi = (apiId: string) => {
     setSavedApis((prev) => {
@@ -195,15 +269,34 @@ const ApiTestingPage = () => {
             </label> */}
           </div>
 
+          {/* API Access Info Note */}
+          <div className="flex items-start gap-2 rounded-lg border border-[#e7e8ea] bg-[#f0f9ff] p-3">
+            <Info className="size-4 text-[#0019ff] mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-xs font-medium text-[#131b31] mb-1">API Access Information</p>
+              <p className="text-xs text-[#616675] leading-relaxed">
+                All APIs are shown here for reference. APIs marked with a <span className="font-medium text-[#131b31]">green background</span> and "Pinned" badge are automatically pinned from your active subscription. APIs marked as "Not Enabled" require subscription activation. You can only test APIs that are enabled for your account.
+              </p>
+            </div>
+          </div>
+
           <div className="min-h-[400px] border-t-[1px] border-[#e7e8ea] p-3">
-            {endpointsLoading ? (
+            {endpointsLoading || subscriptionsLoading ? (
               <div className="flex h-64 flex-col items-center justify-center gap-2 text-center text-[#9296a0]">
                 <p className="text-sm font-medium">Loading API endpoints...</p>
               </div>
             ) : filteredApis.length === 0 ? (
               <div className="flex h-64 flex-col items-center justify-center gap-2 text-center text-[#9296a0]">
-                <p className="text-sm font-medium">No APIs match the current filters</p>
-                <p className="text-xs">Try adjusting your search or filter selections.</p>
+                <p className="text-sm font-medium">
+                  {subscribedApiIds.size === 0 
+                    ? 'No APIs are currently enabled for your account' 
+                    : 'No APIs match the current filters'}
+                </p>
+                <p className="text-xs">
+                  {subscribedApiIds.size === 0
+                    ? 'Please contact support to enable APIs for your account.'
+                    : 'Try adjusting your search or filter selections.'}
+                </p>
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -212,6 +305,7 @@ const ApiTestingPage = () => {
                     key={api.id}
                     api={api}
                     isPinned={savedApis.includes(api.id)}
+                    isSubscribed={!isProduction || subscribedApiIds.size === 0 || subscribedApiIds.has(api.id)}
                     onSelect={() => handleSelectApi(api.id)}
                     onTogglePin={() => toggleSaveApi(api.id)}
                   />
@@ -277,7 +371,14 @@ const ApiTestingPage = () => {
               </div>
             ) : (
               <>
-                <ApiConfiguration selectedApi={selectedApi} apiEndpoints={apiEndpoints} onApiRun={handleApiRun} loading={endpointsLoading} />
+                <ApiConfiguration 
+                  selectedApi={selectedApi} 
+                  apiEndpoints={apiEndpoints} 
+                  onApiRun={handleApiRun} 
+                  loading={endpointsLoading}
+                  isSubscribed={selectedApi ? (!isProduction || subscribedApiIds.size === 0 || subscribedApiIds.has(selectedApi)) : true}
+                  isProduction={isProduction}
+                />
                 <ApiResponse response={apiResponse} />
               </>
             )}
@@ -288,37 +389,36 @@ const ApiTestingPage = () => {
   )
 }
 
+
 type ApiCardProps = {
   api: ApiEndpoint
   isPinned: boolean
+  isSubscribed: boolean
   onSelect: () => void
   onTogglePin: () => void
 }
 
-const ApiCard = ({ api, isPinned, onSelect, onTogglePin }: ApiCardProps) => (
+const ApiCard = ({ api, isPinned, isSubscribed, onSelect, onTogglePin }: ApiCardProps) => (
   <div
     className={cn(
       'flex h-full cursor-pointer flex-col gap-4 rounded-xl border border-[#e7e8ea] p-4 transition hover:shadow-md',
-      isPinned ? 'bg-[#e6fcf5]' : 'bg-white'
+      isPinned ? 'bg-[#e6fcf5]' : 'bg-white',
+      !isSubscribed && 'opacity-75'
     )}
     onClick={onSelect}
   >
     <div className="flex items-start justify-between gap-3">
-      <div>
-        <p className="text-sm font-semibold text-[#131b31]">{api.name}</p>
+      <div className="flex-1">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold text-[#131b31]">{api.name}</p>
+          {!isSubscribed && (
+            <span className="text-[10px] font-medium text-[#9296a0] bg-[#f7f7f8] px-2 py-0.5 rounded">
+              Not Enabled
+            </span>
+          )}
+        </div>
         <p className="text-xs text-[#616675]">{api.shortDescription}</p>
       </div>
-      {/* <button
-        type="button"
-        className="rounded-full border border-[#e7e8ea] bg-white p-1 text-[#616675] hover:bg-[#f0f0f0]"
-        onClick={(event) => {
-          event.stopPropagation()
-          onTogglePin()
-        }}
-        aria-label={isPinned ? 'Unpin API' : 'Pin API'}
-      >
-        {isPinned ? <Pin className="size-4" /> : <PinOff className="size-4" />}
-      </button> */}
     </div>
     {isPinned && (
       <p className="text-xs font-medium text-[#616675]">
