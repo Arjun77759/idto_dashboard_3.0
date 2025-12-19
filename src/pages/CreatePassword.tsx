@@ -1,4 +1,4 @@
-import { Lock, MoveRight, Eye, EyeOff } from 'lucide-react'
+import { Lock, MoveRight, Eye, EyeOff, Check } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useToast } from '../hooks/use-toast'
@@ -120,12 +120,25 @@ const CreatePassword = () => {
     })
   }
 
+  // Helper functions to check password requirements
+  const checkPasswordRequirements = (password: string) => {
+    return {
+      minLength: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSpecialChar: /[^A-Za-z0-9]/.test(password)
+    }
+  }
+
+  const passwordRequirements = checkPasswordRequirements(formData.password)
+
   return (
     <div className="min-h-screen w-full bg-white px-4 py-8 sm:py-12 flex flex-col gap-[40px]">
       {/* Logo */}
       <div className="flex items-center px-10">
         <svg xmlns="http://www.w3.org/2000/svg" width="57" height="32" viewBox="0 0 57 32" fill="none">
-          <path d="M17.5745 20.5918H11.0039V27.4367H17.5745V20.5918Z" fill="#00E59E" />
+          <path d="M17.5745 20.5918H11.0039V27.4367H17.5745V20.5918Z" fill="#047857" />
           <path d="M17.5748 16.0283V9.1834H11.0042V4.62012H4.43359V20.5916H11.0042V16.0283H17.5748Z" fill="#0019FF" />
           <path d="M23.3594 9.37695C22.97 9.37695 22.6384 9.51956 22.3647 9.80159C22.0909 10.0868 21.957 10.429 21.957 10.8378C21.957 11.2466 22.0939 11.5889 22.3647 11.8741C22.6354 12.1561 22.967 12.2987 23.3594 12.2987C23.7518 12.2987 24.0803 12.1561 24.3541 11.8741C24.6248 11.592 24.7617 11.2466 24.7617 10.8378C24.7617 10.429 24.6248 10.0868 24.3541 9.80159C24.0803 9.51956 23.7518 9.37695 23.3594 9.37695Z" fill="#131B31" />
           <path d="M24.6403 13.2432H22.082V22.8736H24.6403V13.2432Z" fill="#131B31" />
@@ -197,29 +210,73 @@ const CreatePassword = () => {
               </div>
               {errors.confirmPassword ? <p className="text-[12px] text-red-600">{errors.confirmPassword}</p> : null}
               <div>
-                {isResetPassword ? (
-                  <p className="text-[12px] font-medium text-[#616675]">
-                    Must be at least 8 characters, including a number
-                  </p>
-                ) : (
-                  <>
-                    <p className="text-[12px] font-medium text-[#616675] mb-1">Password must contain:</p>
-                    <ul className="text-[12px] text-[#616675] space-y-0.5 ml-4 list-disc">
-                      <li>At least 8 characters</li>
-                      <li>One uppercase letter</li>
-                      <li>One lowercase letter</li>
-                      <li>One number</li>
-                      <li>One special character</li>
-                    </ul>
-                  </>
-                )}
+                <p className="text-[12px] font-medium text-[#616675] mb-2">Password must contain:</p>
+                <ul className="text-[12px] space-y-1.5">
+                  <li className={`flex items-center gap-2 ${passwordRequirements.minLength ? 'text-[#047857]' : 'text-[#616675]'}`}>
+                    <div className={`flex items-center justify-center w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+                      passwordRequirements.minLength 
+                        ? 'bg-[#047857] border-[#047857]' 
+                        : 'border-[#616675]'
+                    }`}>
+                      {passwordRequirements.minLength && (
+                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                      )}
+                    </div>
+                    <span className={passwordRequirements.minLength ? 'font-medium' : ''}>At least 8 characters</span>
+                  </li>
+                  <li className={`flex items-center gap-2 ${passwordRequirements.hasUppercase ? 'text-[#047857]' : 'text-[#616675]'}`}>
+                    <div className={`flex items-center justify-center w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+                      passwordRequirements.hasUppercase 
+                        ? 'bg-[#047857] border-[#047857]' 
+                        : 'border-[#616675]'
+                    }`}>
+                      {passwordRequirements.hasUppercase && (
+                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                      )}
+                    </div>
+                    <span className={passwordRequirements.hasUppercase ? 'font-medium' : ''}>One uppercase letter</span>
+                  </li>
+                  <li className={`flex items-center gap-2 ${passwordRequirements.hasLowercase ? 'text-[#047857]' : 'text-[#616675]'}`}>
+                    <div className={`flex items-center justify-center w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+                      passwordRequirements.hasLowercase 
+                        ? 'bg-[#047857] border-[#047857]' 
+                        : 'border-[#616675]'
+                    }`}>
+                      {passwordRequirements.hasLowercase && (
+                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                      )}
+                    </div>
+                    <span className={passwordRequirements.hasLowercase ? 'font-medium' : ''}>One lowercase letter</span>
+                  </li>
+                  <li className={`flex items-center gap-2 ${passwordRequirements.hasNumber ? 'text-[#047857]' : 'text-[#616675]'}`}>
+                    <div className={`flex items-center justify-center w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+                      passwordRequirements.hasNumber 
+                        ? 'bg-[#047857] border-[#047857]' 
+                        : 'border-[#616675]'
+                    }`}>
+                      {passwordRequirements.hasNumber && (
+                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                      )}
+                    </div>
+                    <span className={passwordRequirements.hasNumber ? 'font-medium' : ''}>One number</span>
+                  </li>
+                  <li className={`flex items-center gap-2 ${passwordRequirements.hasSpecialChar ? 'text-[#047857]' : 'text-[#616675]'}`}>
+                    <div className={`flex items-center justify-center w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+                      passwordRequirements.hasSpecialChar 
+                        ? 'bg-[#047857] border-[#047857]' 
+                        : 'border-[#616675]'
+                    }`}>
+                      {passwordRequirements.hasSpecialChar && (
+                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                      )}
+                    </div>
+                    <span className={passwordRequirements.hasSpecialChar ? 'font-medium' : ''}>One special character</span>
+                  </li>
+                </ul>
               </div>
             </div>
 
             {errors.form ? <p className="text-[13px] text-red-600">{errors.form}</p> : null}
-
-            {/* Password Requirements */}
-
 
             <button
               type="submit"
