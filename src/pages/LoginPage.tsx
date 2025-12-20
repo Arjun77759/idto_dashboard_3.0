@@ -1,14 +1,14 @@
-import { Mail, Eye, EyeOff, MoveRight, ArrowUpRight } from 'lucide-react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-import { login, firebaseAuth } from '../api/authApi'
-import { setAuth } from '../lib/auth'
-import { useToast } from '@/hooks/use-toast'
-import { signInWithPopup } from 'firebase/auth'
-import { auth, googleProvider } from '../lib/firebase'
-import TermsOfServiceModal from '../components/modals/TermsOfServiceModal'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useToast } from '@/hooks/use-toast'
 import { fetchOnboardingStatus } from '@/store/onboardingStore'
+import { signInWithPopup } from 'firebase/auth'
+import { ArrowUpRight, Eye, EyeOff, Mail, MoveRight } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { firebaseAuth, login } from '../api/authApi'
+import TermsOfServiceModal from '../components/modals/TermsOfServiceModal'
+import { setAuth } from '../lib/auth'
+import { auth, googleProvider } from '../lib/firebase'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -55,12 +55,12 @@ const LoginPage = () => {
       setSubmitting(true)
       const res = await login({ email: formData.email, password: formData.password })
       setAuth({ access_token: res.access_token, user_agent: res.user_agent }, { persist: keepSignedIn })
-      
+
       // Check onboarding status to determine redirect
       try {
         const onboardingStatus = await fetchOnboardingStatus()
         const isProduction = Boolean(onboardingStatus?.is_onboarded)
-        
+
         if (isMobile && isProduction) {
           navigate('/mobile-production-redirect')
         } else if (isMobile && !isProduction) {
@@ -72,7 +72,7 @@ const LoginPage = () => {
         // If onboarding status fetch fails, default to dashboard
         navigate('/dashboard')
       }
-      
+
       toast({
         title: "Login successful",
         description: "Welcome back! Redirecting...",
@@ -117,7 +117,7 @@ const LoginPage = () => {
       try {
         const onboardingStatus = await fetchOnboardingStatus()
         const isProduction = Boolean(onboardingStatus?.is_onboarded)
-        
+
         if (isMobile && isProduction) {
           navigate('/mobile-production-redirect')
         } else if (isMobile && !isProduction) {
@@ -278,6 +278,7 @@ const LoginPage = () => {
                   </button>
                 </div>
               </div>
+              <div className="h-px w-full bg-[#e7e8ea]" />
             </div>
 
             {/* Terms of Service */}
