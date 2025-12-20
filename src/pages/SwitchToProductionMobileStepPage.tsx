@@ -22,7 +22,7 @@ const SwitchToProductionMobileStepPage = () => {
 
     const isProduction = Boolean(onboardingStatus?.is_onboarded)
     const stepOrder = ['basic-details', 'business-info', 'pan-gst', 'director-kyc']
-    
+
     // Get user initials for avatar
     const getUserInitials = () => {
         if (userProfile?.name) {
@@ -111,13 +111,14 @@ const SwitchToProductionMobileStepPage = () => {
         </svg>
     )
 
-    // Calculate progress: 5 steps total (basic-details, business-info, pan, gst, director-kyc)
-    // Map our 4 steps to 5 progress indicators
+    // Calculate progress: 5 steps total
+    // Map our 4 route steps to 5 progress indicators
+    // Steps: 1. basic-details, 2. business-info, 3-4. pan-gst (PAN + GST combined), 5. director-kyc
     const getProgressStep = () => {
-        if (step === 'basic-details') return 0
-        if (step === 'business-info') return 1
-        if (step === 'pan-gst') return 2 // This represents both PAN and GST
-        if (step === 'director-kyc') return 4 // Last step
+        if (step === 'basic-details') return 0 // Step 1 of 5 (fills first indicator)
+        if (step === 'business-info') return 1 // Step 2 of 5 (fills first 2 indicators)
+        if (step === 'pan-gst') return 3 // Steps 3-4 of 5 (fills first 4 indicators, since PAN+GST are combined)
+        if (step === 'director-kyc') return 4 // Step 5 of 5 (fills all 5 indicators)
         return 0
     }
 
@@ -125,7 +126,7 @@ const SwitchToProductionMobileStepPage = () => {
     const totalSteps = 5
 
     return (
-        <div className="min-h-screen w-full bg-white flex flex-col gap-8 p-5">
+        <div className="h-screen w-full bg-white flex flex-col gap-8 p-5 overflow-y-auto">
             {/* Header with Logo and Avatar */}
             <div className="flex items-center justify-between px-0 py-1.5">
                 <Logo />
@@ -143,15 +144,14 @@ const SwitchToProductionMobileStepPage = () => {
                 {Array.from({ length: totalSteps }).map((_, index) => (
                     <div
                         key={index}
-                        className={`flex-1 h-1.5 rounded-[55px] ${
-                            index <= progressStep ? 'bg-[#0019FF]' : 'bg-[#d9d9d9]'
-                        }`}
+                        className={`flex-1 h-1.5 rounded-[55px] ${index <= progressStep ? 'bg-[#0019FF]' : 'bg-[#d9d9d9]'
+                            }`}
                     />
                 ))}
             </div>
 
             {/* Step Form Content */}
-            <div className="flex-1 flex flex-col gap-4 min-h-0">
+            <div className="flex-1 flex flex-col min-h-0">
                 {step === 'director-kyc' ? (
                     <DirectorKYCForm
                         onNext={handleNext}

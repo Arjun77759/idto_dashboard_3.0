@@ -44,7 +44,7 @@ const PostSignupInfoPage = () => {
   )
 
   const handleContinue = () => {
-    navigate('/dashboard')
+    navigate('/switch-to-production-mobile')
   }
 
   return (

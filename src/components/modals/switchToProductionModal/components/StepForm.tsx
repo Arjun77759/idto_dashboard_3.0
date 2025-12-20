@@ -41,6 +41,7 @@ const StepForm = ({ currentStep, onNext, onPrevious, showPrevious = false, isLoa
   return (
     <div className="basis-0 grow h-full min-h-px min-w-px relative shrink-0">
       {renderStepForm()}
+      <div className="min-h-[20px]" />
     </div>
   )
 }

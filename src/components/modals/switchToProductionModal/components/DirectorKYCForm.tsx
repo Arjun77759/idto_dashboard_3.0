@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ArrowRight, AlertCircle } from "lucide-react"
 import type { OnboardingStatus } from '@/hooks/useOnboardingStatus'
 import type { OnboardingStepsStatus } from '@/hooks/useOnboardingSteps'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 interface DirectorKYCFormProps {
   onNext: () => void
@@ -14,6 +15,7 @@ interface DirectorKYCFormProps {
 }
 
 const DirectorKYCForm = ({ onNext: _onNext, onPrevious: _onPrevious, showPrevious: _showPrevious = false, isLoading: externalLoading = false, initialData: _initialData, stepsStatus: _stepsStatus, onSkip: _onSkip }: DirectorKYCFormProps) => {
+  const isMobile = useIsMobile()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -43,6 +45,104 @@ const DirectorKYCForm = ({ onNext: _onNext, onPrevious: _onPrevious, showPreviou
     }
   }
 
+  // Mobile layout matching Figma
+  if (isMobile) {
+    return (
+      <div className="flex flex-col gap-8 w-full">
+        {/* Title and Subtitle - Centered */}
+        <div className="flex flex-col gap-2 items-center text-center w-full">
+          <h2 className="text-[24px] font-[500] leading-[1.24] text-[#131b31] tracking-[-0.24px] w-full">
+            KYC with Digilocker
+          </h2>
+          <p className="text-[14px] font-medium leading-[20px] text-[#616675] tracking-[-0.14px] w-full">
+            You'll be redirected to Digilocker to verify your details securely.
+          </p>
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-col gap-4 items-center w-full">
+          {/* Digilocker Image */}
+          <div className="h-[213px] relative rounded-3xl w-[212px]">
+            <img
+              alt="Digilocker"
+              className="absolute inset-0 max-w-none object-cover pointer-events-none rounded-3xl size-full"
+              src={'https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/digilocker_preview.png'}
+            />
+          </div>
+
+          {/* Security Badge */}
+          <div className="flex gap-1 items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path fillRule="evenodd" clipRule="evenodd" d="M10 19.275L1.25 14.6698V1.7605L2.46075 2.16408C4.53783 2.85644 6.81375 2.60661 8.69117 1.48016L10.0235 0.680786L10.9502 1.29866C12.8097 2.53828 15.1251 2.88413 17.2657 2.24197L18.75 1.79667V14.6698L10 19.275Z" fill="#44BD42" />
+            </svg>
+            <p className="font-semibold leading-6 text-[#44bd42] text-sm tracking-[-0.28px]">
+              Secured by Govt. of India
+            </p>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="flex gap-3 items-start p-4 bg-red-50 border border-red-200 rounded-lg w-full">
+              <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-900 mb-1">Verification Failed</p>
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Info Box */}
+          <div className="flex gap-3 items-start p-4 bg-blue-50 border border-blue-200 rounded-lg w-full">
+            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 flex-shrink-0 mt-0.5">
+              <span className="text-white text-xs font-bold">i</span>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-blue-900 mb-1">What happens next?</p>
+              <p className="text-sm text-blue-700">
+                You'll be securely redirected to DigiLocker to verify your Aadhaar. After verification, you'll return here automatically to complete your KYB application.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons - Centered at bottom */}
+        <div className="flex flex-col items-center justify-end w-full gap-3 mt-auto">
+          <button
+            onClick={handleContinue}
+            disabled={isLoading || externalLoading}
+            className="flex h-12 w-full max-w-[353px] items-center justify-center gap-2 rounded-[8px] border border-[#e7e8ea] bg-[#E6E8FF] text-[12px] font-bold leading-[16px] text-[#0019FF] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 tracking-[-0.12px]"
+          >
+            {isLoading || externalLoading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-[#0019ff] border-t-transparent rounded-full animate-spin" />
+                <span>Processing...</span>
+              </>
+            ) : (
+              <>
+                Continue
+                <ArrowRight className="size-4" strokeWidth={2} />
+              </>
+            )}
+          </button>
+          {typeof _onSkip === 'function' && (
+            <button
+              type="button"
+              onClick={() => {
+                setIsLoading(true)
+                _onSkip()
+              }}
+              disabled={isLoading || externalLoading}
+              className="px-4 py-2 rounded-lg border border-[#44bd42] bg-white text-[#44bd42] font-medium hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+              Skip
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Desktop layout (existing)
   return (
     <div className="bg-white border border-[#e7e8ea] border-solid h-full min-h-0 w-full relative rounded overflow-hidden flex flex-col">
       <div className="flex flex-col gap-4 items-start p-6 relative rounded-[inherit] w-full min-h-0">
@@ -108,24 +208,25 @@ const DirectorKYCForm = ({ onNext: _onNext, onPrevious: _onPrevious, showPreviou
 
         {/* Action Buttons - pinned to bottom */}
         <div className="flex items-center justify-between w-full gap-3 mt-auto">
-          <div className="flex items-center justify-start">
-            <button
-              type="button"
-              onClick={() => {
-                setIsLoading(true)
-                // prefer explicit skip handler if provided, otherwise fall back to onNext()
-                if (typeof _onSkip === 'function') {
-                  _onSkip()
-                } else {
-                  _onNext?.()
-                }
-              }}
-              disabled={isLoading || externalLoading}
-              className="px-4 py-2 rounded-lg border border-[#44bd42] bg-white text-[#44bd42] font-medium hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Skip
-            </button>
-          </div>
+          {isMobile ? <></> :
+            <div className="flex items-center justify-start">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLoading(true)
+                  // prefer explicit skip handler if provided, otherwise fall back to onNext()
+                  if (typeof _onSkip === 'function') {
+                    _onSkip()
+                  } else {
+                    _onNext?.()
+                  }
+                }}
+                disabled={isLoading || externalLoading}
+                className="px-4 py-2 rounded-lg border border-[#44bd42] bg-white text-[#44bd42] font-medium hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Skip
+              </button>
+            </div>}
 
           <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid relative rounded-lg">
             <button
