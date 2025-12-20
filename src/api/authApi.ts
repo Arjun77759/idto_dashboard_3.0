@@ -32,6 +32,8 @@ export async function register(payload: RegisterPayload): Promise<RegisterRespon
 export type CreatePasswordPayload = {
   customer_id: string
   password: string
+  full_name?: string
+  organisation_name?: string
   token?: string
 }
 
