@@ -1,8 +1,8 @@
-import { useState } from 'react'
-import { ArrowRight, AlertCircle } from "lucide-react"
+import { useIsMobile } from '@/hooks/use-mobile'
 import type { OnboardingStatus } from '@/hooks/useOnboardingStatus'
 import type { OnboardingStepsStatus } from '@/hooks/useOnboardingSteps'
-import { useIsMobile } from '@/hooks/use-mobile'
+import { AlertCircle, ArrowRight } from "lucide-react"
+import { useState } from 'react'
 
 interface DirectorKYCFormProps {
   onNext: () => void
@@ -124,19 +124,7 @@ const DirectorKYCForm = ({ onNext: _onNext, onPrevious: _onPrevious, showPreviou
               </>
             )}
           </button>
-          {typeof _onSkip === 'function' && (
-            <button
-              type="button"
-              onClick={() => {
-                setIsLoading(true)
-                _onSkip()
-              }}
-              disabled={isLoading || externalLoading}
-              className="px-4 py-2 rounded-lg border border-[#44bd42] bg-white text-[#44bd42] font-medium hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-            >
-              Skip
-            </button>
-          )}
+          <div className='min-h-[20px]' />
         </div>
       </div>
     )

@@ -102,7 +102,9 @@ const RegisterPage = () => {
         const onboardingStatus = await fetchOnboardingStatus()
         const isProduction = Boolean(onboardingStatus?.is_onboarded)
         
-        if (isMobile && !isProduction) {
+        if (isMobile && isProduction) {
+          navigate('/mobile-production-redirect')
+        } else if (isMobile && !isProduction) {
           navigate('/post-signup-info')
         } else {
           navigate('/dashboard')

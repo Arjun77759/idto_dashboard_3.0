@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react'
+import CompanyHeader from '@/components/dashboard/CompanyHeader'
+import EnvironmentStatus from '@/components/dashboard/EnvironmentStatus'
+import SimulationModeModal from '@/components/modals/simulationModeModal/SimulationModeModal'
+import SwitchToProductionModal from '@/components/modals/switchToProductionModal/SwitchToProductionModal'
 import Sidebar from '@/components/Sidebar'
+import { useSimulationModeModal } from '@/contexts/SimulationModeModalContext'
+import { useIsMobile } from '@/hooks/use-mobile'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
+import { getAccessToken } from '@/lib/auth'
 import { motion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
-import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { getAccessToken } from '@/lib/auth'
-import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
-import EnvironmentStatus from '@/components/dashboard/EnvironmentStatus'
-import CompanyHeader from '@/components/dashboard/CompanyHeader'
-import SimulationModeModal from '@/components/modals/simulationModeModal/SimulationModeModal'
-import { useSimulationModeModal } from '@/contexts/SimulationModeModalContext'
-import SwitchToProductionModal from '@/components/modals/switchToProductionModal/SwitchToProductionModal'
-import { useIsMobile } from '@/hooks/use-mobile'
+import { useEffect, useState } from 'react'
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 const PrivateLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false) // Start closed on mobile
@@ -33,13 +33,16 @@ const PrivateLayout = () => {
   }
 
   // Redirect mobile non-production users from dashboard to post-signup-info
-  // useEffect(() => {
-  //   if (token && !onboardingLoading && location.pathname === '/dashboard') {
-  //     if (isMobile && !isProduction) {
-  //       navigate('/post-signup-info', { replace: true })
-  //     }
-  //   }
-  // }, [token, onboardingLoading, isMobile, isProduction, location.pathname, navigate])
+  useEffect(() => {
+    if (isMobile && !onboardingLoading) {
+      if (!isProduction) {
+        navigate('/post-signup-info', { replace: true })
+      }
+      else {
+        navigate('/mobile-production-redirect', { replace: true })
+      }
+    }
+  }, [token, onboardingLoading, isMobile, isProduction, location.pathname, navigate])
 
   if (!token) {
     return <Navigate to="/login" replace />
