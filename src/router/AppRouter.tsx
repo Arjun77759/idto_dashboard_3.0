@@ -19,6 +19,8 @@ import ApiCredentialsPage from '../pages/ApiCredentialsPage'
 import ForgetPasswordPage from '../pages/ForgetPasswordPage'
 import ResetPasswordCheckInboxPage from '../pages/ResetPasswordCheckInboxPage'
 import PostSignupInfoPage from '../pages/PostSignupInfoPage'
+import SwitchToProductionMobilePage from '../pages/SwitchToProductionMobilePage'
+import SwitchToProductionMobileStepPage from '../pages/SwitchToProductionMobileStepPage'
 
 // Refactored route configuration for better readability and maintainability
 const publicRoutes = [
@@ -174,6 +176,14 @@ const router = createBrowserRouter([
   {
     path: '/post-signup-info',
     element: <PostSignupInfoPage />
+  },
+  {
+    path: '/switch-to-production-mobile',
+    element: <SwitchToProductionMobilePage />
+  },
+  {
+    path: '/switch-to-production-mobile/:step',
+    element: <SwitchToProductionMobileStepPage />
   }
 ])
 
