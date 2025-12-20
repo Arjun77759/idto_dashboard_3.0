@@ -207,19 +207,19 @@ const CreatePassword = () => {
     return (
       <div className="min-h-screen w-full bg-white flex flex-col">
         {/* Logo at top left */}
-        <div className="px-4 pt-6 pb-4">
+        <div className="px-4 pt-6 pb-8">
           <Logo />
         </div>
 
         {/* Main content - centered vertically */}
-        <div className="flex-1 flex items-center justify-center px-4 pb-8">
+        <div className="flex-1 flex justify-center px-4 pb-8">
           <div className="w-full max-w-full flex flex-col gap-6">
             {/* Title and subtitle */}
             <div className="text-center flex flex-col gap-2">
-              <h1 className="text-[24px] font-[500] leading-[1.24] text-[#131b31] tracking-[-0.24px]">
+              <h1 className="text-[24px] font-[500] leading-[1.25] text-[#131b31]">
                 Setup your Account
               </h1>
-              <p className="text-[14px] font-medium leading-[20px] text-[#616675] tracking-[-0.14px]">
+              <p className="text-[14px] font-medium leading-[20px] text-[#616675]">
                 Please enter your details
               </p>
             </div>
@@ -229,7 +229,7 @@ const CreatePassword = () => {
               {/* Full Name field - only show if not reset password */}
               {!isResetPassword && (
                 <div className="flex flex-col gap-1">
-                  <label className="text-[12px] font-medium leading-[16.8px] text-[#616675] tracking-[-0.12px]">
+                  <label className="text-[12px] font-medium leading-[16.8px] text-[#616675]">
                     Full Name
                   </label>
                   <div className="flex h-12 items-center gap-2 rounded-[6px] border border-[#e7e8ea] bg-[#f7f7f8] px-3">
@@ -239,7 +239,7 @@ const CreatePassword = () => {
                       value={formData.fullName}
                       onChange={handleChange}
                       placeholder="Enter your full name"
-                      className="flex-1 border-none bg-transparent text-[16px] font-medium leading-[24px] text-[#1c252e] outline-none placeholder:text-[#9296a0] tracking-[-0.16px]"
+                      className="flex-1 border-none bg-transparent text-[16px] font-medium leading-[24px] text-[#1c252e] outline-none placeholder:text-[#9296a0]"
                     />
                   </div>
                   {errors.fullName && <p className="text-[12px] text-red-600">{errors.fullName}</p>}
@@ -249,7 +249,7 @@ const CreatePassword = () => {
               {/* Organization Name field - only show if not reset password */}
               {!isResetPassword && (
                 <div className="flex flex-col gap-1">
-                  <label className="text-[12px] font-medium leading-[16.8px] text-[#616675] tracking-[-0.12px]">
+                  <label className="text-[12px] font-medium leading-[16.8px] text-[#616675]">
                     Organization Name
                   </label>
                   <div className="flex h-12 items-center gap-2 rounded-[6px] border border-[#e7e8ea] bg-[#f7f7f8] px-3">
@@ -259,7 +259,7 @@ const CreatePassword = () => {
                       value={formData.organisationName}
                       onChange={handleChange}
                       placeholder="Enter your organization name"
-                      className="flex-1 border-none bg-transparent text-[16px] font-medium leading-[24px] text-[#1c252e] outline-none placeholder:text-[#9296a0] tracking-[-0.16px]"
+                      className="flex-1 border-none bg-transparent text-[16px] font-medium leading-[24px] text-[#1c252e] outline-none placeholder:text-[#9296a0]"
                     />
                   </div>
                   {errors.organisationName && <p className="text-[12px] text-red-600">{errors.organisationName}</p>}
@@ -268,7 +268,7 @@ const CreatePassword = () => {
 
               {/* New Password field */}
               <div className="flex flex-col gap-1">
-                <label className="text-[12px] font-medium leading-[16.8px] text-[#616675] tracking-[-0.12px]">
+                <label className="text-[12px] font-medium leading-[16.8px] text-[#616675]">
                   New Password
                 </label>
                 <div className="flex h-12 items-center gap-2 rounded-[6px] border border-[#e7e8ea] bg-[#f7f7f8] px-3">
@@ -278,7 +278,7 @@ const CreatePassword = () => {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="********"
-                    className="flex-1 border-none bg-transparent text-[16px] font-medium leading-[24px] text-[#1c252e] outline-none placeholder:text-[#9296a0] tracking-[-0.16px]"
+                    className="flex-1 border-none bg-transparent text-[16px] font-medium leading-[24px] text-[#1c252e] outline-none placeholder:text-[#9296a0]"
                   />
                   <button
                     type="button"
@@ -295,7 +295,7 @@ const CreatePassword = () => {
 
               {/* Confirm Password field */}
               <div className="flex flex-col gap-1">
-                <label className="text-[12px] font-medium leading-[16.8px] text-[#616675] tracking-[-0.12px]">
+                <label className="text-[12px] font-medium leading-[16.8px] text-[#616675]">
                   Confirm Password
                 </label>
                 <div className="flex h-12 items-center gap-2 rounded-[6px] border border-[#e7e8ea] bg-[#f7f7f8] px-3">
@@ -305,7 +305,7 @@ const CreatePassword = () => {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     placeholder="********"
-                    className="flex-1 border-none bg-transparent text-[16px] font-medium leading-[24px] text-[#1c252e] outline-none placeholder:text-[#9296a0] tracking-[-0.16px]"
+                    className="flex-1 border-none bg-transparent text-[16px] font-medium leading-[24px] text-[#1c252e] outline-none placeholder:text-[#9296a0]"
                   />
                   <button
                     type="button"
@@ -326,7 +326,7 @@ const CreatePassword = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-[8px] border border-[#e7e8ea] bg-[#E6E8FF] text-[12px] font-bold leading-[16px] text-[#0019FF] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 tracking-[-0.12px]"
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#e7e8ea] bg-[#E6E8FF] text-[12px] font-bold leading-[16px] text-[#0019FF] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submitting ? 'Processing...' : 'Proceed'}
                 <MoveRight className="size-4" strokeWidth={2} />
