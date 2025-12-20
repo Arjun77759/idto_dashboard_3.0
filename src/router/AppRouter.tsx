@@ -18,6 +18,7 @@ import KYCCallbackPage from '@/pages/KYCCallbackPage'
 import ApiCredentialsPage from '../pages/ApiCredentialsPage'
 import ForgetPasswordPage from '../pages/ForgetPasswordPage'
 import ResetPasswordCheckInboxPage from '../pages/ResetPasswordCheckInboxPage'
+import PostSignupInfoPage from '../pages/PostSignupInfoPage'
 
 // Refactored route configuration for better readability and maintainability
 const publicRoutes = [
@@ -168,6 +169,11 @@ const router = createBrowserRouter([
     path: '/transactions',
     element: <PrivateLayout />,
     children: transactionsRoutes,
+  }
+  ,
+  {
+    path: '/post-signup-info',
+    element: <PostSignupInfoPage />
   }
 ])
 

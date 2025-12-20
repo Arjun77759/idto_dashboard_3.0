@@ -8,6 +8,7 @@ import { signInWithPopup } from 'firebase/auth'
 import { auth, googleProvider } from '../lib/firebase'
 import TermsOfServiceModal from '../components/modals/TermsOfServiceModal'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { fetchOnboardingStatus } from '@/store/onboardingStore'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -54,11 +55,26 @@ const LoginPage = () => {
       setSubmitting(true)
       const res = await login({ email: formData.email, password: formData.password })
       setAuth({ access_token: res.access_token, user_agent: res.user_agent }, { persist: keepSignedIn })
+      
+      // Check onboarding status to determine redirect
+      try {
+        const onboardingStatus = await fetchOnboardingStatus()
+        const isProduction = Boolean(onboardingStatus?.is_onboarded)
+        
+        if (isMobile && !isProduction) {
+          navigate('/post-signup-info')
+        } else {
+          navigate('/dashboard')
+        }
+      } catch {
+        // If onboarding status fetch fails, default to dashboard
+        navigate('/dashboard')
+      }
+      
       toast({
         title: "Login successful",
-        description: "Welcome back! Redirecting to dashboard...",
+        description: "Welcome back! Redirecting...",
       })
-      navigate('/dashboard')
     } catch (err: any) {
       const detail = err?.response?.data?.detail
       const message = detail || err?.response?.data?.message || 'Failed to sign in'
@@ -95,12 +111,25 @@ const LoginPage = () => {
       // Store access token
       setAuth({ access_token: res.access_token, user_agent: 'google' }, { persist: keepSignedIn })
 
+      // Check onboarding status to determine redirect
+      try {
+        const onboardingStatus = await fetchOnboardingStatus()
+        const isProduction = Boolean(onboardingStatus?.is_onboarded)
+        
+        if (isMobile && !isProduction) {
+          navigate('/post-signup-info')
+        } else {
+          navigate('/dashboard')
+        }
+      } catch {
+        // If onboarding status fetch fails, default to dashboard
+        navigate('/dashboard')
+      }
+
       toast({
         title: "Login successful",
-        description: "Welcome! Redirecting to dashboard...",
+        description: "Welcome! Redirecting...",
       })
-
-      navigate('/dashboard')
     } catch (err: any) {
       const detail = err?.response?.data?.detail
       const message = detail || err?.message || 'Failed to sign in with Google'

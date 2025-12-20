@@ -8,6 +8,7 @@ import { setAuth } from '../lib/auth'
 import { useToast } from '@/hooks/use-toast'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { fetchOnboardingStatus } from '@/store/onboardingStore'
 import TermsOfServiceModal from '../components/modals/TermsOfServiceModal'
 
 const CheckInboxPage = () => {
@@ -87,12 +88,25 @@ const CheckInboxPage = () => {
       // Store access token
       setAuth({ access_token: res.access_token, user_agent: 'google' })
       
+      // Check onboarding status to determine redirect
+      try {
+        const onboardingStatus = await fetchOnboardingStatus()
+        const isProduction = Boolean(onboardingStatus?.is_onboarded)
+        
+        if (isMobile && !isProduction) {
+          navigate('/post-signup-info')
+        } else {
+          navigate('/dashboard')
+        }
+      } catch {
+        // If onboarding status fetch fails, default to dashboard
+        navigate('/dashboard')
+      }
+      
       toast({
         title: "Signup successful",
-        description: "Welcome! Redirecting to dashboard...",
+        description: "Welcome! Redirecting...",
       })
-      
-      navigate('/dashboard')
     } catch (err: any) {
       const detail = err?.response?.data?.detail
       const message = detail || err?.message || 'Failed to sign up with Google'

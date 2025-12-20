@@ -8,6 +8,7 @@ import { auth, googleProvider } from '../lib/firebase'
 import { setAuth } from '../lib/auth'
 import TermsOfServiceModal from '../components/modals/TermsOfServiceModal'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { fetchOnboardingStatus } from '@/store/onboardingStore'
 
 const RegisterPage = () => {
   const navigate = useNavigate()
@@ -96,12 +97,25 @@ const RegisterPage = () => {
       // Store access token
       setAuth({ access_token: res.access_token, user_agent: 'google' })
 
+      // Check onboarding status to determine redirect
+      try {
+        const onboardingStatus = await fetchOnboardingStatus()
+        const isProduction = Boolean(onboardingStatus?.is_onboarded)
+        
+        if (isMobile && !isProduction) {
+          navigate('/post-signup-info')
+        } else {
+          navigate('/dashboard')
+        }
+      } catch {
+        // If onboarding status fetch fails, default to dashboard
+        navigate('/dashboard')
+      }
+
       toast({
         title: "Signup successful",
-        description: "Welcome! Redirecting to dashboard...",
+        description: "Welcome! Redirecting...",
       })
-
-      navigate('/dashboard')
     } catch (err: any) {
       const detail = err?.response?.data?.detail
       const message = detail || err?.message || 'Failed to sign up with Google'
