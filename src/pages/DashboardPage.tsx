@@ -5,10 +5,20 @@ import ActionCards from '@/components/dashboard/ActionCards'
 import ChartSection from '@/components/dashboard/ChartSection'
 import InvoicesTable from '@/components/dashboard/InvoicesTable'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
+import { useIsMobile } from '@/hooks/use-mobile'
+import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 
 const DashboardPage = () => {
   const { data: onboardingStatus } = useOnboardingStatus()
   const showWelcomeSection = onboardingStatus ? !onboardingStatus.is_onboarded : true
+  const isMobile = useIsMobile()
+  const navigate = useNavigate()
+  useEffect(() => {
+    if (isMobile) {
+      navigate('/mobile-production-redirect')
+    }
+  }, [isMobile])
 
   return (
     <motion.div

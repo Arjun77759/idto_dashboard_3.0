@@ -1,25 +1,29 @@
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
+import { useIsMobile } from '@/hooks/use-mobile'
+import CreatePassword from '@/pages/CreatePassword'
+import KYCCallbackPage from '@/pages/KYCCallbackPage'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import PrivateLayout from '../layouts/PrivateLayout'
 import PublicLayout from '../layouts/PublicLayout'
 import AnalyticsPage from '../pages/AnalyticsPage'
+import ApiCredentialsPage from '../pages/ApiCredentialsPage'
 import ApiTestingPage from '../pages/ApiTestingPage'
 import BillingPage from '../pages/BillingPage'
+import CheckInboxPage from '../pages/CheckInboxPage'
 import DashboardPage from '../pages/DashboardPage'
+import ForgetPasswordPage from '../pages/ForgetPasswordPage'
 import HomePage from '../pages/HomePage'
 import LoginPage from '../pages/LoginPage'
+import MobileProductionRedirectPage from '../pages/MobileProductionRedirectPage'
+import PostSignupInfoPage from '../pages/PostSignupInfoPage'
 import RegisterPage from '../pages/RegisterPage'
-import CheckInboxPage from '../pages/CheckInboxPage'
+import ResetPasswordCheckInboxPage from '../pages/ResetPasswordCheckInboxPage'
 import SettingsPage from '../pages/SettingsPage'
+import SwitchToProductionMobilePage from '../pages/SwitchToProductionMobilePage'
+import SwitchToProductionMobileStepPage from '../pages/SwitchToProductionMobileStepPage'
 import TransactionDetailPage from '../pages/TransactionDetailPage'
 import TransactionsPage from '../pages/TransactionsPage'
 import UsersPage from '../pages/UsersPage'
-import CreatePassword from '@/pages/CreatePassword'
-import KYCCallbackPage from '@/pages/KYCCallbackPage'
-import ApiCredentialsPage from '../pages/ApiCredentialsPage'
-import ForgetPasswordPage from '../pages/ForgetPasswordPage'
-import ResetPasswordCheckInboxPage from '../pages/ResetPasswordCheckInboxPage'
 
-// Refactored route configuration for better readability and maintainability
 const publicRoutes = [
   {
     index: true,
@@ -123,54 +127,100 @@ const transactionsRoutes = [
   }
 ]
 
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <PublicLayout />,
-    children: publicRoutes,
-  },
-  {
-    path: '/billing',
-    element: <PrivateLayout />,
-    children: billingRoutes,
-  },
-  {
-    path: '/analytics',
-    element: <PrivateLayout />,
-    children: analyticsRoutes,
-  },
-  {
-    path: '/dashboard',
-    element: <PrivateLayout />,
-    children: dashboardRoutes,
-  },
-  {
-    path: '/users',
-    element: <PrivateLayout />,
-    children: usersRoutes,
-  },
-  {
-    path: '/settings',
-    element: <PrivateLayout />,
-    children: settingsRoutes,
-  },
-  {
-    path: '/api-testing',
-    element: <PrivateLayout />,
-    children: apiTestingRoutes,
-  },
-  {
-    path: '/api-credentials',
-    element: <PrivateLayout />,
-    children: apiCredentialsRoutes,
-  },
-  {
-    path: '/transactions',
-    element: <PrivateLayout />,
-    children: transactionsRoutes,
-  }
-])
+// Only enable '/mobile-production-redirect' for mobile; all other routes for non-mobile
+const AppRouter = () => {
+  const isMobile = useIsMobile()
 
-const AppRouter = () => <RouterProvider router={router} />
+  // If mobile, only allow '/mobile-production-redirect'
+  const mobileOnlyRouter = createBrowserRouter([
+    {
+      path: '/post-signup-info',
+      element: <PostSignupInfoPage />
+    },
+    {
+      path: '/switch-to-production-mobile',
+      element: <SwitchToProductionMobilePage />
+    },
+    {
+      path: '/switch-to-production-mobile/:step',
+      element: <SwitchToProductionMobileStepPage />
+    },
+    {
+      path: '/mobile-production-redirect',
+      element: <MobileProductionRedirectPage />
+    },
+    {
+      path: '*',
+      element: <Navigate to="/mobile-production-redirect" replace />
+    }
+  ])
+
+  // Default full set of routes for non-mobile
+  const defaultRouter = createBrowserRouter([
+    {
+      path: '/',
+      element: <PublicLayout />,
+      children: publicRoutes,
+    },
+    {
+      path: '/billing',
+      element: <PrivateLayout />,
+      children: billingRoutes,
+    },
+    {
+      path: '/analytics',
+      element: <PrivateLayout />,
+      children: analyticsRoutes,
+    },
+    {
+      path: '/dashboard',
+      element: <PrivateLayout />,
+      children: dashboardRoutes,
+    },
+    {
+      path: '/users',
+      element: <PrivateLayout />,
+      children: usersRoutes,
+    },
+    {
+      path: '/settings',
+      element: <PrivateLayout />,
+      children: settingsRoutes,
+    },
+    {
+      path: '/api-testing',
+      element: <PrivateLayout />,
+      children: apiTestingRoutes,
+    },
+    {
+      path: '/api-credentials',
+      element: <PrivateLayout />,
+      children: apiCredentialsRoutes,
+    },
+    {
+      path: '/transactions',
+      element: <PrivateLayout />,
+      children: transactionsRoutes,
+    },
+    {
+      path: '/post-signup-info',
+      element: <PostSignupInfoPage />
+    },
+    {
+      path: '/switch-to-production-mobile',
+      element: <SwitchToProductionMobilePage />
+    },
+    {
+      path: '/switch-to-production-mobile/:step',
+      element: <SwitchToProductionMobileStepPage />
+    },
+    {
+      path: '/mobile-production-redirect',
+      element: <MobileProductionRedirectPage />
+    }
+  ])
+
+  return <RouterProvider router={defaultRouter} />
+}
 
 export default AppRouter

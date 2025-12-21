@@ -6,6 +6,7 @@ import type { OnboardingStepsStatus } from "@/hooks/useOnboardingSteps"
 import { updatePAN, updateGST } from "@/api/onboardingApi"
 import { invalidateOnboardingSteps } from "@/store/onboardingStepsStore"
 import { useUserProfileStore } from "@/store/userProfileStore"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface PANAndGSTFormProps {
   onNext: () => void
@@ -31,7 +32,8 @@ const gstinSchema = z.object({
     .length(15, 'GSTIN must be exactly 15 characters')
 })
 
-const PANAndGSTForm = ({ onNext, onPrevious, showPrevious = false, isLoading: externalLoading = false, initialData, stepsStatus }: PANAndGSTFormProps) => {
+const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPrevious = false, isLoading: externalLoading = false, initialData: _initialData, stepsStatus }: PANAndGSTFormProps) => {
+  const isMobile = useIsMobile()
   const userProfile = useUserProfileStore((state) => state.data)
   
   const [formData, setFormData] = useState({
@@ -151,6 +153,103 @@ const PANAndGSTForm = ({ onNext, onPrevious, showPrevious = false, isLoading: ex
   // If a step is already completed, we still require the field to be filled (for display/confirmation)
   const isFormValid = formData.pan_number.length === 10 && formData.gst_number.length === 15
 
+  // Mobile layout matching Figma
+  if (isMobile) {
+    return (
+      <div className="flex flex-col gap-8 w-full">
+        {/* Title and Subtitle - Centered */}
+        <div className="flex flex-col gap-2 items-center text-center w-full">
+          <h2 className="text-[24px] font-[500] leading-[1.24] text-[#131b31] tracking-[-0.24px] w-full">
+            Provide your Business PAN & GST
+          </h2>
+          <p className="text-[14px] font-medium leading-[20px] text-[#616675] tracking-[-0.14px] w-full">
+            Please enter your Business PAN and GSTIN numbers
+          </p>
+        </div>
+
+        {/* API Error Message */}
+        {apiError && (
+          <div className="flex gap-3 items-start p-4 bg-red-50 border border-red-200 rounded-lg w-full">
+            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-900 mb-1">Verification Failed</p>
+              <p className="text-sm text-red-700">{apiError}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Form Fields */}
+        <div className="flex flex-col gap-4 w-full">
+          {/* PAN Number Field */}
+          <div className="flex flex-col gap-1 w-full">
+            <label className="text-[12px] font-medium leading-[1.4] text-[#616675] tracking-[-0.12px]">
+              <span>Enter your 10-digit Business PAN Number </span>
+              <span className="text-[#b43e28]">*</span>
+            </label>
+            <div className={`bg-[#f7f7f8] border ${errors.pan_number ? 'border-red-500' : 'border-[#e7e8ea]'} flex h-12 items-center px-3 py-2 rounded-[6px] w-full`}>
+              <input
+                type="text"
+                value={formData.pan_number}
+                onChange={(e) => handlePANChange(e.target.value)}
+                onBlur={validatePAN}
+                placeholder="ABCDE1234F"
+                maxLength={10}
+                className="font-medium text-[16px] leading-[1.5] text-[#1c252e] tracking-[-0.16px] bg-transparent border-none outline-none w-full placeholder:text-[#9296a0] uppercase"
+              />
+            </div>
+            {errors.pan_number && (
+              <p className="text-xs text-red-600 mt-1">{errors.pan_number}</p>
+            )}
+          </div>
+
+          {/* GSTIN Field */}
+          <div className="flex flex-col gap-1 w-full">
+            <label className="text-[12px] font-medium leading-[1.4] text-[#616675] tracking-[-0.12px]">
+              <span>Enter 15-digit GSTIN </span>
+              <span className="text-[#b43e28]">*</span>
+            </label>
+            <div className={`bg-[#f7f7f8] border ${errors.gst_number ? 'border-red-500' : 'border-[#e7e8ea]'} flex h-12 items-center px-3 py-2 rounded-[6px] w-full`}>
+              <input
+                type="text"
+                value={formData.gst_number}
+                onChange={(e) => handleGSTChange(e.target.value)}
+                onBlur={validateGST}
+                placeholder="22AAAAA0000A1Z5"
+                maxLength={15}
+                className="font-medium text-[16px] leading-[1.5] text-[#1c252e] tracking-[-0.16px] bg-transparent border-none outline-none w-full placeholder:text-[#9296a0] uppercase"
+              />
+            </div>
+            {errors.gst_number && (
+              <p className="text-xs text-red-600 mt-1">{errors.gst_number}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Continue Button - Centered at bottom */}
+        <div className="flex flex-col items-center justify-end w-full mt-auto">
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading || externalLoading || !isFormValid}
+            className="flex h-12 w-full max-w-[353px] items-center justify-center gap-2 rounded-[8px] border border-[#e7e8ea] bg-[#E6E8FF] text-[12px] font-bold leading-[16px] text-[#0019FF] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 tracking-[-0.12px]"
+          >
+            {(isLoading || externalLoading) ? (
+              <>
+                <div className="w-4 h-4 border-2 border-[#0019ff] border-t-transparent rounded-full animate-spin" />
+                <span>Processing...</span>
+              </>
+            ) : (
+              <>
+                Continue
+                <ArrowRight className="size-4" strokeWidth={2} />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Desktop layout (existing)
   return (
     <div className="bg-white border border-[#e7e8ea] border-solid grow h-full min-h-px min-w-px relative rounded shrink-0">
       <div className="flex flex-col gap-4 items-start p-6 relative rounded-[inherit] size-full">
@@ -230,9 +329,9 @@ const PANAndGSTForm = ({ onNext, onPrevious, showPrevious = false, isLoading: ex
 
         {/* Action Buttons */}
         <div className="flex gap-3 items-center justify-end relative shrink-0 w-full">
-          {showPrevious && onPrevious && (
+          {_showPrevious && _onPrevious && (
             <button
-              onClick={onPrevious}
+              onClick={_onPrevious}
               disabled={isLoading || externalLoading}
               className="px-6 py-3.5 text-xs font-medium text-[#616675] border border-[#e7e8ea] rounded-lg hover:bg-[#f7f7f8] disabled:opacity-50 disabled:cursor-not-allowed"
             >

@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react"
-import { ChevronDown, ArrowRight, AlertCircle } from "lucide-react"
+import { useState } from "react"
+import { ArrowRight, AlertCircle } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { OnboardingStatus } from "@/hooks/useOnboardingStatus"
 import type { OnboardingStepsStatus } from "@/hooks/useOnboardingSteps"
 import { updateBasicDetails } from "@/api/onboardingApi"
 import { invalidateOnboardingSteps } from "@/store/onboardingStepsStore"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface BasicDetailsFormProps {
   onNext: () => void
@@ -15,7 +16,8 @@ interface BasicDetailsFormProps {
   stepsStatus?: OnboardingStepsStatus
 }
 
-const BasicDetailsForm = ({ onNext, onPrevious, showPrevious = false, isLoading: externalLoading = false, initialData, stepsStatus }: BasicDetailsFormProps) => {
+const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPrevious = false, isLoading: externalLoading = false, initialData: _initialData, stepsStatus: _stepsStatus }: BasicDetailsFormProps) => {
+  const isMobile = useIsMobile()
   const [formData, setFormData] = useState({
     brand_name: '',
     website_url: '',
@@ -106,6 +108,120 @@ const BasicDetailsForm = ({ onNext, onPrevious, showPrevious = false, isLoading:
   }
 
   const isFormValid = formData.entity_type !== ''
+  
+  // Mobile layout matching Figma
+  if (isMobile) {
+    return (
+      <div className="flex flex-col gap-8 w-full">
+        {/* Title and Subtitle - Centered */}
+        <div className="flex flex-col gap-2 items-center text-center w-full">
+          <h2 className="text-[24px] font-[500] leading-[1.24] text-[#131b31] tracking-[-0.24px] w-full">
+            Provide your basic details
+          </h2>
+          <p className="text-[14px] font-medium leading-[20px] text-[#616675] tracking-[-0.14px] w-full">
+            Enter your brand details and primary contact information to get started.
+          </p>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="flex gap-3 items-start p-4 bg-red-50 border border-red-200 rounded-lg w-full">
+            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-900 mb-1">Error</p>
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Form Fields */}
+        <div className="flex flex-col gap-4 w-full">
+          {/* Brand Name Field */}
+          <div className="flex flex-col gap-1 w-full">
+            <label className="text-[12px] font-medium leading-[1.4] text-[#616675] tracking-[-0.12px]">
+              Brand Name of the Business
+            </label>
+            <div className="bg-[#f7f7f8] border border-[#e7e8ea] flex h-12 items-center px-3 py-2 rounded-[6px] w-full">
+              <input
+                type="text"
+                value={formData.brand_name}
+                onChange={(e) => handleInputChange('brand_name', e.target.value)}
+                placeholder="e.g., Zomato, Razorpay"
+                className="font-medium text-[16px] leading-[1.5] text-[#1c252e] tracking-[-0.16px] bg-transparent border-none outline-none w-full placeholder:text-[#9296a0]"
+              />
+            </div>
+          </div>
+
+          {/* Website URL Field */}
+          <div className="flex flex-col gap-1 w-full">
+            <label className="text-[12px] font-medium leading-[1.4] text-[#616675] tracking-[-0.12px]">
+              Website URL
+            </label>
+            <div className={`bg-[#f7f7f8] border ${websiteError ? 'border-red-500' : 'border-[#e7e8ea]'} flex h-12 items-center px-3 py-2 rounded-[6px] w-full`}>
+              <input
+                type="text"
+                value={formData.website_url}
+                onChange={(e) => handleInputChange('website_url', e.target.value)}
+                onBlur={handleWebsiteBlur}
+                placeholder="Company website or landing page (if any)"
+                className="font-medium text-[16px] leading-[1.5] text-[#1c252e] tracking-[-0.16px] bg-transparent border-none outline-none w-full placeholder:text-[#9296a0]"
+              />
+            </div>
+            {websiteError && (
+              <p className="text-xs text-red-600 mt-1">{websiteError}</p>
+            )}
+          </div>
+
+          {/* Entity Type Field */}
+          <div className="flex flex-col gap-1 w-full">
+            <label className="text-[12px] font-medium leading-[1.4] text-[#616675] tracking-[-0.12px]">
+              <span>Entity Type </span>
+              <span className="text-[#b43e28]">*</span>
+            </label>
+            <Select value={formData.entity_type} onValueChange={(value) => handleInputChange('entity_type', value)}>
+              <SelectTrigger className="bg-[#f7f7f8] border border-[#e7e8ea] h-12 w-full rounded-[6px] text-[16px]">
+                <SelectValue placeholder="Select Entity Type" className="text-[#9296a0]" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="private_limited">Private Limited Company</SelectItem>
+                <SelectItem value="public_limited">Public Limited Company</SelectItem>
+                <SelectItem value="llp">Limited Liability Partnership (LLP)</SelectItem>
+                <SelectItem value="partnership">Partnership Firm</SelectItem>
+                <SelectItem value="proprietorship">Sole Proprietorship</SelectItem>
+                <SelectItem value="opc">One Person Company (OPC)</SelectItem>
+                <SelectItem value="trust">Trust</SelectItem>
+                <SelectItem value="society">Society</SelectItem>
+                <SelectItem value="ngo">NGO</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Continue Button - Centered at bottom */}
+        <div className="flex flex-col items-center justify-end w-full mt-auto">
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading || externalLoading || !isFormValid}
+            className="flex h-12 w-full max-w-[353px] items-center justify-center gap-2 rounded-[8px] border border-[#e7e8ea] bg-[#E6E8FF] text-[12px] font-bold leading-[16px] text-[#0019FF] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 tracking-[-0.12px]"
+          >
+            {(isLoading || externalLoading) ? (
+              <>
+                <div className="w-4 h-4 border-2 border-[#0019ff] border-t-transparent rounded-full animate-spin" />
+                <span>Processing...</span>
+              </>
+            ) : (
+              <>
+                Continue
+                <ArrowRight className="size-4" strokeWidth={2} />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Desktop layout (existing)
   return (
     <div className="bg-white border border-[#e7e8ea] border-solid grow h-full min-h-0 relative rounded shrink-0 flex flex-col overflow-hidden">
       <div className="flex flex-col gap-4 items-start p-6 relative rounded-[inherit] w-full h-full overflow-hidden">
