@@ -5,9 +5,8 @@ import TransactionSummary from '@/components/transactions/TransactionSummary'
 import { motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTransactionDetail } from '@/hooks/useTransactionDetail'
-import { format } from 'date-fns'
 import { useMemo } from 'react'
-import { parseTransactionTimestamp } from '@/lib/utils'
+import { formatTransactionTimestampIST } from '@/lib/utils'
 import { downloadCsv } from '@/lib/downloadCsv'
 
 const TransactionDetailPage = () => {
@@ -22,9 +21,7 @@ const TransactionDetailPage = () => {
     const statusColor = transaction.status?.toLowerCase() === 'success' ? '#3AC828' : '#ff4d4f'
     
     // Format date
-    let formattedDate = 'N/A'
-    const parsedTimestamp = parseTransactionTimestamp(transaction.timestamp)
-    formattedDate = parsedTimestamp ? format(parsedTimestamp, 'MM/dd/yy  HH:mm:ss') : transaction.timestamp
+    const formattedDate = formatTransactionTimestampIST(transaction.timestamp)
 
     // Extract details from response_details
     const details: { field: string; value: string }[] = []
@@ -58,7 +55,7 @@ const TransactionDetailPage = () => {
         { field: 'Transaction ID', value: transaction.trax_id },
         { field: 'API Name', value: toTitleCase(transaction.api_name) },
         { field: 'Status', value: transaction.status?.toLowerCase() === 'success' ? 'Success' : 'Failed' },
-        { field: 'Timestamp', value: transaction.timestamp }
+        { field: 'Timestamp', value: formatTransactionTimestampIST(transaction.timestamp) }
       )
       
       if (transaction.turn_around_time) {
@@ -111,7 +108,7 @@ const TransactionDetailPage = () => {
     const additionalRows = [
       ['Transaction ID', formattedData.id],
       ['API', formattedData.api],
-      ['Timestamp', transaction.timestamp],
+      ['Timestamp', formatTransactionTimestampIST(transaction.timestamp)],
       ['Status', formattedData.status],
       ['Turn Around Time', transaction.turn_around_time || 'N/A'],
       ['Request', JSON.stringify(transaction.request_details ?? {}, null, 2)],

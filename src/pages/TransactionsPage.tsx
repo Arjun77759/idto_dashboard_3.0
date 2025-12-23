@@ -6,8 +6,8 @@ import TransactionsStatsGrid from '@/components/transactions/TransactionsStatsGr
 import TransactionsFilters from '@/components/transactions/TransactionsFilters'
 import TransactionsTable from '@/components/transactions/TransactionsTable'
 import { useTransactions } from '@/hooks/useTransactions'
-import { parseTransactionTimestamp } from '@/lib/utils'
-import { isWithinInterval, format } from 'date-fns'
+import { parseTransactionTimestamp, formatTransactionTimestampIST } from '@/lib/utils'
+import { isWithinInterval } from 'date-fns'
 import { downloadCsv } from '@/lib/downloadCsv'
 
 const TransactionsPage = () => {
@@ -63,10 +63,7 @@ const TransactionsPage = () => {
     const rows = filteredTransactions.map((transaction) => [
       transaction.trax_id,
       transaction.api_name,
-      (() => {
-        const parsed = parseTransactionTimestamp(transaction.timestamp)
-        return parsed ? format(parsed, 'MMM d, yyyy h:mm a') : transaction.timestamp
-      })(),
+      formatTransactionTimestampIST(transaction.timestamp),
       transaction.status
     ])
 
