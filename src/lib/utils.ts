@@ -18,6 +18,23 @@ export function parseTransactionTimestamp(value?: string | null) {
     return null
   }
 
+  // Special-case: backend sends UTC as "hh:mm a-MM/dd/yyyy" (e.g. "02:14 PM-12/23/2025")
+  // Treat this *wall time* as UTC and construct a Date in UTC explicitly.
+  const utcTimeMatch = /^(\d{2}):(\d{2})\s(AM|PM)-(\d{2})\/(\d{2})\/(\d{4})$/.exec(value)
+  if (utcTimeMatch) {
+    let hour = Number(utcTimeMatch[1])
+    const minute = Number(utcTimeMatch[2])
+    const ampm = utcTimeMatch[3]
+    const month = Number(utcTimeMatch[4]) - 1 // JS months are 0-based
+    const day = Number(utcTimeMatch[5])
+    const year = Number(utcTimeMatch[6])
+
+    if (ampm === 'PM' && hour !== 12) hour += 12
+    if (ampm === 'AM' && hour === 12) hour = 0
+
+    return new Date(Date.UTC(year, month, day, hour, minute, 0))
+  }
+
   const nativeDate = new Date(value)
   if (!Number.isNaN(nativeDate.getTime())) {
     return nativeDate
@@ -35,4 +52,36 @@ export function parseTransactionTimestamp(value?: string | null) {
   }
 
   return null
+}
+
+/**
+ * Format a transaction timestamp string into IST (Asia/Kolkata) time.
+ * Falls back to the original value if it cannot be parsed.
+ */
+export function formatTransactionTimestampIST(
+  value?: string | null,
+  options?: Intl.DateTimeFormatOptions
+): string {
+  if (!value) {
+    return ''
+  }
+
+  const parsed = parseTransactionTimestamp(value)
+  if (!parsed) {
+    return value
+  }
+
+  const formatter = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    year: '2-digit',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    ...options
+  })
+
+  return formatter.format(parsed)
 }

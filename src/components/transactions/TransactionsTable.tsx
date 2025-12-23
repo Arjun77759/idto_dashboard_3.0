@@ -3,8 +3,7 @@ import { Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { TableWithPagination, type TableColumn } from '@/components/ui/TableWithPagination'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { format } from 'date-fns'
-import { parseTransactionTimestamp } from '@/lib/utils'
+import { formatTransactionTimestampIST } from '@/lib/utils'
 import type { Transaction } from '@/hooks/useTransactions'
 
 interface TransactionsTableProps {
@@ -26,8 +25,7 @@ const TransactionsTable = ({
   }
 
   const formatDateTime = (timestamp: string) => {
-    const parsed = parseTransactionTimestamp(timestamp)
-    return parsed ? format(parsed, 'MM/dd/yy  HH:mm:ss') : timestamp
+    return formatTransactionTimestampIST(timestamp)
   }
 
   const formatApiName = (apiName: string) => {
