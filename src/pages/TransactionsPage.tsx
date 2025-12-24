@@ -12,24 +12,16 @@ import { downloadCsv } from '@/lib/downloadCsv'
 
 const TransactionsPage = () => {
   const navigate = useNavigate()
-  const { data: transactions, loading, error } = useTransactions()
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [dateFilter, setDateFilter] = useState<any>(undefined)
   const [documentTypeFilter, setDocumentTypeFilter] = useState<string>('')
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [locationFilter, setLocationFilter] = useState<string>('')
 
+  const { data: transactions, loading, error } = useTransactions(searchQuery)
+
   const filteredTransactions = useMemo(() => {
     let filtered = [...transactions]
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter((transaction) =>
-        transaction.trax_id.toLowerCase().includes(query) ||
-        transaction.api_name.toLowerCase().includes(query) ||
-        transaction.status.toLowerCase().includes(query)
-      )
-    }
 
     if (dateFilter?.from && dateFilter?.to) {
       filtered = filtered.filter((transaction) => {
@@ -56,7 +48,7 @@ const TransactionsPage = () => {
     // location filter placeholder
 
     return filtered
-  }, [transactions, searchQuery, dateFilter, documentTypeFilter, statusFilter, locationFilter])
+  }, [transactions, dateFilter, documentTypeFilter, statusFilter, locationFilter])
 
   const handleExportCsv = () => {
     const headers = ['Transaction ID', 'Type', 'Date & Time', 'Status']

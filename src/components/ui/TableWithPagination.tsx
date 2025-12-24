@@ -1,6 +1,23 @@
 import { useState, useMemo, useEffect } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
+import { Checkbox } from '@/components/ui/checkbox'
 
 export interface TableColumn<T> {
   key: string
@@ -63,22 +80,22 @@ export function TableWithPagination<T extends { [key: string]: any }>({
     }
   }
 
-  const handleSelectAll = () => {
-    if (selectedRows.size === paginatedData.length) {
-      setSelectedRows(new Set())
-    } else {
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
       const allIds = paginatedData.map((row, idx) => row.id || row.trax_id || idx)
       setSelectedRows(new Set(allIds))
+    } else {
+      setSelectedRows(new Set())
     }
   }
 
-  const handleSelectRow = (row: T, index: number) => {
+  const handleSelectRow = (row: T, index: number, checked: boolean) => {
     const id = row.id || row.trax_id || index
     const newSelected = new Set(selectedRows)
-    if (newSelected.has(id)) {
-      newSelected.delete(id)
-    } else {
+    if (checked) {
       newSelected.add(id)
+    } else {
+      newSelected.delete(id)
     }
     setSelectedRows(newSelected)
   }
@@ -137,162 +154,137 @@ export function TableWithPagination<T extends { [key: string]: any }>({
     )
   }
 
+  const allSelected = paginatedData.length > 0 && selectedRows.size === paginatedData.length
+
   return (
-    <div className={cn("flex flex-col gap-6 w-full items-center", className)}>
-      {/* Table Container */}
-      <div className="bg-white border border-[#e7e8ea] border-solid relative rounded-[6px] w-full overflow-x-auto">
-        <div className="flex flex-col items-start overflow-hidden relative rounded-[inherit] w-full min-w-[800px]">
-          {/* Table Header */}
-          <div className="bg-white flex items-start relative shrink-0 w-full">
-            {showCheckbox && (
-              <div className="h-[40px] overflow-hidden relative shrink-0 w-[48px]">
-                <div className="h-[40px] overflow-hidden relative rounded-[inherit] w-[48px]">
-                  <div className="absolute left-1/2 top-[12px] translate-x-[-50%]">
-                    <input
-                      type="checkbox"
-                      checked={selectedRows.size === paginatedData.length && paginatedData.length > 0}
-                      onChange={handleSelectAll}
-                      className="w-4 h-4 rounded border border-[#131b31] bg-[#f7f7f8] cursor-pointer"
+    <div className={cn("flex flex-col gap-6 w-full", className)}>
+      {/* Table Container with horizontal scroll */}
+      <div 
+        className="bg-white border border-[#e7e8ea] border-solid relative rounded-[6px] w-full overflow-x-auto"
+        style={{
+          scrollbarWidth: 'none', /* Firefox */
+          msOverflowStyle: 'none', /* IE and Edge */
+        }}
+      >
+        <style>{`
+          .table-scroll-hide::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+          }
+        `}</style>
+        <div className="table-scroll-hide">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                {showCheckbox && (
+                  <TableHead className="w-[48px]">
+                    <Checkbox
+                      checked={allSelected}
+                      onCheckedChange={handleSelectAll}
+                      className="data-[state=checked]:bg-[#0019ff] data-[state=checked]:border-[#0019ff]"
                     />
-                  </div>
-                </div>
-              </div>
-            )}
-            {columns.map((column, colIndex) => (
-              <div
-                key={column.key}
-                className={cn(
-                  colIndex > 0 && "border-l border-[#e7e8ea] border-solid",
-                  "h-[40px] relative shrink-0",
-                  !column.width && "flex-1 min-w-0"
+                  </TableHead>
                 )}
-                style={column.width ? { width: column.width } : undefined}
-              >
-                <div className="h-[40px] overflow-hidden relative rounded-[inherit] w-full">
-                  <p
+                {columns.map((column) => (
+                  <TableHead
+                    key={column.key}
                     className={cn(
-                      "absolute bottom-[32px] font-normal leading-6 left-4 not-italic right-4 text-[14px] text-[#131b31] tracking-[-0.084px] translate-y-[100%]",
-                      column.align === 'center' && "left-1/2 translate-x-[-50%] text-center",
-                      column.align === 'right' && "left-auto right-4 text-right"
+                      "text-[14px] text-[#131b31] font-normal",
+                      column.align === 'center' && "text-center",
+                      column.align === 'right' && "text-right"
                     )}
+                    style={column.width ? { width: column.width } : undefined}
                   >
                     {column.header}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Table Rows */}
-          {paginatedData.length === 0 ? (
-            <div className="flex items-center justify-center p-8 text-sm text-[#9296a0] w-full h-full">
-              {emptyMessage}
-            </div>
-          ) : (
-            paginatedData.map((row, rowIndex) => {
-              const rowId = row.id || row.trax_id || rowIndex
-              const isSelected = selectedRows.has(rowId)
-              
-              return (
-                <div
-                  key={rowId}
-                  className={cn(
-                    "bg-white flex items-start relative shrink-0 w-full text-[#9296a0]",
-                    rowIndex % 2 === 0 && "bg-[#f7f7f8]",
-                    onRowClick && "cursor-pointer hover:bg-[#f0f4ff]"
-                  )}
-                  onClick={() => onRowClick?.(row)}
-                >
-                  {showCheckbox && (
-                    <div className="h-[40px] overflow-hidden relative shrink-0 w-[48px]">
-                      <div className="h-[40px] overflow-hidden relative rounded-[inherit] w-[48px]">
-                        <div className="absolute left-1/2 top-[12px] translate-x-[-50%]">
-                          <input
-                            type="checkbox"
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedData.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length + (showCheckbox ? 1 : 0)}
+                    className="text-center text-[#9296a0] py-8"
+                  >
+                    {emptyMessage}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paginatedData.map((row, rowIndex) => {
+                  const rowId = row.id || row.trax_id || rowIndex
+                  const isSelected = selectedRows.has(rowId)
+                  
+                  return (
+                    <TableRow
+                      key={rowId}
+                      className={cn(
+                        rowIndex % 2 === 0 && "bg-[#f7f7f8]",
+                        onRowClick && "cursor-pointer hover:bg-[#f0f4ff]"
+                      )}
+                      onClick={() => onRowClick?.(row)}
+                    >
+                      {showCheckbox && (
+                        <TableCell className="w-[48px]">
+                          <Checkbox
                             checked={isSelected}
-                            onChange={(e) => {
-                              e.stopPropagation()
-                              handleSelectRow(row, rowIndex)
+                            onCheckedChange={(checked) => {
+                              handleSelectRow(row, rowIndex, checked as boolean)
                             }}
-                            className="w-4 h-4 rounded border border-[#9296a0] bg-[#f7f7f8] cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="data-[state=checked]:bg-[#0019ff] data-[state=checked]:border-[#0019ff]"
                           />
-                        </div>
-                        {rowIndex < paginatedData.length - 1 && (
-                          <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  {columns.map((column, colIndex) => {
-                    const content = column.render
-                      ? column.render(row, rowIndex)
-                      : row[column.key] ?? ''
-                    
-                    return (
-                      <div
-                        key={column.key}
-                        className={cn(
-                          colIndex > 0 && "border-l border-[#e7e8ea] border-solid",
-                          "h-[40px] relative shrink-0",
-                          !column.width && "flex-1 min-w-0"
-                        )}
-                        style={column.width ? { width: column.width } : undefined}
-                      >
-                        <div className="h-[40px] overflow-hidden relative rounded-[inherit] w-full">
-                      <div
-                        className={cn(
-                          "absolute font-normal leading-6 left-4 not-italic right-4 text-[14px] top-2 tracking-[-0.084px]",
-                          column.align === 'center' && "left-1/2 translate-x-[-50%] text-center right-auto",
-                          column.align === 'right' && "left-auto right-4 text-right"
-                        )}
-                      >
+                        </TableCell>
+                      )}
+                      {columns.map((column) => {
+                        const content = column.render
+                          ? column.render(row, rowIndex)
+                          : row[column.key] ?? ''
+                        
+                        return (
+                          <TableCell
+                            key={column.key}
+                            className={cn(
+                              "text-[14px] text-[#9296a0]",
+                              column.align === 'center' && "text-center",
+                              column.align === 'right' && "text-right"
+                            )}
+                          >
                             {content}
-                          </div>
-                          {rowIndex < paginatedData.length - 1 && (
-                            <div className="absolute bg-[#e7e8ea] bottom-0 h-px left-0 right-0" />
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )
-            })
-          )}
+                          </TableCell>
+                        )
+                      })}
+                    </TableRow>
+                  )
+                })
+              )}
+            </TableBody>
+          </Table>
         </div>
       </div>
 
       {/* Pagination */}
       {shouldShowPagination && (
-        <div className="flex gap-6 items-center justify-center relative shrink-0 w-full">
-          {/* Back Button */}
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className={cn(
-              "flex gap-1 h-full items-center justify-center overflow-hidden relative shrink-0",
-              currentPage === 1 && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            <div className="flex items-center justify-center relative shrink-0 size-4">
-              <ChevronLeft className="size-4 text-[#9296a0]" />
-            </div>
-            <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
-              Back
-            </p>
-          </button>
-
-          {/* Page Numbers */}
-          <div className="flex gap-2 items-center relative shrink-0">
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault()
+                  handlePageChange(currentPage - 1)
+                }}
+                className={cn(
+                  currentPage === 1 && "pointer-events-none opacity-50"
+                )}
+              />
+            </PaginationItem>
+            
             {getPageNumbers().map((page, index) => {
               if (page === '...') {
                 return (
-                  <span
-                    key={`ellipsis-${index}`}
-                    className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre"
-                  >
-                    ...
-                  </span>
+                  <PaginationItem key={`ellipsis-${index}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
                 )
               }
               
@@ -300,44 +292,39 @@ export function TableWithPagination<T extends { [key: string]: any }>({
               const isActive = pageNum === currentPage
               
               return (
-                <button
-                  key={pageNum}
-                  onClick={() => handlePageChange(pageNum)}
-                  className={cn(
-                    "flex flex-col gap-2 items-center justify-center overflow-hidden relative rounded-[4px] shrink-0 size-6",
-                    isActive && "bg-[#e6e8ff]"
-                  )}
-                >
-                  <p className={cn(
-                    "font-medium leading-[1.4] relative shrink-0 text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre",
-                    isActive ? "text-[#0019ff]" : "text-[#9296a0]"
-                  )}>
+                <PaginationItem key={pageNum}>
+                  <PaginationLink
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handlePageChange(pageNum)
+                    }}
+                    isActive={isActive}
+                    className={cn(
+                      isActive && "bg-[#e6e8ff] text-[#0019ff] hover:bg-[#e6e8ff]"
+                    )}
+                  >
                     {pageNum}
-                  </p>
-                </button>
+                  </PaginationLink>
+                </PaginationItem>
               )
             })}
-          </div>
-
-          {/* Next Button */}
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className={cn(
-              "flex gap-1 h-full items-center justify-center overflow-hidden relative shrink-0",
-              currentPage === totalPages && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
-              Next
-            </p>
-            <div className="flex items-center justify-center relative shrink-0 size-4">
-              <ChevronRight className="size-4 text-[#9296a0]" />
-            </div>
-          </button>
-        </div>
+            
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault()
+                  handlePageChange(currentPage + 1)
+                }}
+                className={cn(
+                  currentPage === totalPages && "pointer-events-none opacity-50"
+                )}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       )}
     </div>
   )
 }
-
