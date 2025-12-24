@@ -3,7 +3,6 @@ import { Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { TableWithPagination, type TableColumn } from '@/components/ui/TableWithPagination'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { formatTransactionTimestampIST } from '@/lib/utils'
 import type { Transaction } from '@/hooks/useTransactions'
 
 interface TransactionsTableProps {
@@ -22,10 +21,6 @@ const TransactionsTable = ({
   const handleCopyId = (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
     navigator.clipboard.writeText(id)
-  }
-
-  const formatDateTime = (timestamp: string) => {
-    return formatTransactionTimestampIST(timestamp)
   }
 
   const formatApiName = (apiName: string) => {
@@ -61,7 +56,7 @@ const TransactionsTable = ({
       key: 'timestamp',
       header: 'Date & Time',
       width: '224px',
-      render: (row) => formatDateTime(row.timestamp)
+      render: (row) => row.timestamp
     },
     {
       key: 'status',

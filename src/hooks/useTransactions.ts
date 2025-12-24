@@ -17,7 +17,7 @@ type TransactionApiResponse = Omit<Transaction, "trax_id"> & {
 // Example good mock data
 const MOCK_TRANSACTIONS: Transaction[] = [];
 
-export function useTransactions() {
+export function useTransactions(search?: string) {
   const { data: onboardingStatus } = useOnboardingStatus();
   const isProduction = Boolean(onboardingStatus?.is_onboarded);
   const [data, setData] = useState<Transaction[]>([]);
@@ -41,8 +41,10 @@ export function useTransactions() {
           return;
         }
 
-        // Fetch all transactions without filters (client-side filtering approach)
-        const { data } = await http.get<TransactionApiResponse[]>("/usage/");
+        // Fetch transactions with optional backend search
+        const { data } = await http.get<TransactionApiResponse[]>("/usage/", {
+          params: search ? { search } : undefined,
+        });
 
         if (!cancelled) {
           setData(
@@ -66,7 +68,7 @@ export function useTransactions() {
     return () => {
       cancelled = true;
     };
-  }, [isProduction]);
+  }, [isProduction, search]);
 
   return { data, loading, error };
 }
