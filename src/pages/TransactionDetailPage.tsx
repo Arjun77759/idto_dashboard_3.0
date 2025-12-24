@@ -6,7 +6,6 @@ import { motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTransactionDetail } from '@/hooks/useTransactionDetail'
 import { useMemo } from 'react'
-import { formatTransactionTimestampIST } from '@/lib/utils'
 import { downloadCsv } from '@/lib/downloadCsv'
 
 const TransactionDetailPage = () => {
@@ -20,8 +19,8 @@ const TransactionDetailPage = () => {
 
     const statusColor = transaction.status?.toLowerCase() === 'success' ? '#3AC828' : '#ff4d4f'
     
-    // Format date
-    const formattedDate = formatTransactionTimestampIST(transaction.timestamp)
+    // Use date as sent from backend
+    const formattedDate = transaction.timestamp
 
     // Extract details from response_details
     const details: { field: string; value: string }[] = []
@@ -55,7 +54,7 @@ const TransactionDetailPage = () => {
         { field: 'Transaction ID', value: transaction.trax_id },
         { field: 'API Name', value: toTitleCase(transaction.api_name) },
         { field: 'Status', value: transaction.status?.toLowerCase() === 'success' ? 'Success' : 'Failed' },
-        { field: 'Timestamp', value: formatTransactionTimestampIST(transaction.timestamp) }
+        { field: 'Timestamp', value: transaction.timestamp }
       )
       
       if (transaction.turn_around_time) {
@@ -108,7 +107,7 @@ const TransactionDetailPage = () => {
     const additionalRows = [
       ['Transaction ID', formattedData.id],
       ['API', formattedData.api],
-      ['Timestamp', formatTransactionTimestampIST(transaction.timestamp)],
+      ['Timestamp', transaction.timestamp],
       ['Status', formattedData.status],
       ['Turn Around Time', transaction.turn_around_time || 'N/A'],
       ['Request', JSON.stringify(transaction.request_details ?? {}, null, 2)],
@@ -167,7 +166,7 @@ const TransactionDetailPage = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-[#f7f7f8] flex flex-col gap-4 sm:gap-5 items-start overflow-hidden p-4 sm:p-6 relative rounded-2xl w-full"
+      className="bg-[#f7f7f8] flex flex-col gap-4 sm:gap-5 items-start overflow-hidden p-4 sm:p-6 relative rounded-2xl w-full h-full"
     >
       <TransactionHeader
         onBack={handleBack}
