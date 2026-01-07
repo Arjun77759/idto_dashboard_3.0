@@ -5,6 +5,9 @@ import { useOnboardingStatus } from "./useOnboardingStatus";
 export type Transaction = {
   trax_id: string;
   api_name: string;
+  request_details: string
+  response_details: string
+  response_message: string
   status: string;
   timestamp: string;
   turn_around_time?: string | null;
@@ -47,6 +50,7 @@ export function useTransactions(search?: string) {
         });
 
         if (!cancelled) {
+          // console.log("all transaction",data)
           setData(
             (data || []).map((transaction) => ({
               ...transaction,

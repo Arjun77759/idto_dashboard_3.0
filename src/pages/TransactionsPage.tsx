@@ -51,12 +51,18 @@ const TransactionsPage = () => {
   }, [transactions, dateFilter, documentTypeFilter, statusFilter, locationFilter])
 
   const handleExportCsv = () => {
-    const headers = ['Transaction ID', 'Type', 'Date & Time', 'Status']
+    // const headers = ['Transaction ID', 'Type', 'Date & Time', 'Status']
+    const headers = ['Transaction ID', 'Backend call', 'Request Payload', 'Response Payload', 'Response Status', 'Response Message', 'Date & Time', 'Turn Around Time']
+
     const rows = filteredTransactions.map((transaction) => [
       transaction.trax_id,
       transaction.api_name,
+      transaction.request_details,
+      transaction.response_details,
+      transaction.response_message,
+      transaction.status,
       formatTransactionTimestampIST(transaction.timestamp),
-      transaction.status
+      transaction.turn_around_time
     ])
 
     const today = new Date()
