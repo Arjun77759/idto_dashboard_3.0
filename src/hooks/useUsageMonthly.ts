@@ -40,6 +40,7 @@ export function useUsageMonthly(filters?: UsageMonthlyFilters) {
         }
         // Real API fetch if production
         const response = await getMonthlyUsage(filters);
+        // console.log('data usgae', response )
         if (!cancelled) setData(response);
       } catch (e: any) {
         if (!cancelled) {
