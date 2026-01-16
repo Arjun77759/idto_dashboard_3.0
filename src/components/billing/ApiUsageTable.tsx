@@ -9,6 +9,8 @@ type ApiUsageRow = {
   number_of_transactions: number
   unit_price: number
   total_cost: number
+  gst?: number
+  final_cost:number
   [key: string]: unknown
 }
 
@@ -19,10 +21,20 @@ const formatApiName = (name: string): string => {
     .join(' ')
 }
 
+
+
 const ApiUsageTable = () => {
   const { data, loading, error } = useUsageMonthly()
   const [showAll, setShowAll] = useState(false)
   const usageData = Array.isArray(data) ? (data as ApiUsageRow[]) : []
+
+  const GST_RATE = 0.18
+
+  const calculateGST = (unitPrice: number) => unitPrice * GST_RATE ;
+
+  const calculateFinalCost = (unitPrice: number, number_of_transactions: number) =>
+  (unitPrice + calculateGST(unitPrice)) * number_of_transactions
+
 
   const columns: TableColumn<ApiUsageRow>[] = useMemo(() => [
     {
@@ -50,14 +62,34 @@ const ApiUsageTable = () => {
       )
     },
     {
-      key: 'total_cost',
+      key: 'gst',
+      header: 'GST (18%)',
+      align: 'right',
+      render: row => {
+        if (typeof row.unit_price !== 'number') return '-'
+        const gst = calculateGST(row.unit_price)
+        return `₹${gst.toFixed(2)}`
+      }
+    },
+    // {
+    //   key: 'total_cost',
+    //   header: 'Cost',
+    //   align: 'right',
+    //   render: row => (
+    //     <span className="">
+    //       {typeof row.total_cost === 'number' ? `₹${row.total_cost.toFixed(2)}` : '-'}
+    //     </span>
+    //   )
+    // },
+    {
+      key: 'final_cost',
       header: 'Cost',
       align: 'right',
-      render: row => (
-        <span className="">
-          {typeof row.total_cost === 'number' ? `₹${row.total_cost.toFixed(2)}` : '-'}
-        </span>
-      )
+      render: row => {
+        if (typeof row.unit_price !== 'number') return '-'
+        const finalCost = calculateFinalCost(row.unit_price, row.number_of_transactions)
+        return `₹${finalCost.toFixed(2)}`
+      }
     }
   ], [])
 
