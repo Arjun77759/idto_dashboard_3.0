@@ -4,9 +4,10 @@ import { Receipt, ArrowLeft, FileSpreadsheet } from 'lucide-react'
 interface TransactionHeaderProps {
   onBack: () => void
   onExportCsv: () => void
+  onDownloadReport: () => void
 }
 
-const TransactionHeader = ({ onBack, onExportCsv }: TransactionHeaderProps) => {
+const TransactionHeader = ({ onBack, onExportCsv, onDownloadReport }: TransactionHeaderProps) => {
   return (
     <>
       {/* Transactions Header */}
@@ -31,6 +32,24 @@ const TransactionHeader = ({ onBack, onExportCsv }: TransactionHeaderProps) => {
         </Button>
 
         <div className="flex flex-wrap gap-2 sm:gap-3 items-center relative shrink-0 w-full sm:w-auto">
+           <Button
+            onClick={onDownloadReport}
+            className="flex justify-center items-center gap-2 border-0"
+            style={{
+              padding: "14px 8px",
+              borderRadius: "8px",
+              background: "var(--Primary-0, #E6E8FF)",
+            }}
+          >
+            <p className="font-medium leading-[1.4] text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre text-[#0019ff]">
+              Download Report
+            </p>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M5 20H19V18H5V20Z" fill="#0019ff"/>
+                <path d="M12 16L16 12H13V4H11V12H8L12 16Z" fill="#0019ff"/>
+              </svg>
+
+          </Button>
           <Button
             onClick={onExportCsv}
             className="flex justify-center items-center gap-2 border-0"
