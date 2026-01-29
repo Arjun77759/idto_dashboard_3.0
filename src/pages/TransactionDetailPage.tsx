@@ -7,11 +7,14 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useTransactionDetail } from '@/hooks/useTransactionDetail'
 import { useMemo } from 'react'
 import { downloadCsv } from '@/lib/downloadCsv'
+import { useDownloadTransactionReport } from '@/hooks/useDownloadTransactionReport'
+
 
 const TransactionDetailPage = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const { data: transaction, loading, error } = useTransactionDetail(id)
+  const { downloadReport, loading: reportLoading } = useDownloadTransactionReport()
 
   // Format transaction data for components
   const formattedData = useMemo(() => {
@@ -99,6 +102,15 @@ const TransactionDetailPage = () => {
     }
   }
 
+  const handleDownloadReport = () => {
+    if (!formattedData) return
+
+    downloadReport({
+      transaction_id: formattedData.id,
+      default_type: false
+    })
+  }
+
   const handleExportCsv = () => {
     if (!formattedData || !transaction) return
 
@@ -166,11 +178,12 @@ const TransactionDetailPage = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-[#f7f7f8] flex flex-col gap-4 sm:gap-5 items-start overflow-hidden p-4 sm:p-6 relative rounded-2xl w-full h-full"
+      className="bg-[#f7f7f8] flex flex-col gap-4 sm:gap-5 items-start overflow-y-auto p-4 sm:p-6 relative rounded-2xl w-full h-full"
     >
       <TransactionHeader
         onBack={handleBack}
         onExportCsv={handleExportCsv}
+        onDownloadReport={handleDownloadReport}
       />
 
       <TransactionSummary
@@ -183,7 +196,7 @@ const TransactionDetailPage = () => {
       />
 
       {/* Two Column Layout - Responsive */}
-      <div className="flex flex-col lg:flex-row gap-4 sm:gap-5 h-auto lg:h-[360px] items-start relative shrink-0 w-full">
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-5 h-auto lg:h-[360px] items-start relative shrink-0 w-full ">
         <TransactionDetailsTable details={formattedData.details} />
         <JsonPreview
           jsonData={{
