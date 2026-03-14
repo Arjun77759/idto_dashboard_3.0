@@ -2,10 +2,10 @@
 // Based on old dashboard pattern
 
 export interface InputField {
-  type: 'string' | 'number' | 'file' | 'email' | 'url' | 'date' | 'boolean'
+  type: 'string' | 'number' | 'file' | 'email' | 'url' | 'date' | 'boolean' | 'string_array'
   required: boolean
   description?: string
-  example: string | number | boolean
+  example: string | number | boolean | string[]
   validation?: {
     minLength?: number
     maxLength?: number
@@ -1165,6 +1165,12 @@ export const API_ENDPOINTS: ApiEndpoint[] = [
         required: true,
         description: 'Whether to redirect to signup flow after authentication.',
         example: true
+      },
+      documents_for_consent: {
+        type: 'string_array',
+        required: true,
+        description: 'List of DigiLocker document codes to request consent for.',
+        example: ['ADHAR', 'PANCR']
       },
       consent: {
         type: 'boolean',
