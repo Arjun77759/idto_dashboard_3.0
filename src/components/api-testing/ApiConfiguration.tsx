@@ -33,6 +33,9 @@ const ApiConfiguration = ({
   const apiConfig = selectedApi ? getApiById(apiEndpoints, selectedApi) : null
   const isEsignApi = apiConfig?.id === 'esign' || apiConfig?.tags?.includes('eSign')
 
+  const shouldTreatAsStringArray = (key: string, fieldType?: string) =>
+    fieldType === 'string_array' || key === 'documents_for_consent'
+
   // Initialize input values when API changes
   useEffect(() => {
     if (apiConfig) {
@@ -40,6 +43,8 @@ const ApiConfiguration = ({
       Object.entries(apiConfig.sampleInput).forEach(([key, field]) => {
         // For eSign array fields, initialize with empty array
         if (isEsignApi && (key === 'documents' || key === 'signers_info')) {
+          initialValues[key] = []
+        } else if (shouldTreatAsStringArray(key, field.type)) {
           initialValues[key] = []
         } else {
           initialValues[key] = ''
@@ -93,6 +98,29 @@ const ApiConfiguration = ({
     try {
       let response
       let requestPayload = { ...inputValues }
+
+      Object.entries(apiConfig.sampleInput).forEach(([key, field]) => {
+        if (shouldTreatAsStringArray(key, field.type)) {
+          const rawValue = requestPayload[key]
+
+          if (Array.isArray(rawValue)) {
+            requestPayload[key] = rawValue
+              .map((item) => String(item).trim())
+              .filter(Boolean)
+            return
+          }
+
+          if (typeof rawValue === 'string') {
+            requestPayload[key] = rawValue
+              .split(',')
+              .map((item) => item.trim().replace(/^['"]|['"]$/g, ''))
+              .filter(Boolean)
+            return
+          }
+
+          requestPayload[key] = []
+        }
+      })
       
       // For eSign, transform signers_info structure
       // In UI, page_number, sequence, and trigger_esign_request are stored inside signer_position
@@ -284,6 +312,23 @@ const ApiConfiguration = ({
                         />
                         <span className="text-[12px] text-[#9296a0]">{field.description}</span>
                       </div>
+                    ) : shouldTreatAsStringArray(key, field.type) ? (
+                      <Input
+                        type="text"
+                        value={Array.isArray(inputValues[key]) ? inputValues[key].join(', ') : inputValues[key] || ''}
+                        onChange={(e) =>
+                          handleInputChange(
+                            key,
+                            e.target.value
+                              .split(',')
+                              .map((item) => item.trim().replace(/^['"]|['"]$/g, ''))
+                              .filter(Boolean)
+                          )
+                        }
+                        onKeyDown={handleKeyPress}
+                        placeholder={field.example ? `e.g., ${Array.isArray(field.example) ? field.example.join(', ') : String(field.example)}` : ''}
+                        className="w-full max-w-md border-[#e7e8ea] h-10"
+                      />
                     ) : (
                       <Input
                         type={field.type === 'number' ? 'number' : field.type === 'email' ? 'email' : field.type === 'date' ? 'date' : 'text'}
@@ -302,7 +347,7 @@ const ApiConfiguration = ({
                     )}
                     {!isArrayOfObjects && (
                       <p className="font-normal text-[11px] text-[#9296a0]">
-                        Example: {String(field.example)}
+                        Example: {Array.isArray(field.example) ? field.example.join(', ') : String(field.example)}
                       </p>
                     )}
                   </>

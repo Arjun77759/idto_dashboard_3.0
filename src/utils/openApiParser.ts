@@ -92,7 +92,10 @@ function convertSchemaToInputField(
   let example: any = ''
 
   // Determine type from schema
-  if (schema.type === 'integer' || schema.type === 'number') {
+  if (schema.type === 'array' && schema.items?.type === 'string') {
+    type = 'string_array'
+    example = Array.isArray(schema.example) ? schema.example : []
+  } else if (schema.type === 'integer' || schema.type === 'number') {
     type = 'number'
     example = schema.example ?? 0
   } else if (schema.type === 'boolean') {
