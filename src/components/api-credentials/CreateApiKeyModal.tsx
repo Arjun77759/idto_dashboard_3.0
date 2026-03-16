@@ -156,7 +156,7 @@ const CreateApiKeyModal = ({ open, onClose, onSuccess }: CreateApiKeyModalProps)
               {/* Client Secret */}
               <div className="flex flex-col gap-2">
                 <label className="text-[12px] font-normal leading-[1.4] text-[#9296a0] tracking-[-0.12px]">
-                  Client Secret
+                  API KEY
                 </label>
                 <div className="flex items-center gap-2 bg-white border border-[#e7e8ea] rounded-lg px-4 py-2.5">
                   <span className="flex-1 text-[12px] font-normal text-[#131b31] font-mono break-all">
