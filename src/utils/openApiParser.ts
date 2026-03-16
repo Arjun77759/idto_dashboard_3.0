@@ -110,7 +110,12 @@ function convertSchemaToInputField(
   } else if (schema.format === 'uri' || schema.format === 'url') {
     type = 'url'
     example = schema.example ?? 'https://example.com'
-  } else if (schema.format === 'binary' || propertyName.toLowerCase().includes('file') || propertyName.toLowerCase().includes('image')) {
+  } else if (
+    schema.format === 'binary' ||
+    /\bfile\b/i.test(propertyName) || // matches "file" as a whole word only
+    propertyName.toLowerCase().endsWith('_file') || // allow foo_file
+    propertyName.toLowerCase().includes('image')
+  ) {
     type = 'file'
     example = 'file.jpg'
   } else {
@@ -119,7 +124,7 @@ function convertSchemaToInputField(
   }
 
   const validation: InputField['validation'] = {}
-  
+
   if (schema.type === 'string') {
     if (schema.minLength !== undefined) validation.minLength = schema.minLength
     if (schema.maxLength !== undefined) validation.maxLength = schema.maxLength
@@ -158,7 +163,7 @@ function extractSampleInput(
 
   const requestBody = postSpec.requestBody
   if (!requestBody?.content) return sampleInput
-  
+
   // Try JSON first, then multipart
   const jsonSchema = requestBody.content['application/json']?.schema
   const multipartSchema = requestBody.content['multipart/form-data']?.schema
@@ -198,7 +203,7 @@ function generateSampleOutput(responseSchema: any, schemas?: Record<string, Open
     const output: any = {}
     Object.entries(resolved.properties).forEach(([key, prop]: [string, any]) => {
       const resolvedProp = resolveSchema(prop, schemas)
-      
+
       if (resolvedProp.type === 'string') {
         output[key] = resolvedProp.example ?? `sample_${key}`
       } else if (resolvedProp.type === 'number' || resolvedProp.type === 'integer') {
@@ -233,18 +238,18 @@ function generateSampleOutput(responseSchema: any, schemas?: Record<string, Open
 
 function getCategoryFromTags(tags?: string[]): ApiEndpoint['category'] {
   if (!tags || tags.length === 0) return 'Identity Verification'
-  
+
   const tag = tags[0]
   return TAG_TO_CATEGORY_MAP[tag] || 'Identity Verification'
 }
 
 function getContentType(postSpec?: OpenAPIPath['post']): ApiEndpoint['contentType'] {
   if (!postSpec?.requestBody?.content) return 'application/json'
-  
+
   if (postSpec.requestBody.content['multipart/form-data']) {
     return 'multipart/form-data'
   }
-  
+
   return 'application/json'
 }
 
@@ -258,7 +263,7 @@ function pathToId(path: string): string {
 
 function pathToName(path: string, summary?: string): string {
   if (summary) return summary
-  
+
   // Convert path to readable name
   return path
     .replace(/^\//, '')
