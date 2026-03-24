@@ -1,21 +1,15 @@
 import { motion } from 'framer-motion'
-import { Building, CreditCard, IndianRupee, Plus, AlertTriangle, ArrowRight } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { Building, IndianRupee, Plus, AlertTriangle, ArrowRight, Copy } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import RecentInvoicesTable from '@/components/billing/RecentInvoicesTable'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Textarea } from '@/components/ui/textarea'
-import { Spinner } from '@/components/ui/spinner'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { useSimulationModeModal } from '@/contexts/SimulationModeModalContext'
 import { useMonthlyUsage } from '@/hooks/useMonthlyUsage'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
-import { useRazorpay } from '@/hooks/useRazorpay'
-import { useUserProfileStore } from '@/store/userProfileStore'
 import CurrentBalanceCard from '@/components/billing/CurrentBalanceCard'
 import ApiUsageTable from '@/components/billing/ApiUsageTable'
 import SwitchToProductionModal from '@/components/modals/switchToProductionModal/SwitchToProductionModal'
@@ -26,90 +20,100 @@ const formatCurrency = (value: number) => {
   return `${value.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
 }
 
+// Preserved for future use if Razorpay is re-enabled.
+// const LEGACY_PAYMENT_FLOW = {
+//   requiresProductionCheck: true,
+//   supportsGstCollection: true,
+// }
+
 const BillingPage = () => {
   const { data, loading } = useMonthlyUsage()
-  const userProfile = useUserProfileStore((state) => state.data)
-  const { openModal } = useSimulationModeModal()
   const { data: onboardingStatus } = useOnboardingStatus()
-  const { initiatePayment, loading: paymentLoading } = useRazorpay()
   const isProduction = Boolean(onboardingStatus?.is_onboarded)
 
-  const [creditAmount, setCreditAmount] = useState<string>('')
-  const [hasGst, setHasGst] = useState<'yes' | 'no'>(userProfile?.gst_number ? 'yes' : 'no')
-  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'bank'>('razorpay')
-  const [gstNumber, setGstNumber] = useState<string>(userProfile?.gst_number ?? '')
-  const [companyName, setCompanyName] = useState<string>(userProfile?.brand_name ?? '')
-  const [stateName, setStateName] = useState<string>(userProfile?.business_state ?? '')
-  const [businessAddress, setBusinessAddress] = useState<string>(userProfile?.business_address ?? '')
+  // const [creditAmount, setCreditAmount] = useState<string>('')
+  // const [hasGst, setHasGst] = useState<'yes' | 'no'>(userProfile?.gst_number ? 'yes' : 'no')
+  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'bank'>('bank')
+  // const [gstNumber, setGstNumber] = useState<string>(userProfile?.gst_number ?? '')
+  // const [companyName, setCompanyName] = useState<string>(userProfile?.brand_name ?? '')
+  // const [stateName, setStateName] = useState<string>(userProfile?.business_state ?? '')
+  // const [businessAddress, setBusinessAddress] = useState<string>(userProfile?.business_address ?? '')
   const [showBankDetailsModal, setShowBankDetailsModal] = useState(false)
   const [isSwitchToProductionModalOpen, setIsSwitchToProductionModalOpen] = useState(false)
 
-  useEffect(() => {
-    setGstNumber(userProfile?.gst_number ?? '')
-    setCompanyName(userProfile?.brand_name ?? '')
-    setStateName(userProfile?.business_state ?? '')
-    setBusinessAddress(userProfile?.business_address ?? '')
-    setHasGst(userProfile?.gst_number ? 'yes' : 'no')
-  }, [userProfile])
-
-  const parsedAmount = Number(creditAmount) || 0
-  const taxes = useMemo(() => {
-    if (!parsedAmount) {
-      return { sgst: 0, cgst: 0, finalAmount: 0 }
-    }
-    const sgst = parsedAmount * 0.09
-    const cgst = parsedAmount * 0.09
-    return {
-      sgst,
-      cgst,
-      finalAmount: parsedAmount + sgst + cgst,
-    }
-  }, [parsedAmount])
+  // const parsedAmount = Number(creditAmount) || 0
+  // const taxes = useMemo(() => {
+  //   if (!parsedAmount) {
+  //     return { sgst: 0, cgst: 0, finalAmount: 0 }
+  //   }
+  //   const sgst = parsedAmount * 0.09
+  //   const cgst = parsedAmount * 0.09
+  //   return {
+  //     sgst,
+  //     cgst,
+  //     finalAmount: parsedAmount + sgst + cgst,
+  //   }
+  // }, [parsedAmount])
 
   const liveCredits = loading ? '...' : formatCurrency(data?.balance ?? 0)
-  const testingCredits = loading ? '...' : formatCurrency(Math.max((data?.total ?? 0) - (data?.used ?? 0), 0))
+  const copyableBankDetails = useMemo(
+    () => [
+      `Name: ${BANK_DETAILS.accountHolder}`,
+      `Account Number: ${BANK_DETAILS.accountNumber}`,
+      `IFSC Code: ${BANK_DETAILS.ifsc}`,
+      `Acc Type: ${BANK_DETAILS.accountType}`,
+    ].join('\n'),
+    []
+  )
 
   const handleProceedToPayment = () => {
-    if (!parsedAmount || parsedAmount <= 0) {
-      toast.error('Please enter a valid credit amount.')
-      return
-    }
+    // if (!parsedAmount || parsedAmount <= 0) {
+    //   toast.error('Please enter a valid credit amount.')
+    //   return
+    // }
 
-    if (hasGst === 'yes' && !gstNumber.trim()) {
-      toast.error('Please enter your GST number.')
-      return
-    }
+    // if (hasGst === 'yes' && !gstNumber.trim()) {
+    //   toast.error('Please enter your GST number.')
+    //   return
+    // }
 
     if (paymentMethod === 'bank') {
       setShowBankDetailsModal(true)
       return
     }
 
-    if (!isProduction) {
-      openModal()
-      return
+    // Legacy Razorpay flow kept below for reference.
+
+    // const taxTotal = taxes.sgst + taxes.cgst
+    // const sanitizedGstNumber = gstNumber.trim()
+    // const sanitizedCompanyName = companyName.trim()
+    // const sanitizedStateName = stateName.trim()
+    // const sanitizedBusinessAddress = businessAddress.trim()
+
+    // initiatePayment({
+    //   amount: parsedAmount,
+    //   tax: taxTotal,
+    //   description: 'Add Live Credits',
+    //   prefill: {
+    //     name: userProfile?.name || undefined,
+    //     email: userProfile?.email || undefined,
+    //     contact: userProfile?.mobile || undefined,
+    //   },
+    //   gst_number: hasGst === 'yes' && sanitizedGstNumber ? sanitizedGstNumber : undefined,
+    //   company_name: sanitizedCompanyName || undefined,
+    //   state: sanitizedStateName || undefined,
+    //   address: sanitizedBusinessAddress || undefined,
+    // })
+    return
+  }
+
+  const handleCopyAllDetails = async () => {
+    try {
+      await navigator.clipboard.writeText(copyableBankDetails)
+      toast.success('Bank details copied')
+    } catch {
+      toast.error('Failed to copy bank details')
     }
-
-    const taxTotal = taxes.sgst + taxes.cgst
-    const sanitizedGstNumber = gstNumber.trim()
-    const sanitizedCompanyName = companyName.trim()
-    const sanitizedStateName = stateName.trim()
-    const sanitizedBusinessAddress = businessAddress.trim()
-
-    initiatePayment({
-      amount: parsedAmount,
-      tax: taxTotal,
-      description: 'Add Live Credits',
-      prefill: {
-        name: userProfile?.name || undefined,
-        email: userProfile?.email || undefined,
-        contact: userProfile?.mobile || undefined,
-      },
-      gst_number: hasGst === 'yes' && sanitizedGstNumber ? sanitizedGstNumber : undefined,
-      company_name: sanitizedCompanyName || undefined,
-      state: sanitizedStateName || undefined,
-      address: sanitizedBusinessAddress || undefined,
-    })
   }
 
   return (
@@ -159,13 +163,13 @@ const BillingPage = () => {
           </div>
         ) : (
           <>
-            <div className="border-b border-[#e7e8ea] pb-4 flex flex-col gap-2">
+            {/* <div className="border-b border-[#e7e8ea] pb-4 flex flex-col gap-2">
               <p className="text-sm font-bold text-[#616675]">Add Live Credits</p>
               <p className="text-xs text-[#9296a0]">1 Credit = 1 Rupee</p>
-            </div>
+            </div> */}
 
-            <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)_280px]">
-          <div className="flex flex-col gap-4">
+            <div className="mx-auto flex w-full max-w-[420px] flex-col gap-6">
+          {/* <div className="flex flex-col gap-4">
             <Label className="text-xs text-[#616675]">Enter Credit Amount</Label>
             <Input
               type="number"
@@ -180,22 +184,35 @@ const BillingPage = () => {
             <Button
               variant="secondary"
               onClick={handleProceedToPayment}
-              disabled={!parsedAmount || paymentLoading}
+              disabled={!parsedAmount}
               className="w-fit rounded-lg border border-[#e7e8ea] bg-[#e6e8ff] text-xs font-medium text-[#0019ff] disabled:opacity-60"
             >
-              {paymentLoading ? (
-                <>
-                  <Spinner className="size-4 text-[#0019ff]" />
-                  Processing...
-                </>
-              ) : (
-                'Proceed'
-              )}
+              Proceed
             </Button>
-          </div>
+          </div> */}
 
-          <div className="flex flex-col gap-4 w-[327px] mx-auto">
-            <div>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-full bg-[#e6e8ff]">
+                  <Building className="size-5 text-[#0019ff]" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-[#131b31]">Bank Transfer Details</p>
+                  <p className="text-[11px] text-[#9296a0]">Use the following bank details for payment.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleCopyAllDetails}
+                className="flex shrink-0 items-center gap-2 hover:opacity-70 transition-opacity"
+              >
+                <span className="text-[12px] font-medium tracking-[-0.12px] text-[#8a95ff]">Copy All Details</span>
+                <Copy className="size-4 text-[#8a95ff]" />
+              </button>
+            </div>
+
+            {/* <div>
               <p className="text-xs text-[#c8cacf]">Do you have GST number?</p>
               <RadioGroup
                 value={hasGst}
@@ -264,11 +281,55 @@ const BillingPage = () => {
                 className="rounded-lg border-[#e7e8ea] text-xs text-[#131b31]"
                 placeholder="Enter billing address"
               />
+            </div> */}
+
+            <div className="flex flex-col gap-2 text-xs text-[#9296a0]">
+              <div>
+                <span>Name</span>
+              </div>
+              <Input
+                value={BANK_DETAILS.accountHolder}
+                readOnly
+                className="h-10 rounded-lg border-[#e7e8ea] text-xs text-[#131b31] bg-[#f7f7f8]"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2 text-xs text-[#9296a0]">
+              <div>
+                <span>Account Number</span>
+              </div>
+              <Input
+                value={BANK_DETAILS.accountNumber}
+                readOnly
+                className="h-10 rounded-lg border-[#e7e8ea] text-xs text-[#131b31] bg-[#f7f7f8]"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2 text-xs text-[#9296a0]">
+              <div>
+                <span>IFSC Code</span>
+              </div>
+              <Input
+                value={BANK_DETAILS.ifsc}
+                readOnly
+                className="h-10 rounded-lg border-[#e7e8ea] text-xs text-[#131b31] bg-[#f7f7f8]"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2 text-xs text-[#9296a0]">
+              <div>
+                <span>Acc Type</span>
+              </div>
+              <Input
+                value={BANK_DETAILS.accountType}
+                readOnly
+                className="h-10 rounded-lg border-[#e7e8ea] text-xs text-[#131b31] bg-[#f7f7f8]"
+              />
             </div>
           </div>
 
           <div className="flex flex-col gap-4 justify-between">
-            <div className='flex flex-col gap-4 h-full'>
+            {/* <div className='flex flex-col gap-4 h-full'>
               <p className="text-xs text-[#9296a0]">Order Summary</p>
               <div className="flex flex-col gap-4 rounded-lg bg-[#f7f7f8] p-4 text-xs text-[#9296a0] justify-between h-full">
                 <div className='flex flex-col gap-2'>
@@ -281,6 +342,8 @@ const BillingPage = () => {
                   <SummaryRow label="Final Amount" value={formatCurrency(taxes.finalAmount)} bold />
                 </div>
               </div>
+            </div> */}
+            <div className='flex flex-col gap-4 h-full'>
               <p className="text-xs text-[#9296a0]">Select Payment Method</p>
               <RadioGroup
                 value={paymentMethod}
@@ -288,38 +351,35 @@ const BillingPage = () => {
                 className="flex flex-col gap-4"
               >
                 <div className="flex flex-wrap gap-6">
-                  {[
-                    { label: 'Razorpay PG', value: 'razorpay' },
-                    { label: 'Bank Transfer', value: 'bank' },
-                  ].map((option) => (
-                    <label key={option.value} className="flex items-center gap-2 text-xs text-[#9296a0]">
-                      <RadioGroupItem
-                        value={option.value}
-                        className="border-[#c8cacf] text-[#8a95ff] focus-visible:ring-[#8a95ff]"
-                      />
-                      {option.label}
-                    </label>
-                  ))}
+                  <button
+                    type="button"
+                    onClick={() => toast.info('Coming soon!')}
+                    className="flex items-center gap-2 text-xs text-[#9296a0]"
+                  >
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full border border-[#c8cacf]">
+                      <span className="h-2.5 w-2.5 rounded-full" />
+                    </span>
+                    Razorpay PG
+                  </button>
+                  <label className="flex items-center gap-2 text-xs text-[#9296a0]">
+                    <RadioGroupItem
+                      value="bank"
+                      className="border-[#c8cacf] text-[#8a95ff] focus-visible:ring-[#8a95ff]"
+                    />
+                    Bank Transfer
+                  </label>
                 </div>
                 {/* {paymentMethod === 'bank' && <BankTransferDetails desiredAmount={taxes.finalAmount} />} */}
               </RadioGroup>
             </div>
             <Button
               onClick={handleProceedToPayment}
-              disabled={!parsedAmount || paymentLoading}
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#e7e8ea] bg-[#e7e8ea] text-xs font-medium text-[#9296a0] disabled:bg-[#e7e8ea]"
             >
-              {paymentLoading ? (
-                <>
-                  <Spinner className="size-4 text-[#9296a0]" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  Proceed to Pay
-                  <IndianRupee className="size-4" />
-                </>
-              )}
+              <>
+                Proceed to Pay
+                <IndianRupee className="size-4" />
+              </>
             </Button>
           </div>
         </div>
@@ -339,12 +399,16 @@ const BillingPage = () => {
         <DialogContent className="max-w-md rounded-2xl border border-[#e7e8ea] p-6">
           <DialogHeader className="text-left">
             <DialogTitle className="text-lg font-semibold text-[#131b31]">Bank Transfer Details</DialogTitle>
-            <DialogDescription className="text-sm text-[#616675]">
+            {/* <DialogDescription className="text-sm text-[#616675]">
               Transfer {taxes.finalAmount ? formatCurrency(taxes.finalAmount) : '-'} via RTGS/NEFT/IMPS using the account
               details below.
+            </DialogDescription> */}
+            <DialogDescription className="text-sm text-[#616675]">
+              Transfer via RTGS/NEFT/IMPS using the account details below.
             </DialogDescription>
           </DialogHeader>
-          <BankTransferDetails desiredAmount={taxes.finalAmount} />
+          {/* <BankTransferDetails desiredAmount={taxes.finalAmount} /> */}
+          <BankTransferDetails />
           <div className="mt-4 rounded-lg border border-[#e7e8ea] bg-[#fff4e6] p-3">
             <p className="text-xs text-[#616675]">
               <span className="font-semibold text-[#131b31]">Note:</span> After depositing the money, please send an email to{' '}
@@ -373,7 +437,7 @@ const BillingPage = () => {
             if (updatedStatus?.is_onboarded) {
               setIsSwitchToProductionModalOpen(false)
             }
-          } catch (error) {
+          } catch {
             // If refresh fails, still close the modal
             setIsSwitchToProductionModalOpen(false)
           }
@@ -383,20 +447,20 @@ const BillingPage = () => {
   )
 }
 
-type SummaryRowProps = {
-  label: string
-  value: string
-  bold?: boolean
-}
+// type SummaryRowProps = {
+//   label: string
+//   value: string
+//   bold?: boolean
+// }
 
-const SummaryRow = ({ label, value, bold }: SummaryRowProps) => {
-  return (
-    <div className="flex items-center justify-between text-xs">
-      <span className="text-[#9296a0]">{label}</span>
-      <span className={bold ? 'text-base font-semibold text-[#131b31]' : 'text-[#c8cacf]'}>{value}</span>
-    </div>
-  )
-}
+// const SummaryRow = ({ label, value, bold }: SummaryRowProps) => {
+//   return (
+//     <div className="flex items-center justify-between text-xs">
+//       <span className="text-[#9296a0]">{label}</span>
+//       <span className={bold ? 'text-base font-semibold text-[#131b31]' : 'text-[#c8cacf]'}>{value}</span>
+//     </div>
+//   )
+// }
 
 type CreditStatProps = {
   label: string
@@ -420,11 +484,11 @@ const BANK_DETAILS = {
   accountType: 'Current Account',
 }
 
-type BankTransferDetailsProps = {
-  desiredAmount: number
-}
+// type BankTransferDetailsProps = {
+//   desiredAmount: number
+// }
 
-const BankTransferDetails = ({ desiredAmount }: BankTransferDetailsProps) => (
+const BankTransferDetails = () => (
   <div className="flex flex-col gap-4 rounded-xl border border-[#e7e8ea] bg-[#f7f7f8] p-4">
     <div className="flex items-center gap-3">
       <div className="flex size-10 items-center justify-center rounded-full bg-[#e6e8ff]">
@@ -441,7 +505,7 @@ const BankTransferDetails = ({ desiredAmount }: BankTransferDetailsProps) => (
       <BankDetailRow label="Account Number" value={BANK_DETAILS.accountNumber} />
       <BankDetailRow label="IFSC Code" value={BANK_DETAILS.ifsc} />
       <BankDetailRow label="Account Type" value={BANK_DETAILS.accountType} />
-      <BankDetailRow label="Amount to Transfer" value={formatCurrency(desiredAmount)} />
+      {/* <BankDetailRow label="Amount to Transfer" value={formatCurrency(desiredAmount)} /> */}
     </div>
   </div>
 )
