@@ -1,6 +1,16 @@
-import { disableClient, enableClient, getClients, type Client } from '@/api/clientsApi'
+import { deleteClient, disableClient, enableClient, getClients, type Client } from '@/api/clientsApi'
 import CreateApiKeyModal from '@/components/api-credentials/CreateApiKeyModal'
 import SwitchToProductionModal from '@/components/modals/switchToProductionModal/SwitchToProductionModal'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { TableWithPagination, type TableColumn } from '@/components/ui/TableWithPagination'
@@ -8,7 +18,7 @@ import { useToast } from '@/hooks/use-toast'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 import { fetchOnboardingStatus } from '@/store/onboardingStore'
 import { motion } from 'framer-motion'
-import { Code, Copy, Eye, EyeOff, Plus } from 'lucide-react'
+import { Code, Copy, Eye, EyeOff, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 interface ApiKey {
@@ -19,6 +29,14 @@ interface ApiKey {
   isEnabled: boolean
 }
 
+type ApiError = {
+  response?: {
+    data?: {
+      detail?: string
+    }
+  }
+}
+
 const ApiCredentialsPage = () => {
   const { toast } = useToast()
   const { data: onboardingStatus } = useOnboardingStatus()
@@ -26,6 +44,8 @@ const ApiCredentialsPage = () => {
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set())
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isSwitchToProductionModalOpen, setIsSwitchToProductionModalOpen] = useState(false)
+  const [pendingDeleteKey, setPendingDeleteKey] = useState<ApiKey | null>(null)
+  const [isDeletingKeyId, setIsDeletingKeyId] = useState<string | null>(null)
   const pendingActionRef = useRef<(() => void) | null>(null)
 
   // Mock data for non-production environments
@@ -34,6 +54,11 @@ const ApiCredentialsPage = () => {
   ]
 
   const [apiKeys, setApiKeys] = useState<ApiKey[]>(mockApiKeys)
+
+  const getErrorMessage = (error: unknown, fallback: string) => {
+    const detail = (error as ApiError)?.response?.data?.detail
+    return typeof detail === 'string' && detail ? detail : fallback
+  }
 
   // Format date from ISO string to display format
   const formatDate = (dateString: string): string => {
@@ -67,10 +92,10 @@ const ApiCredentialsPage = () => {
         try {
           const clients = await getClients()
           setApiKeys(clients.map(clientToApiKey))
-        } catch (error: any) {
+        } catch (error: unknown) {
           toast({
             title: 'Error',
-            description: error?.response?.data?.detail || 'Failed to load API keys',
+            description: getErrorMessage(error, 'Failed to load API keys'),
             variant: 'destructive',
           })
         }
@@ -131,7 +156,7 @@ const ApiCredentialsPage = () => {
     })
   }
 
-  const maskClientId = (_clientId: string) => {
+  const maskClientId = () => {
     return '***********************'
   }
 
@@ -139,7 +164,7 @@ const ApiCredentialsPage = () => {
     if (visibleKeys.has(key.id)) {
       return key.clientId
     }
-    return maskClientId(key.clientId)
+    return maskClientId()
   }
 
   const handleToggleKeyStatus = async (keyId: string, currentStatus: boolean) => {
@@ -173,10 +198,10 @@ const ApiCredentialsPage = () => {
         title: 'Success',
         description: `API key ${!currentStatus ? 'enabled' : 'disabled'} successfully`,
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Error',
-        description: error?.response?.data?.detail || `Failed to ${!currentStatus ? 'enable' : 'disable'} API key`,
+        description: getErrorMessage(error, `Failed to ${!currentStatus ? 'enable' : 'disable'} API key`),
         variant: 'destructive',
       })
     }
@@ -204,10 +229,10 @@ const ApiCredentialsPage = () => {
           title: 'Success',
           description: 'API key created successfully.',
         })
-      } catch (error: any) {
+      } catch (error: unknown) {
         toast({
           title: 'Error',
-          description: error?.response?.data?.detail || 'Failed to refresh API keys list',
+          description: getErrorMessage(error, 'Failed to refresh API keys list'),
           variant: 'destructive',
         })
       }
@@ -216,6 +241,48 @@ const ApiCredentialsPage = () => {
         title: 'Success',
         description: 'API key created successfully.',
       })
+    }
+  }
+
+  const handleRequestDeleteApiKey = (key: ApiKey) => {
+    if (!isProduction) {
+      pendingActionRef.current = () => {
+        setPendingDeleteKey(key)
+      }
+      setIsSwitchToProductionModalOpen(true)
+      return
+    }
+
+    setPendingDeleteKey(key)
+  }
+
+  const handleDeleteApiKey = async () => {
+    if (!pendingDeleteKey) {
+      return
+    }
+
+    setIsDeletingKeyId(pendingDeleteKey.id)
+    try {
+      await deleteClient(pendingDeleteKey.id)
+      setApiKeys((prev) => prev.filter((key) => key.id !== pendingDeleteKey.id))
+      setVisibleKeys((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(pendingDeleteKey.id)
+        return newSet
+      })
+      toast({
+        title: 'Success',
+        description: 'API key deleted successfully.',
+      })
+      setPendingDeleteKey(null)
+    } catch (error: unknown) {
+      toast({
+        title: 'Error',
+        description: getErrorMessage(error, 'Failed to delete API key'),
+        variant: 'destructive',
+      })
+    } finally {
+      setIsDeletingKeyId(null)
     }
   }
 
@@ -286,6 +353,24 @@ const ApiCredentialsPage = () => {
               }`}
           />
         </div>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      width: '120px',
+      align: 'center',
+      render: (key) => (
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => handleRequestDeleteApiKey(key)}
+          disabled={isDeletingKeyId === key.id}
+          className="h-auto px-2 py-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+        >
+          <Trash2 className="w-4 h-4 mr-1" />
+          <span>{isDeletingKeyId === key.id ? 'Deleting...' : 'Delete'}</span>
+        </Button>
       ),
     },
   ]
@@ -364,7 +449,7 @@ const ApiCredentialsPage = () => {
             if (updatedStatus?.is_onboarded && pendingActionRef.current) {
               pendingActionRef.current()
             }
-          } catch (error) {
+          } catch {
             // If refresh fails, still try to execute the action
             // The action handlers will check isProduction themselves
             if (pendingActionRef.current) {
@@ -376,6 +461,49 @@ const ApiCredentialsPage = () => {
           }
         }}
       />
+
+      <AlertDialog
+        open={Boolean(pendingDeleteKey)}
+        onOpenChange={(open) => {
+          if (!open && !isDeletingKeyId) {
+            setPendingDeleteKey(null)
+          }
+        }}
+      >
+        <AlertDialogContent className="border-[#e7e8ea] rounded-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-[20px] font-medium leading-[1.4] text-[#131b31] tracking-[-0.2px]">
+              Delete API key?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[12px] leading-[1.4] text-[#616675] tracking-[-0.12px]">
+              {pendingDeleteKey
+                ? `This will permanently hide "${pendingDeleteKey.name}" from the dashboard and disable its access immediately.`
+                : 'This action will permanently remove this API key from the dashboard.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={Boolean(isDeletingKeyId)}
+              className="border-[#e7e8ea] text-[#616675] hover:bg-gray-50"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                type="button"
+                onClick={(event) => {
+                  event.preventDefault()
+                  void handleDeleteApiKey()
+                }}
+                disabled={Boolean(isDeletingKeyId)}
+                className="bg-red-600 text-white hover:bg-red-700"
+              >
+                {isDeletingKeyId ? 'Deleting...' : 'Delete'}
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   )
 }
