@@ -6,6 +6,7 @@ const OPENAPI_URL = 'https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.
 const TAG_TO_CATEGORY_MAP: Record<string, ApiEndpoint['category']> = {
   'PAN Verification': 'Identity Verification',
   'Bank Verification': 'Identity Verification',
+  'Bank Verification v2': 'Identity Verification',
   'UAN Verification': 'Identity Verification',
   'Voter Verification': 'Identity Verification',
   'Passport Verification': 'Identity Verification',
@@ -273,6 +274,16 @@ function pathToName(path: string, summary?: string): string {
     .join(' ')
 }
 
+function pathToEndpoint(path: string): string {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+
+  if (/^\/v\d+\//.test(normalizedPath) || normalizedPath.startsWith('/verify/')) {
+    return normalizedPath
+  }
+
+  return `/verify${normalizedPath}`
+}
+
 export async function fetchOpenAPISpec(): Promise<OpenAPISpec> {
   const response = await fetch(OPENAPI_URL)
   if (!response.ok) {
@@ -311,7 +322,7 @@ export function transformOpenAPIToEndpoints(spec: OpenAPISpec): ApiEndpoint[] {
       shortDescription: summary || (description ? description.substring(0, 100) : 'API endpoint'),
       longDescription: description || summary || 'API endpoint',
       credit: DEFAULT_CREDIT,
-      endpoint: `/verify${path}`,
+      endpoint: pathToEndpoint(path),
       method: 'POST',
       contentType,
       category,
