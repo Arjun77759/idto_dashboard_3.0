@@ -32,35 +32,64 @@ const formatCredits = (value?: number | null) => {
  * Maps API subscription names from backend to API endpoint IDs
  * Handles variations in naming conventions
  */
-const mapSubscriptionNameToApiId = (apiName: string, apiEndpoints: ApiEndpoint[]): string | null => {
-  if (!apiEndpoints) return null
-  
-  const normalizedName = apiName.toLowerCase().trim()
-  
-  // Direct match by ID
-  const directMatch = apiEndpoints.find(api => api.id.toLowerCase() === normalizedName)
-  if (directMatch) return directMatch.id
-  
-  // Match by name (case-insensitive)
-  const nameMatch = apiEndpoints.find(api => 
-    api.name.toLowerCase() === normalizedName || 
-    api.name.toLowerCase().replace(/\s+/g, '_') === normalizedName
-  )
-  if (nameMatch) return nameMatch.id
-  
-  // Fuzzy matching - try to match parts of the name
-  // e.g., "PAN" -> "pan_verification", "Aadhar OKYC" -> "aadhaar_otp"
+const normalizeApiIdentifier = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[/-]+/g, '_')
+    .replace(/\s+/g, '_')
+
+const SUBSCRIPTION_NAME_ALIASES: Record<string, string[]> = {
+  bank_account: ['bank_verification'],
+  bank_account_v2: ['bank_verification'],
+  bank_account_pennyless: ['bank_verification_pennyless'],
+  cin_mca: ['cin_mca_verification'],
+  gst: ['gst_verification'],
+  pan: ['pan_verification'],
+  uan: ['uan_verification'],
+  voter: ['voter_verification'],
+  voter_id: ['voter_verification'],
+}
+
+const getApiIdAliases = (api: ApiEndpoint) => {
+  const id = normalizeApiIdentifier(api.id)
+  const name = normalizeApiIdentifier(api.name)
+  const aliases = new Set([id, name])
+
+  aliases.add(id.replace(/^v\d+_verify_/, ''))
+  aliases.add(id.replace(/^verify_/, ''))
+  aliases.add(name.replace(/_v\d+$/, ''))
+
+  return aliases
+}
+
+const mapSubscriptionNameToApiIds = (apiName: string, apiEndpoints: ApiEndpoint[]): string[] => {
+  if (!apiEndpoints) return []
+
+  const normalizedName = normalizeApiIdentifier(apiName)
+  const subscriptionAliases = new Set([
+    normalizedName,
+    ...(SUBSCRIPTION_NAME_ALIASES[normalizedName] || []),
+  ])
+  const matches = new Set<string>()
+
+  apiEndpoints.forEach((api) => {
+    const apiAliases = getApiIdAliases(api)
+    if (Array.from(subscriptionAliases).some((alias) => apiAliases.has(alias))) {
+      matches.add(api.id)
+    }
+  })
+
+  if (matches.size > 0) return Array.from(matches)
+
   const fuzzyMatch = apiEndpoints.find(api => {
+    const firstToken = normalizedName.split('_')[0]
     const apiNameLower = api.name.toLowerCase()
     const apiIdLower = api.id.toLowerCase()
-    return (
-      apiNameLower.includes(normalizedName.split(' ')[0]) ||
-      apiIdLower.includes(normalizedName.split(' ')[0].replace(/\s+/g, '_'))
-    )
+    return apiNameLower.includes(firstToken) || apiIdLower.includes(firstToken)
   })
-  if (fuzzyMatch) return fuzzyMatch.id
-  
-  return null
+
+  return fuzzyMatch ? [fuzzyMatch.id] : []
 }
 
 const ApiTestingPage = () => {
@@ -87,8 +116,7 @@ const ApiTestingPage = () => {
     if (!subscribedApis || !apiEndpoints || subscribedApis.length === 0) return new Set<string>()
     return new Set(
       subscribedApis
-        .map(sub => mapSubscriptionNameToApiId(sub.api_name, apiEndpoints))
-        .filter((id): id is string => id !== null)
+        .flatMap(sub => mapSubscriptionNameToApiIds(sub.api_name, apiEndpoints))
     )
   }, [subscribedApis, apiEndpoints])
 
