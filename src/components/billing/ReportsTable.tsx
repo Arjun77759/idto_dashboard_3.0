@@ -280,9 +280,9 @@ const ReportsTable = ({ selectedApiName: selectedApiNameProp, onSelectedApiNameC
           </div>
         </div>
 
-        <div className="w-full min-w-0 overflow-x-auto rounded-md border border-[#e7e8ea]">
+        <div className="w-full min-w-0 max-h-[340px] overflow-auto rounded-md border border-[#e7e8ea]">
           <Table className="min-w-[1120px]">
-            <TableHeader>
+            <TableHeader className="sticky top-0 z-10 bg-white">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="min-w-[220px] font-normal text-[#131b31]">Trans ID</TableHead>
                 <TableHead className="min-w-[180px] font-normal text-[#131b31]">API Name</TableHead>
