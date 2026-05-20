@@ -56,7 +56,7 @@ const ConfiguredApisCard = ({ selectedApiName, allApisValue, onSelectApiName }: 
           <span>{apis.length}</span>
         </button>
 
-        <div className="min-h-[220px] overflow-hidden rounded-md border border-[#e7e8ea]">
+        <div className="min-h-[360px] flex-1 overflow-hidden rounded-md border border-[#e7e8ea]">
           {loading ? (
             <div className="flex flex-col gap-3 p-3">
               {Array.from({ length: 5 }).map((_, index) => (
@@ -68,7 +68,7 @@ const ConfiguredApisCard = ({ selectedApiName, allApisValue, onSelectApiName }: 
               {error}
             </div>
           ) : apis.length ? (
-            <div className="max-h-[440px] overflow-y-auto">
+            <div className="h-full overflow-y-auto">
               {apis.map((api) => {
                 const isSelected = selectedApiName === api.api_name
                 return (

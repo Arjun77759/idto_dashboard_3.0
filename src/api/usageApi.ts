@@ -119,6 +119,7 @@ export type UsageReport = {
   status: string
   datetime: string
   selling_price: number
+  balance?: number | null
   balance_before?: number | null
   balance_after?: number | null
   action: string

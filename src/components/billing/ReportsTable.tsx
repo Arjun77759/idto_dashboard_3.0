@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/pagination'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useExportUsageReportsCsv, useUsageReports } from '@/hooks/useUsageReports'
 import type { UsageReport } from '@/api/usageApi'
 import { cn } from '@/lib/utils'
@@ -127,11 +127,11 @@ const ReportRow = ({ report }: { report: UsageReport }) => (
     <TableCell className="whitespace-nowrap text-right text-sm text-[#616675]">
       {formatCurrency(report.selling_price)}
     </TableCell>
-    <TableCell className="whitespace-nowrap text-right text-sm text-[#616675]">
-      {formatCurrency(report.balance_before)}
+    <TableCell className="whitespace-nowrap text-center text-sm text-[#616675]">
+      18%
     </TableCell>
     <TableCell className="whitespace-nowrap text-right text-sm text-[#616675]">
-      {formatCurrency(report.balance_after)}
+      {formatCurrency(report.balance ?? report.balance_after)}
     </TableCell>
   </TableRow>
 )
@@ -280,22 +280,22 @@ const ReportsTable = ({ selectedApiName: selectedApiNameProp, onSelectedApiNameC
           </div>
         </div>
 
-        <div className="w-full min-w-0 max-h-[340px] overflow-auto rounded-md border border-[#e7e8ea]">
-          <Table className="min-w-[1120px]">
+        <div className="w-full min-w-0 max-h-[470px] overflow-x-scroll overflow-y-auto rounded-md border border-[#e7e8ea] [scrollbar-gutter:stable_both-edges]">
+          <table className="w-full min-w-[1240px] caption-bottom text-sm">
             <TableHeader className="sticky top-0 z-10 bg-white">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="min-w-[220px] font-normal text-[#131b31]">Trans ID</TableHead>
                 <TableHead className="min-w-[180px] font-normal text-[#131b31]">API Name</TableHead>
                 <TableHead className="min-w-[120px] font-normal text-[#131b31]">Status</TableHead>
                 <TableHead className="min-w-[170px] font-normal text-[#131b31]">Datetime</TableHead>
-                <TableHead className="min-w-[140px] text-right font-normal text-[#131b31]">Selling Price</TableHead>
-                <TableHead className="min-w-[150px] text-right font-normal text-[#131b31]">Balance Before</TableHead>
-                <TableHead className="min-w-[140px] text-right font-normal text-[#131b31]">Balance After</TableHead>
+                <TableHead className="min-w-[140px] text-right font-normal text-[#131b31]">Cost</TableHead>
+                <TableHead className="min-w-[100px] text-center font-normal text-[#131b31]">GST</TableHead>
+                <TableHead className="min-w-[150px] text-right font-normal text-[#131b31]">Balance</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
-                Array.from({ length: 5 }).map((_, index) => (
+                Array.from({ length: 7 }).map((_, index) => (
                   <TableRow key={`report-loading-${index}`}>
                     <TableCell colSpan={7}>
                       <Skeleton className="h-8 w-full" />
@@ -318,7 +318,7 @@ const ReportsTable = ({ selectedApiName: selectedApiNameProp, onSelectedApiNameC
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+          </table>
         </div>
 
         {totalCount > PAGE_SIZE && (
