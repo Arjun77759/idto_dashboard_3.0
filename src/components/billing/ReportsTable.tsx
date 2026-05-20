@@ -281,16 +281,16 @@ const ReportsTable = ({ selectedApiName: selectedApiNameProp, onSelectedApiNameC
         </div>
 
         <div className="w-full min-w-0 max-h-[470px] overflow-x-scroll overflow-y-auto rounded-md border border-[#e7e8ea] [scrollbar-gutter:stable_both-edges]">
-          <table className="w-full min-w-[1240px] caption-bottom text-sm">
+          <table className="w-full min-w-[1080px] caption-bottom text-sm">
             <TableHeader className="sticky top-0 z-10 bg-white">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="min-w-[220px] font-normal text-[#131b31]">Trans ID</TableHead>
                 <TableHead className="min-w-[180px] font-normal text-[#131b31]">API Name</TableHead>
-                <TableHead className="min-w-[120px] font-normal text-[#131b31]">Status</TableHead>
-                <TableHead className="min-w-[170px] font-normal text-[#131b31]">Datetime</TableHead>
-                <TableHead className="min-w-[140px] text-right font-normal text-[#131b31]">Cost</TableHead>
-                <TableHead className="min-w-[100px] text-center font-normal text-[#131b31]">GST</TableHead>
-                <TableHead className="min-w-[150px] text-right font-normal text-[#131b31]">Balance</TableHead>
+                <TableHead className="min-w-[110px] font-normal text-[#131b31]">Status</TableHead>
+                <TableHead className="min-w-[160px] font-normal text-[#131b31]">Datetime</TableHead>
+                <TableHead className="w-[96px] min-w-[96px] text-right font-normal text-[#131b31]">Cost</TableHead>
+                <TableHead className="w-[72px] min-w-[72px] text-center font-normal text-[#131b31]">GST</TableHead>
+                <TableHead className="w-[120px] min-w-[120px] text-right font-normal text-[#131b31]">Balance</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

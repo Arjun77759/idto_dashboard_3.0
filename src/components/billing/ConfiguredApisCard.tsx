@@ -34,9 +34,9 @@ const ConfiguredApisCard = ({ selectedApiName, allApisValue, onSelectApiName }: 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.1 }}
-      className="bg-white border border-[#e7e8ea] relative rounded-2xl w-full lg:w-[281px] lg:shrink-0 h-full"
+      className="bg-white border border-[#e7e8ea] relative rounded-2xl w-full lg:w-[281px] lg:shrink-0 lg:self-start"
     >
-      <div className="flex h-full flex-col gap-4 p-4 sm:p-6">
+      <div className="flex flex-col gap-4 p-4 sm:p-6">
         <div className="flex items-center gap-2">
           <ListChecks className="size-5 text-[#131b31]" />
           <p className="text-[16px] font-normal leading-[1.4] text-[#131b31]">Configured APIs</p>
@@ -56,10 +56,10 @@ const ConfiguredApisCard = ({ selectedApiName, allApisValue, onSelectApiName }: 
           <span>{apis.length}</span>
         </button>
 
-        <div className="min-h-[360px] flex-1 overflow-hidden rounded-md border border-[#e7e8ea]">
+        <div className="h-[470px] overflow-hidden rounded-md border border-[#e7e8ea]">
           {loading ? (
-            <div className="flex flex-col gap-3 p-3">
-              {Array.from({ length: 5 }).map((_, index) => (
+            <div className="flex h-full flex-col gap-3 overflow-hidden p-3">
+              {Array.from({ length: 7 }).map((_, index) => (
                 <Skeleton key={`configured-api-loading-${index}`} className="h-12 w-full" />
               ))}
             </div>
