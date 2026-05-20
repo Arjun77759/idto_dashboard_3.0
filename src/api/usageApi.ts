@@ -111,3 +111,93 @@ export async function getUsageVolumeTimeseries(
   const { data } = await http.get<{ series: any[] }>('/usage/volume/timeseries', { params })
   return data
 }
+
+export type UsageReport = {
+  log_id: string
+  trans_id: string
+  api_name: string
+  status: string
+  datetime: string
+  selling_price: number
+  balance_before?: number | null
+  balance_after?: number | null
+  action: string
+  reason?: string | null
+}
+
+export type UsageReportsResponse = {
+  customer_id: string
+  customer_name?: string | null
+  reports: UsageReport[]
+  total_count: number
+  page: number
+  limit: number
+  month: number
+  year: number
+  api_name?: string | null
+  api_names: string[]
+}
+
+export type UsageReportsParams = {
+  month: number
+  year: number
+  page?: number
+  limit?: number
+  api_name?: string
+}
+
+export type ConfiguredApi = {
+  api_name: string
+  display_name: string
+  current_price?: number | null
+  total_calls: number
+  pricing_note?: string | null
+}
+
+export type ConfiguredApisResponse = {
+  customer_id: string
+  apis: ConfiguredApi[]
+  total_count: number
+}
+
+export async function getUsageReports(params: UsageReportsParams): Promise<UsageReportsResponse> {
+  const requestParams: Record<string, string | number> = {
+    month: params.month,
+    year: params.year,
+    page: params.page ?? 1,
+    limit: params.limit ?? 100,
+  }
+  if (params.api_name) requestParams.api_name = params.api_name
+
+  const { data } = await http.get<UsageReportsResponse>('/usage/reports', { params: requestParams })
+  return data
+}
+
+export async function getConfiguredApis(): Promise<ConfiguredApisResponse> {
+  const { data } = await http.get<ConfiguredApisResponse>('/usage/configured-apis')
+  return data
+}
+
+export async function exportUsageReportsCsv(
+  params: Pick<UsageReportsParams, 'month' | 'year' | 'api_name'>
+): Promise<{ blob: Blob; filename: string }> {
+  const requestParams: Record<string, string | number> = {
+    month: params.month,
+    year: params.year,
+  }
+  if (params.api_name) requestParams.api_name = params.api_name
+
+  const response = await http.get<Blob>('/usage/reports/export', {
+    params: requestParams,
+    responseType: 'blob',
+  })
+
+  const contentDisposition = response.headers['content-disposition']
+  let filename = `usage_reports_${params.year}_${String(params.month).padStart(2, '0')}.csv`
+  if (contentDisposition) {
+    const match = contentDisposition.match(/filename="?([^"]+\.csv)"?/i)
+    if (match) filename = match[1]
+  }
+
+  return { blob: response.data, filename }
+}

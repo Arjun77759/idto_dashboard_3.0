@@ -13,7 +13,7 @@ import { useEffect, useState } from 'react'
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 const PrivateLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false) // Start closed on mobile
+  const [sidebarOpen, setSidebarOpen] = useState(false) // Mobile drawer state; desktop sidebar stays visible.
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false)
   const token = getAccessToken()
   const location = useLocation()
@@ -71,13 +71,12 @@ const PrivateLayout = () => {
         w-64 lg:w-64
         h-full
         overflow-hidden bg-white border-r border-gray-200
-        lg:${sidebarOpen ? 'w-64' : 'w-0'}
       `}>
         <Sidebar />
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-y-auto">
+      <div className="flex-1 min-w-0 flex flex-col overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
