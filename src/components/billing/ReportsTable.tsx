@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Download, Receipt, RotateCw } from 'lucide-react'
+import { useEffect, useMemo, useState, type MouseEvent } from 'react'
+import { Copy, Download, Receipt, RotateCw } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -50,6 +50,9 @@ const formatApiName = (value: string) =>
   value
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (character) => character.toUpperCase())
+
+const formatShortTransactionId = (value: string) =>
+  value.length > 7 ? `${value.slice(0, 7)}...` : value
 
 const getStatusClassName = (status: string) => {
   switch (status.toLowerCase()) {
@@ -106,35 +109,50 @@ const getVisiblePages = (totalPages: number, currentPage: number) => {
   return pages
 }
 
-const ReportRow = ({ report }: { report: UsageReport }) => (
-  <TableRow className="odd:bg-[#f7f7f8]">
-    <TableCell className="max-w-[220px] font-mono text-xs text-[#616675]">
-      <span className="block truncate" title={report.trans_id}>
-        {report.trans_id}
-      </span>
-    </TableCell>
-    <TableCell className="min-w-[180px] text-sm font-normal text-[#616675]">
+const ReportRow = ({ report }: { report: UsageReport }) => {
+  const handleCopyTransactionId = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation()
+    navigator.clipboard.writeText(report.trans_id)
+  }
+
+  return (
+    <TableRow className="odd:bg-[#f7f7f8]">
+      <TableCell className="w-[150px] max-w-[150px] px-3 font-mono text-xs text-[#616675]">
+        <div className="flex items-center gap-2">
+          <span title={report.trans_id}>{formatShortTransactionId(report.trans_id)}</span>
+          <button
+            type="button"
+            onClick={handleCopyTransactionId}
+            className="shrink-0"
+            aria-label="Copy transaction id"
+          >
+            <Copy className="size-4 cursor-pointer text-[#9296a0] hover:text-[#131b31]" />
+          </button>
+        </div>
+      </TableCell>
+    <TableCell className="w-[190px] max-w-[190px] px-3 text-sm font-normal text-[#616675]">
       {formatApiName(report.api_name)}
     </TableCell>
-    <TableCell>
-      <Badge className={cn('border-transparent font-normal', getStatusClassName(report.status))}>
+    <TableCell className="px-3">
+      <Badge className={cn('min-w-[76px] justify-center border-transparent font-normal', getStatusClassName(report.status))}>
         {formatApiName(report.status)}
       </Badge>
     </TableCell>
-    <TableCell className="whitespace-nowrap text-sm text-[#616675]">
+    <TableCell className="whitespace-nowrap px-3 text-sm text-[#616675]">
       {report.datetime}
     </TableCell>
-    <TableCell className="whitespace-nowrap text-right text-sm text-[#616675]">
+    <TableCell className="whitespace-nowrap px-3 text-left text-sm text-[#616675]">
       {formatCurrency(report.selling_price)}
     </TableCell>
-    <TableCell className="whitespace-nowrap text-center text-sm text-[#616675]">
+    <TableCell className="whitespace-nowrap px-3 text-left text-sm text-[#616675]">
       18%
     </TableCell>
-    <TableCell className="whitespace-nowrap text-right text-sm text-[#616675]">
+    <TableCell className="whitespace-nowrap px-3 text-left text-sm text-[#616675]">
       {formatCurrency(report.balance ?? report.balance_after)}
     </TableCell>
-  </TableRow>
-)
+    </TableRow>
+  )
+}
 
 type ReportsTableProps = {
   selectedApiName?: string
@@ -281,16 +299,25 @@ const ReportsTable = ({ selectedApiName: selectedApiNameProp, onSelectedApiNameC
         </div>
 
         <div className="w-full min-w-0 max-h-[470px] overflow-x-scroll overflow-y-auto rounded-md border border-[#e7e8ea] [scrollbar-gutter:stable_both-edges]">
-          <table className="w-full min-w-[1080px] caption-bottom text-sm">
+          <table className="w-[880px] min-w-[880px] table-fixed caption-bottom text-sm">
+            <colgroup>
+              <col className="w-[150px]" />
+              <col className="w-[190px]" />
+              <col className="w-[120px]" />
+              <col className="w-[170px]" />
+              <col className="w-[80px]" />
+              <col className="w-[60px]" />
+              <col className="w-[110px]" />
+            </colgroup>
             <TableHeader className="sticky top-0 z-10 bg-white">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="min-w-[220px] font-normal text-[#131b31]">Trans ID</TableHead>
-                <TableHead className="min-w-[180px] font-normal text-[#131b31]">API Name</TableHead>
-                <TableHead className="min-w-[110px] font-normal text-[#131b31]">Status</TableHead>
-                <TableHead className="min-w-[160px] font-normal text-[#131b31]">Datetime</TableHead>
-                <TableHead className="w-[96px] min-w-[96px] text-right font-normal text-[#131b31]">Cost</TableHead>
-                <TableHead className="w-[72px] min-w-[72px] text-center font-normal text-[#131b31]">GST</TableHead>
-                <TableHead className="w-[120px] min-w-[120px] text-right font-normal text-[#131b31]">Balance</TableHead>
+                <TableHead className="w-[150px] min-w-[150px] px-3 font-normal text-[#131b31]">Trans ID</TableHead>
+                <TableHead className="w-[190px] min-w-[190px] px-3 font-normal text-[#131b31]">API Name</TableHead>
+                <TableHead className="w-[120px] min-w-[120px] px-3 font-normal text-[#131b31]">Status</TableHead>
+                <TableHead className="w-[170px] min-w-[170px] px-3 font-normal text-[#131b31]">Datetime</TableHead>
+                <TableHead className="w-[80px] min-w-[80px] px-3 text-left font-normal text-[#131b31]">Cost</TableHead>
+                <TableHead className="w-[60px] min-w-[60px] px-3 text-left font-normal text-[#131b31]">GST</TableHead>
+                <TableHead className="w-[110px] min-w-[110px] px-3 text-left font-normal text-[#131b31]">Balance</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
