@@ -43,6 +43,7 @@ const SUBSCRIPTION_NAME_ALIASES: Record<string, string[]> = {
   bank_account: ['bank_verification'],
   bank_account_v2: ['bank_verification'],
   bank_account_pennyless: ['bank_verification_pennyless'],
+  bank_statement_pdf_complete_upload: ['bank_statement_pdf_complete'],
   cin_mca: ['cin_mca_verification'],
   gst: ['gst_verification'],
   pan: ['pan_verification'],

@@ -10,8 +10,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useMonthlyUsage } from '@/hooks/useMonthlyUsage'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
-import CurrentBalanceCard from '@/components/billing/CurrentBalanceCard'
-import ApiUsageTable from '@/components/billing/ApiUsageTable'
+// import CurrentBalanceCard from '@/components/billing/CurrentBalanceCard'
+// import ApiUsageTable from '@/components/billing/ApiUsageTable'
+import ConfiguredApisCard from '@/components/billing/ConfiguredApisCard'
+import ReportsTable, { REPORTS_ALL_APIS_VALUE } from '@/components/billing/ReportsTable'
 import SwitchToProductionModal from '@/components/modals/switchToProductionModal/SwitchToProductionModal'
 import { fetchOnboardingStatus } from '@/store/onboardingStore'
 
@@ -34,6 +36,7 @@ const BillingPage = () => {
   // const [creditAmount, setCreditAmount] = useState<string>('')
   // const [hasGst, setHasGst] = useState<'yes' | 'no'>(userProfile?.gst_number ? 'yes' : 'no')
   const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'bank'>('bank')
+  const [selectedReportApiName, setSelectedReportApiName] = useState(REPORTS_ALL_APIS_VALUE)
   // const [gstNumber, setGstNumber] = useState<string>(userProfile?.gst_number ?? '')
   // const [companyName, setCompanyName] = useState<string>(userProfile?.brand_name ?? '')
   // const [stateName, setStateName] = useState<string>(userProfile?.business_state ?? '')
@@ -387,9 +390,22 @@ const BillingPage = () => {
         )}
       </section>
 
-      <div className='flex gap-4'>
+      {/* Preserved for rollback: this was the balance/usage summary section replaced by reports. */}
+      {/* <div className='flex gap-4'>
         <CurrentBalanceCard/>
         <ApiUsageTable/>
+      </div> */}
+      <div className="flex w-full min-w-0 shrink-0 flex-col gap-4 lg:flex-row lg:items-stretch">
+        <ConfiguredApisCard
+          selectedApiName={selectedReportApiName}
+          allApisValue={REPORTS_ALL_APIS_VALUE}
+          onSelectApiName={setSelectedReportApiName}
+        />
+        <ReportsTable
+          selectedApiName={selectedReportApiName}
+          onSelectedApiNameChange={setSelectedReportApiName}
+          className="min-w-0 lg:flex-1 lg:w-0"
+        />
       </div>
 
       <div className="flex flex-col gap-6">
