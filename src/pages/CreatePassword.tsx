@@ -41,13 +41,10 @@ const CreatePassword = () => {
 
   const validate = () => {
     const next: { fullName?: string; organisationName?: string; password?: string; confirmPassword?: string } = {}
-    const linkPattern = /(?:https?:\/\/|www\.|[a-z0-9-]+\.[a-z]{2,}|<\/?[a-z][^>]*>)(?:\S*)?/i
 
     // Only validate full name and organisation name if not reset password
     if (!isResetPassword) {
-      if (formData.fullName && linkPattern.test(formData.fullName)) {
-        next.fullName = 'Links or HTML are not allowed in full name'
-      }
+      // These fields are optional, so no validation needed
     }
 
     if (!formData.password) {
