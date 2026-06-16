@@ -48,6 +48,77 @@ const PrivateLayout = () => {
     return <Navigate to="/login" replace />
   }
 
+  if (!isProduction) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="h-screen bg-white flex overflow-hidden"
+      >
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        <div className={`
+          fixed lg:relative z-50 lg:z-auto
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          transition-all duration-300 ease-in-out
+          w-[238px]
+          h-full
+          overflow-hidden bg-white border-r border-[#eef0f3]
+        `}>
+          <Sidebar />
+        </div>
+
+        <div className="flex-1 min-w-0 flex flex-col bg-[#f7f7f8] overflow-hidden">
+          <header className="h-[71px] shrink-0 border-b border-[#e7e8ea] bg-white/95 backdrop-blur flex items-center justify-between px-6 lg:px-10">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 rounded-md text-[#616675] hover:text-[#131b31] hover:bg-[#f7f7f8] block lg:hidden"
+              >
+                {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+              <h1 className="text-[28px] font-semibold leading-none tracking-normal text-[#131b31]">
+                idto.ai
+              </h1>
+            </div>
+            <div className="hidden sm:flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-[#9aa0ab]">
+              <span className="size-1.5 rounded-full bg-[#00d395]" />
+              Sample Data
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="p-6 lg:p-8"
+            >
+              <Outlet />
+            </motion.div>
+          </main>
+        </div>
+
+        <SimulationModeModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          onMoveToProduction={handleMoveToProduction}
+        />
+        <SwitchToProductionModal
+          isOpen={isSwitchModalOpen}
+          onClose={() => setIsSwitchModalOpen(false)}
+          onConfirm={handleConfirmSwitch}
+        />
+      </motion.div>
+    )
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}

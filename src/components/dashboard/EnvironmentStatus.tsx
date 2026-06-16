@@ -1,4 +1,4 @@
-import { Play, ChevronUp, ChevronDown } from 'lucide-react'
+import { Play } from 'lucide-react'
 import SimulationModeBanner from '@/components/dashboard/SimulationModeBanner'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 
@@ -7,23 +7,23 @@ type EnvironmentStatusProps = {
 }
 
 const SandboxHeader = () => (
-  <div className="flex items-start justify-between px-0 py-1.5 relative w-full">
-    <div className="flex gap-4 items-center relative">
-      <div
-        className="rounded w-[34px] h-[34px] shrink-0"
-        style={{
-          backgroundImage:
-            "url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 34 34\\' preserveAspectRatio=\\'none\\'><g transform=\\'matrix(-1.0409e-16 -1.7 1.7 -1.0409e-16 17 17)\\'><foreignObject x=\\'-190\\' y=\\'-190\\' width=\\'380\\' height=\\'380\\'><div xmlns=\\'http://www.w3.org/1999/xhtml\\' style=\\'background-image: conic-gradient(from 90deg, rgba(84, 238, 190, 1) 0%, rgba(63, 185, 206, 1) 25%, rgba(42, 132, 223, 1) 50%, rgba(32, 105, 231, 1) 62.5%, rgba(21, 78, 239, 1) 75%, rgba(11, 52, 247, 1) 87.5%, rgba(0, 25, 255, 1) 100%); opacity:1; height: 100%; width: 100%;\\'></div></foreignObject></g></svg>')",
-        }}
-      />
-      <div className="flex flex-col items-start relative">
-        <p className="font-medium leading-[1.4] relative text-[12px] text-[#131b31] tracking-[-0.12px]">
-          Sandbox
-        </p>
-        <p className="font-normal leading-[1.4] relative text-[12px] text-[#9296a0] tracking-[-0.12px]">
-          Simulated Data
-        </p>
-      </div>
+  <div className="flex h-20 w-full items-center gap-3 px-5">
+    <div className="relative size-9 shrink-0 rounded-lg bg-white shadow-[0_10px_30px_rgba(19,27,49,0.08)] grid place-items-center">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="24" viewBox="0 0 16 24" fill="none" aria-hidden="true">
+        <path d="M3 3h5v5H3V3Z" fill="#0019FF" />
+        <path d="M8 8h5v5H8V8Z" fill="#00C7A6" />
+        <path d="M3 13h5v5H3v-5Z" fill="#0019FF" />
+      </svg>
+      <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-[#00d395]" />
+    </div>
+    <div className="flex items-center gap-2">
+      <p className="text-[18px] font-semibold leading-none text-[#131b31]">
+        idto.ai
+      </p>
+      <span className="inline-flex h-[19px] items-center gap-1 rounded-full bg-[#fff3cf] px-2 text-[10px] font-bold uppercase tracking-normal text-[#d58d00]">
+        <span className="size-1.5 rounded-full bg-[#f6a400]" />
+        Sandbox
+      </span>
     </div>
   </div>
 )

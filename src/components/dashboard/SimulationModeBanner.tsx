@@ -1,53 +1,39 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
-import SwitchToProductionModal from '../modals/switchToProductionModal/SwitchToProductionModal'
-import { AlertTriangle, ArrowRight } from 'lucide-react'
+import { Play, Radio } from 'lucide-react'
 
 const SimulationModeBanner = () => {
-  const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false)
-
-  const handleSwitchToProduction = () => {
-    setIsSwitchModalOpen(true)
-  }
-
-  const handleConfirmSwitch = () => {
-    console.log('Confirmed switch to production')
-    // Add your production switch logic here
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="bg-[#fff7ea] flex items-center justify-between overflow-hidden px-4 py-2 relative rounded-[50px] shrink-0 w-fit gap-[50px]"
+      className="w-full rounded-[18px] border border-[rgba(0,25,255,0.1)] bg-gradient-to-r from-[rgba(0,25,255,0.03)] to-[rgba(0,229,158,0.06)] px-[21px] py-[17px]"
     >
-      <div className="flex gap-2.5 items-center relative hidden md:flex">
-        <AlertTriangle className="size-4 text-[#b47d1f]" />
-        <p className="font-semibold leading-[1.4] relative text-[12px] text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
-          <span>You are in </span>
-          <span className="font-bold text-[#b47d1f]">Simulation Mode</span>
-          <span> — unlock real-time data and actionable insights by switching to Live Mode!</span>
-        </p>
-      </div>
-      <div className="bg-[#b47d1f] border border-[#e7e8ea] border-solid h-10 relative rounded-[35px] shrink-0">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-4">
+          <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#0019ff] text-white">
+            <Radio className="size-4" />
+          </div>
+          <div>
+            <p className="text-[14px] font-semibold leading-[20.25px] text-[#171717]">
+              You're in Sandbox Mode
+            </p>
+            <p className="text-[12px] font-normal leading-[18.75px] text-[#525252]">
+              Follow the setup guide to start building with dummy data - switch to production any time.
+            </p>
+          </div>
+        </div>
         <button
-          onClick={handleSwitchToProduction}
-          className="flex gap-2 h-10 items-center justify-center overflow-hidden px-4 py-2 relative rounded-[inherit]"
+          onClick={() => {
+            window.open('https://drive.google.com/file/d/1vV3UIcOSrKOvh0_L_qFAPzMoKwroDMsI/view?usp=sharing', '_blank')
+          }}
+          type="button"
+          className="inline-flex h-8 shrink-0 items-center justify-center gap-[14px] rounded-full bg-[#0019ff] px-4 text-[12px] font-medium leading-4 text-white shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
         >
-          <p className="font-medium leading-[1.4] relative text-[12px] text-white text-nowrap tracking-[-0.12px] whitespace-pre">
-            Switch to Production
-          </p>
-          <ArrowRight className="size-4 text-white" />
+          <Play className="size-3.5" fill="currentColor" />
+          View Tutorial
         </button>
       </div>
-
-      {/* Switch to Production Modal */}
-      <SwitchToProductionModal
-        isOpen={isSwitchModalOpen}
-        onClose={() => setIsSwitchModalOpen(false)}
-        onConfirm={handleConfirmSwitch}
-      />
     </motion.div>
   )
 }

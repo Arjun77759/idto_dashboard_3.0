@@ -1,4 +1,10 @@
 import EnvironmentStatus from '@/components/dashboard/EnvironmentStatus'
+import sidebarAnalyticsIcon from '@/assets/sidebar/Analytics.svg'
+import sidebarBillingIcon from '@/assets/sidebar/Billing.svg'
+import sidebarBrandingIcon from '@/assets/sidebar/Branding.svg'
+import sidebarDocIcon from '@/assets/sidebar/Doc.svg'
+import sidebarHomeIcon from '@/assets/sidebar/Home.svg'
+import sidebarTransactionsIcon from '@/assets/sidebar/Transactions.svg'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,26 +17,33 @@ import { clearAuth } from '@/lib/auth'
 import { resetOnboardingStore } from '@/store/onboardingStore'
 import { motion } from 'framer-motion'
 import {
-  ArrowRight,
   BarChart3,
   BookOpen,
   ChevronDown,
+  CheckCircle2,
   CreditCard,
   FlaskConical,
+  Headphones,
   Key,
+  Loader2,
   LogOut,
+  Mail,
+  MessageCircle,
   MessageSquare,
+  Phone,
   Receipt,
-  Settings
+  Settings,
+  X
 } from 'lucide-react'
-import { useState } from 'react'
+import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import SwitchToProductionModal from './modals/switchToProductionModal/SwitchToProductionModal'
 
 interface MenuItem {
   name: string
   href: string
-  icon: React.ComponentType<{ className?: string }>
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>
+  iconSrc?: string
   isActive?: boolean
   isExternal?: boolean
   isDisabled?: boolean
@@ -41,13 +54,207 @@ interface Category {
   items: MenuItem[]
 }
 
+type DemoRequestPayload = {
+  companyName: string
+  fullName: string
+  workEmail: string
+  phone: string
+  consentToContact: boolean
+  message?: string
+}
+
+type SubmitState = 'idle' | 'submitting' | 'success' | 'error'
+
+const DEMO_REQUEST_ENDPOINT =
+  'https://script.google.com/macros/s/AKfycbwf6CVybQpDqbVGG7FSxuQzBcDtAKRK7iimDrlJUh9bX7KfS3kTfwoFpR9QT8DWFlhhQw/exec'
+const DEMO_REQUEST_SHEET_URL =
+  'https://docs.google.com/spreadsheets/d/1OJH3O3rPi1O6r4L05THbJFueZOjFhjcCoQ7oqetVilk/edit?usp=sharing'
+
+const initialBookCallForm: DemoRequestPayload = {
+  companyName: '',
+  fullName: '',
+  workEmail: '',
+  phone: '',
+  consentToContact: true,
+  message: '',
+}
+
+const personalEmailDomains = new Set([
+  'gmail.com',
+  'googlemail.com',
+  'yahoo.com',
+  'ymail.com',
+  'hotmail.com',
+  'outlook.com',
+  'live.com',
+  'msn.com',
+  'icloud.com',
+  'me.com',
+  'mac.com',
+  'aol.com',
+  'proton.me',
+  'protonmail.com',
+  'zoho.com',
+  'mail.com',
+  'rediffmail.com',
+])
+
+function isWorkEmail(email: string) {
+  const trimmedEmail = email.trim().toLowerCase()
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+  if (!emailPattern.test(trimmedEmail)) return false
+
+  const domain = trimmedEmail.split('@').pop()
+  return Boolean(domain && !personalEmailDomains.has(domain))
+}
+
+async function submitDemoRequest(formData: DemoRequestPayload) {
+  const payload = {
+    ...formData,
+    submittedAt: new Date().toISOString(),
+    sourceUrl: window.location.href,
+    googleSheetUrl: DEMO_REQUEST_SHEET_URL,
+  }
+
+  const response = await fetch(DEMO_REQUEST_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8',
+    },
+    body: JSON.stringify(payload),
+  })
+
+  const responseText = await response.text()
+  let responseBody: { ok?: boolean; message?: string } | undefined
+
+  if (responseText) {
+    try {
+      responseBody = JSON.parse(responseText) as { ok?: boolean; message?: string }
+    } catch {
+      responseBody = undefined
+    }
+  }
+
+  if (!response.ok || responseBody?.ok === false) {
+    throw new Error(responseBody?.message || 'Demo request endpoint failed.')
+  }
+}
+
 const Sidebar = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false)
   const { data: userProfile, loading: profileLoading } = useUserProfile()
   const { data: onboardingStatus } = useOnboardingStatus()
   const isProduction = Boolean(onboardingStatus?.is_onboarded)
+  const [isBookCallOpen, setIsBookCallOpen] = useState(false)
+  const [bookCallForm, setBookCallForm] = useState<DemoRequestPayload>(initialBookCallForm)
+  const [bookCallErrors, setBookCallErrors] = useState<Partial<Record<keyof DemoRequestPayload, string>>>({})
+  const [bookCallSubmitState, setBookCallSubmitState] = useState<SubmitState>('idle')
+  const [bookCallStatusMessage, setBookCallStatusMessage] = useState('')
+
+  useEffect(() => {
+    if (!isBookCallOpen) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsBookCallOpen(false)
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isBookCallOpen])
+
+  const normalizePhoneValue = (value: string) => {
+    const raw = value.trim()
+
+    if (raw === '' || raw === '+' || raw === '+9' || raw === '+91' || raw === '+91 ') {
+      return ''
+    }
+
+    return raw.replace(/^\+?91[\s-]*/, '').replace(/\D/g, '').slice(0, 10)
+  }
+
+  const formatPhoneValue = (phoneDigits: string) => (phoneDigits ? `+91 ${phoneDigits}` : '+91')
+
+  const validateBookCallForm = () => {
+    const nextErrors: Partial<Record<keyof DemoRequestPayload, string>> = {}
+
+    if (!bookCallForm.fullName.trim()) nextErrors.fullName = 'Name is required.'
+    if (!bookCallForm.workEmail.trim()) {
+      nextErrors.workEmail = 'Email is required.'
+    } else if (!isWorkEmail(bookCallForm.workEmail)) {
+      nextErrors.workEmail = 'Enter a valid work email address.'
+    }
+
+    if (!bookCallForm.phone) {
+      nextErrors.phone = 'Phone number is required.'
+    } else if (bookCallForm.phone.length !== 10) {
+      nextErrors.phone = 'Enter a 10-digit phone number.'
+    }
+
+    if (!bookCallForm.message?.trim()) nextErrors.message = 'Message is required.'
+
+    return nextErrors
+  }
+
+  const handleBookCallChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = event.target
+    const field = name as keyof DemoRequestPayload
+    const nextValue = field === 'phone' ? normalizePhoneValue(value) : value
+
+    setBookCallForm((current) => ({
+      ...current,
+      [field]: nextValue,
+    }))
+
+    if (bookCallErrors[field]) {
+      setBookCallErrors((current) => ({
+        ...current,
+        [field]: '',
+      }))
+    }
+  }
+
+  const handleBookCallSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const companyName =
+      userProfile?.brand_name || userProfile?.registered_name || userProfile?.name || 'Dashboard user'
+    const nextForm = {
+      ...bookCallForm,
+      companyName,
+      consentToContact: true,
+    }
+    const nextErrors = validateBookCallForm()
+
+    setBookCallErrors(nextErrors)
+    setBookCallStatusMessage('')
+
+    if (Object.values(nextErrors).some(Boolean)) {
+      setBookCallSubmitState('error')
+      return
+    }
+
+    setBookCallSubmitState('submitting')
+
+    try {
+      await submitDemoRequest(nextForm)
+      setBookCallSubmitState('success')
+      setBookCallStatusMessage('Request submitted. Our team will get back to you shortly.')
+      setBookCallForm(initialBookCallForm)
+    } catch (error) {
+      console.error('Demo request submission failed', error)
+      setBookCallSubmitState('error')
+      setBookCallStatusMessage('We could not submit the request right now. Please try again in a moment.')
+    }
+  }
 
   const handleLogout = () => {
     clearAuth()
@@ -63,7 +270,7 @@ const Sidebar = () => {
           name: 'Home',
           href: '/dashboard',
           icon: (props) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="14" viewBox="0 0 15 14" fill="none">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="14" viewBox="0 0 15 14" fill="none" {...props}>
               <path d="M6.74512 0.149414C6.99146 -0.0496 7.34159 -0.0496887 7.58789 0.149414L14.333 5.60254L13.4902 6.66699L12.9932 6.26465V13.667H1.32617V6.27539L0.842773 6.66699L0 5.60254L6.74512 0.149414ZM6.49316 9.50098V10.834H7.83203V9.50098H6.49316Z" fill="currentColor" />
             </svg>
           ),
@@ -178,37 +385,58 @@ const Sidebar = () => {
     }
   ]
 
-  const handleSwitchToProduction = () => {
-    setIsSwitchModalOpen(true)
-  }
+  const sandboxCategories: Category[] = [
+    {
+      name: 'Workspace',
+      items: [
+        { name: 'Home', href: '/dashboard', icon: BarChart3, iconSrc: sidebarHomeIcon, isActive: location.pathname === '/dashboard' },
+        { name: 'Analytics', href: '/analytics', icon: BarChart3, iconSrc: sidebarAnalyticsIcon, isActive: location.pathname === '/analytics' },
+        { name: 'Transactions', href: '/transactions', icon: Receipt, iconSrc: sidebarTransactionsIcon, isActive: location.pathname === '/transactions' },
+        { name: 'Billing', href: '/billing', icon: CreditCard, iconSrc: sidebarBillingIcon, isActive: location.pathname === '/billing' },
+        { name: 'API Testing', href: '/api-testing', icon: FlaskConical, isActive: location.pathname === '/api-testing' },
+        {
+          name: 'Documentation',
+          href: 'https://idtoai.readme.io/reference/idtoai-verification-apis',
+          icon: BookOpen,
+          iconSrc: sidebarDocIcon,
+          isExternal: true,
+        },
+        {
+          name: 'Branding',
+          href: 'https://idto.ai/demo',
+          icon: Key,
+          iconSrc: sidebarBrandingIcon,
+          isExternal: true,
+        },
+        { name: 'Settings', href: '/settings', icon: Settings, isActive: location.pathname === '/settings', isDisabled: true },
+      ],
+    },
+  ]
 
-  const handleConfirmSwitch = () => {
-    console.log('Confirmed switch to production')
-    // Add your production switch logic here
-  }
+  const visibleCategories = isProduction ? categories : sandboxCategories
 
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3 }}
-      className="bg-white flex flex-col gap-5 items-start px-4 py-6 relative w-full h-screen"
+      className="bg-white flex flex-col items-start relative w-full h-screen"
     >
       {/* Environment Header */}
       <EnvironmentStatus variant="header" />
 
       {/* Navigation List */}
-      <div className="flex flex-col gap-2 grow items-start min-h-0 min-w-0 relative w-full overflow-y-auto">
-        {categories.map((category, categoryIndex) => (
-          <div key={categoryIndex} className="w-full ">
+      <div className={`grow min-h-0 min-w-0 relative w-full overflow-y-auto ${isProduction ? 'flex flex-col gap-2 items-start px-3' : 'flex flex-col items-start px-3 py-2'}`}>
+        {visibleCategories.map((category, categoryIndex) => (
+          <div key={categoryIndex} className="w-full">
             {/* Category Header */}
-            <div className="flex gap-1 items-center overflow-hidden pb-2 pt-4 px-0 relative w-[206px] ">
-              <p className="font-normal leading-[1.4] relative text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
+            <div className={`flex gap-1 items-center overflow-hidden relative ${isProduction ? 'w-[206px] pb-2 pt-4 px-0' : 'h-7 w-full px-2 pb-1 pt-[7px]'}`}>
+              <p className={`relative text-nowrap whitespace-pre ${isProduction ? 'font-normal text-[12px] leading-[1.4] text-[#9296a0] tracking-[-0.12px]' : 'text-[12px] font-normal leading-[17px] text-[#9296a0]'}`}>
                 {category.name}
               </p>
-              <div className="grow h-0 min-h-px min-w-0 relative ">
+              {isProduction && <div className="grow h-0 min-h-px min-w-0 relative ">
                 <div className="absolute bottom-0 left-0 right-0 top-[-1px] border-t border-[#e7e8ea]"></div>
-              </div>
+              </div>}
             </div>
 
             {/* Menu Items */}
@@ -216,10 +444,30 @@ const Sidebar = () => {
               const IconComponent = item.icon
 
               if (item.isDisabled) {
+                if (!isProduction) {
+                  return (
+                    <div
+                      key={itemIndex}
+                      className="flex h-9 w-full cursor-not-allowed items-center gap-3 rounded-[14px] px-3 py-2"
+                    >
+                      <div className="relative size-4 shrink-0 overflow-hidden text-[#c7cbd3]">
+                        {item.iconSrc ? (
+                          <img src={item.iconSrc} alt="" className="size-4" />
+                        ) : (
+                          <IconComponent className="size-4" strokeWidth={2} />
+                        )}
+                      </div>
+                      <p className="relative whitespace-pre text-nowrap text-[14px] font-normal leading-5 text-[#c7cbd3]">
+                        {item.name}
+                      </p>
+                    </div>
+                  )
+                }
+
                 return (
                   <div
                     key={itemIndex}
-                    className="flex gap-2 items-center px-3 py-1.5 mt-2 relative rounded w-full opacity-50 cursor-not-allowed"
+                    className="flex gap-3 items-center px-3 py-2 mt-1 relative rounded-[10px] w-full opacity-50 cursor-not-allowed"
                   >
                     <div className="overflow-hidden relative shrink-0 size-4">
                       <IconComponent className="w-4 h-4 text-[#9296a0]" />
@@ -232,6 +480,29 @@ const Sidebar = () => {
               }
 
               if (item.isExternal) {
+                if (!isProduction) {
+                  return (
+                    <a
+                      key={itemIndex}
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`flex h-9 w-full items-center gap-3 rounded-[14px] px-3 py-2 ${item.isActive ? 'bg-[#e8f3ff]' : 'hover:bg-[#f7f9fc]'}`}
+                    >
+                      <div className={`relative size-4 shrink-0 overflow-hidden ${item.isActive ? 'text-[#2031c2]' : 'text-[rgba(7,13,26,0.7)]'}`}>
+                        {item.iconSrc ? (
+                          <img src={item.iconSrc} alt="" className="size-4" />
+                        ) : (
+                          <IconComponent className="size-4" strokeWidth={2} />
+                        )}
+                      </div>
+                      <p className={`relative whitespace-pre text-nowrap text-[14px] font-normal leading-5 ${item.isActive ? 'text-[#2031c2]' : 'text-[rgba(7,13,26,0.7)]'}`}>
+                        {item.name}
+                      </p>
+                    </a>
+                  )
+                }
+
                 return (
                   <a
                     key={itemIndex}
@@ -239,7 +510,7 @@ const Sidebar = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`flex gap-2 items-center px-3 py-1.5 mt-2 relative rounded w-full ${item.isActive
-                      ? 'bg-[#e6fcf5]'
+                      ? isProduction ? 'bg-[#e6fcf5]' : 'bg-[#eaf3ff]'
                       : 'hover:bg-gray-50'
                       }`}
                   >
@@ -255,12 +526,33 @@ const Sidebar = () => {
                 )
               }
 
+              if (!isProduction) {
+                return (
+                  <Link
+                    key={itemIndex}
+                    to={item.href}
+                    className={`flex h-9 w-full items-center gap-3 rounded-[14px] px-3 py-2 ${item.isActive ? 'bg-[#e8f3ff]' : 'hover:bg-[#f7f9fc]'}`}
+                  >
+                    <div className={`relative size-4 shrink-0 overflow-hidden ${item.isActive ? 'text-[#2031c2]' : 'text-[rgba(7,13,26,0.7)]'}`}>
+                      {item.iconSrc ? (
+                        <img src={item.iconSrc} alt="" className="size-4" />
+                      ) : (
+                        <IconComponent className="size-4" strokeWidth={2} />
+                      )}
+                    </div>
+                    <p className={`relative whitespace-pre text-nowrap text-[14px] font-normal leading-5 ${item.isActive ? 'text-[#2031c2]' : 'text-[rgba(7,13,26,0.7)]'}`}>
+                      {item.name}
+                    </p>
+                  </Link>
+                )
+              }
+
               return (
                 <Link
                   key={itemIndex}
                   to={item.href}
                   className={`flex gap-2 items-center px-3 py-1.5 mt-2 relative rounded w-full ${item.isActive
-                    ? 'bg-[#e6fcf5]'
+                    ? isProduction ? 'bg-[#e6fcf5]' : 'bg-[#eaf3ff]'
                     : 'hover:bg-gray-50'
                     }`}
                 >
@@ -278,25 +570,191 @@ const Sidebar = () => {
         ))}
       </div>
 
-      {/* Switch to Production Button */}
       {!isProduction && (
-        <div className="bg-[#fff7ea] border border-[#b47d1f] border-solid relative rounded-lg shrink-0 w-full">
+        <div className="mx-3 mb-3 flex w-[214px] flex-col items-start gap-1 rounded-[18px] bg-[linear-gradient(144.44deg,#dff0ff_0%,#adf3f7_100%)] p-4">
+          <div className="relative size-4 shrink-0 text-[#0019ff]">
+            <Settings className="size-4" />
+          </div>
+          <p className="pt-[3px] text-[14px] font-bold leading-[17.5px] text-[#070d1a]">
+            Need a guided setup?
+          </p>
+          <p className="pb-2 text-[12px] font-normal leading-4 text-[#5a6472]">
+            Book 20 min with an integration engineer.
+          </p>
           <button
-            onClick={handleSwitchToProduction}
-            className="flex gap-2 items-center justify-center p-2 relative rounded-[inherit] w-full"
+            type="button"
+            onClick={() => setIsBookCallOpen(true)}
+            className="relative flex w-full items-center justify-center rounded-[14px] bg-gradient-to-r from-[#2031c2] to-[#009daa] py-2 text-center text-[12px] font-bold leading-4 text-white shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
           >
-            <p className="font-medium leading-[1.4] relative text-[12px] text-[#b47d1f] text-nowrap tracking-[-0.12px] whitespace-pre">
-              Switch to Production
-            </p>
-            <div className="overflow-hidden relative shrink-0 size-4">
-              <ArrowRight className="w-4 h-4 text-[#b47d1f]" />
-            </div>
+            Book a call
           </button>
         </div>
       )}
 
+      {isBookCallOpen && createPortal(
+        <motion.div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/45 px-6 py-8 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onMouseDown={() => setIsBookCallOpen(false)}
+        >
+          <motion.section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="book-call-title"
+            className="relative grid max-h-[calc(100dvh-64px)] w-full max-w-[1008px] overflow-hidden rounded-[26px] bg-white shadow-[0_1px_2px_rgba(14,22,36,0.04),0_8px_24px_-12px_rgba(14,22,36,0.08)] lg:grid-cols-5"
+            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setIsBookCallOpen(false)}
+              className="absolute right-4 top-4 z-10 grid size-8 place-items-center rounded-full bg-white/90 text-[#5d646f] shadow-[0_1px_3px_rgba(0,0,0,0.1)] transition hover:text-[#121b29]"
+              aria-label="Close book a call form"
+            >
+              <X className="size-4" />
+            </button>
+
+            <div className="bg-[linear-gradient(136.32deg,#2c67ce_0%,#0493c9_50.48%,#02afb9_100%)] p-10 text-white lg:col-span-2">
+              <div className="flex h-full flex-col justify-between gap-12">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[10px] font-normal leading-4 text-[#fcfcfc] backdrop-blur">
+                    <Headphones className="size-3" />
+                    Support Desk
+                  </div>
+                  <h2 className="mt-[27px] text-[30px] font-bold leading-[45px] tracking-[-0.9px] text-[#fcfcfc]">
+                    Need help?<br />
+                    We're here to support you.
+                  </h2>
+                  <p className="mt-[15px] max-w-[384px] text-[12px] font-normal leading-[22.75px] text-[#fcfcfc]/85">
+                    Reach out for any queries about APIs, billing, integrations, or onboarding. Our team typically replies within 24 hours.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3 pt-10 text-[12px] font-normal leading-5 text-[#fcfcfc]/90">
+                  <div className="flex items-center gap-3">
+                    <Mail className="size-3" />
+                    support@yourcompany.com
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Phone className="size-3" />
+                    +91 80 4567 8900
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <MessageCircle className="size-3" />
+                    {'Live chat \u00b7 9am - 9pm IST'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="overflow-y-auto p-10 lg:col-span-3">
+              <h3 id="book-call-title" className="text-[16px] font-bold leading-7 text-[#121b29]">
+                Contact us for any queries
+              </h3>
+              <p className="text-[12px] font-normal leading-5 text-[#5d646f]">
+                Share a few details and we'll route your message to the right team.
+              </p>
+
+              {bookCallSubmitState === 'success' ? (
+                <div className="flex min-h-[320px] flex-col items-center justify-center text-center">
+                  <span className="grid size-14 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+                    <CheckCircle2 className="size-8" />
+                  </span>
+                  <p className="mt-5 text-[18px] font-bold leading-7 text-[#121b29]">Request submitted</p>
+                  <p className="mt-2 max-w-[360px] text-[12px] leading-5 text-[#5d646f]">
+                    {bookCallStatusMessage}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setIsBookCallOpen(false)}
+                    className="mt-6 h-9 rounded-[12px] bg-[#435bcf] px-4 text-[14px] font-normal leading-5 text-white shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleBookCallSubmit} className="flex flex-col gap-4 pt-5">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <label className="flex flex-col gap-1 pt-1.5 text-[14px] font-normal leading-[14px] text-[#121b29]">
+                      Name
+                      <input
+                        name="fullName"
+                        value={bookCallForm.fullName}
+                        onChange={handleBookCallChange}
+                        className="h-9 rounded-[12px] border border-[#e1e5eb] bg-white px-3 text-[12px] font-normal text-[#121b29] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] outline-none transition placeholder:text-[#5d646f] focus:border-[#435bcf]"
+                        placeholder="Jane Doe"
+                      />
+                      {bookCallErrors.fullName && <span className="text-[11px] leading-4 text-red-600">{bookCallErrors.fullName}</span>}
+                    </label>
+
+                    <label className="flex flex-col gap-1 pt-1.5 text-[14px] font-normal leading-[14px] text-[#121b29]">
+                      Email
+                      <input
+                        name="workEmail"
+                        type="email"
+                        value={bookCallForm.workEmail}
+                        onChange={handleBookCallChange}
+                        className="h-9 rounded-[12px] border border-[#e1e5eb] bg-white px-3 text-[12px] font-normal text-[#121b29] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] outline-none transition placeholder:text-[#5d646f] focus:border-[#435bcf]"
+                        placeholder="jane@company.com"
+                      />
+                      {bookCallErrors.workEmail && <span className="text-[11px] leading-4 text-red-600">{bookCallErrors.workEmail}</span>}
+                    </label>
+                  </div>
+
+                  <label className="flex flex-col gap-1 pt-1.5 text-[14px] font-normal leading-[14px] text-[#121b29]">
+                    Phone Number
+                    <input
+                      name="phone"
+                      type="tel"
+                      value={formatPhoneValue(bookCallForm.phone)}
+                      onChange={handleBookCallChange}
+                      className="h-9 rounded-[12px] border border-[#e1e5eb] bg-white px-3 text-[12px] font-normal text-[#121b29] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] outline-none transition placeholder:text-[#5d646f] focus:border-[#435bcf]"
+                      placeholder="+91 98765 43210"
+                      inputMode="tel"
+                    />
+                    {bookCallErrors.phone && <span className="text-[11px] leading-4 text-red-600">{bookCallErrors.phone}</span>}
+                  </label>
+
+                  <label className="flex flex-col gap-1 pt-1.5 text-[14px] font-normal leading-[14px] text-[#121b29]">
+                    Query / Message
+                    <textarea
+                      name="message"
+                      value={bookCallForm.message}
+                      onChange={handleBookCallChange}
+                      className="min-h-[98px] resize-none rounded-[12px] border border-[#e1e5eb] bg-white px-3 py-2 text-[12px] font-normal leading-5 text-[#121b29] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] outline-none transition placeholder:text-[#5d646f] focus:border-[#435bcf]"
+                      placeholder="Tell us how we can help..."
+                    />
+                    {bookCallErrors.message && <span className="text-[11px] leading-4 text-red-600">{bookCallErrors.message}</span>}
+                  </label>
+
+                  {bookCallStatusMessage && bookCallSubmitState === 'error' && (
+                    <p className="rounded-[12px] bg-red-50 px-3 py-2 text-[12px] leading-5 text-red-700">
+                      {bookCallStatusMessage}
+                    </p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={bookCallSubmitState === 'submitting'}
+                    className="flex h-9 w-max items-center justify-center gap-2 rounded-[12px] bg-[#435bcf] px-4 py-2 text-center text-[14px] font-normal leading-5 text-[#fcfcfc] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {bookCallSubmitState === 'submitting' && <Loader2 className="size-4 animate-spin" />}
+                    Submit Request
+                  </button>
+                </form>
+              )}
+            </div>
+          </motion.section>
+        </motion.div>,
+        document.body
+      )}
+
       {/* User Profile */}
-      <DropdownMenu>
+      {isProduction && <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="flex gap-2.5 items-center justify-between px-2 py-1 relative w-full hover:bg-gray-50 rounded transition-colors cursor-pointer">
             <div className="flex gap-2.5 items-center">
@@ -335,14 +793,7 @@ const Sidebar = () => {
             Logout
           </DropdownMenuItem>
         </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Switch to Production Modal */}
-      <SwitchToProductionModal
-        isOpen={isSwitchModalOpen}
-        onClose={() => setIsSwitchModalOpen(false)}
-        onConfirm={handleConfirmSwitch}
-      />
+      </DropdownMenu>}
     </motion.div>
   )
 }

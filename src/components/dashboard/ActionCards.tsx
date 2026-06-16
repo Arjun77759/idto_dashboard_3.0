@@ -1,9 +1,20 @@
 import { motion } from 'framer-motion'
 import type { LucideIcon } from 'lucide-react'
-import { BookOpen, Code, FileText, Plus, SlidersHorizontal } from 'lucide-react'
+import {
+    ArrowUpRight,
+    BookOpen,
+    Code,
+    CreditCard,
+    FlaskConical,
+    Paintbrush,
+    Palette,
+    Plus,
+    SlidersHorizontal,
+} from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { Skeleton } from '@/components/ui/skeleton'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 import { useUsageCredits } from '@/hooks/useUsageCredits'
 
 type CardButton = {
@@ -22,11 +33,19 @@ type ActionCardConfig = {
     renderValue?: () => React.ReactNode
 }
 
-const promoIllustration = '/mock_mobile.png'
+const quickActivity = [
+    ['PAN Verify', 'txn_8x21', 'Success', '\u20b90.85'],
+    ['Aadhaar OTP', 'txn_8x20', 'Success', '\u20b91.20'],
+    ['Bank Verify', 'txn_8x1f', 'Failed', '\u20b90.00'],
+    ['GST Verify', 'txn_8x1e', 'Success', '\u20b92.40'],
+]
 
+const barHeights = [60, 82, 70, 108, 87, 114, 133, 95, 124, 143, 130, 150]
 
 const ActionCards = () => {
     const navigate = useNavigate()
+    const { data: onboardingStatus } = useOnboardingStatus()
+    const isProduction = Boolean(onboardingStatus?.is_onboarded)
     const { data, loading, error } = useUsageCredits()
     const handleRecharge = () => {
         navigate('/billing')
@@ -37,6 +56,225 @@ const ActionCards = () => {
     const handleStartCustomizing = () =>
         window.open('https://idto.ai/demo', '_blank', 'noopener,noreferrer')
 
+    if (!isProduction) {
+        return (
+            <motion.section
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+                className="w-full rounded-[22px] border border-[#e4e7ec] bg-white p-5 shadow-[0_2px_5px_rgba(19,27,49,0.04)]"
+            >
+                <div className="mb-4">
+                    <p className="text-[10px] font-bold uppercase leading-[15px] tracking-[1.6px] text-[#5e6a7a]">
+                        Quick Access
+                    </p>
+                    <h2 className="mt-1 text-[24px] font-bold leading-8 tracking-[-0.6px] text-[#091123]">
+                        Jump back in
+                    </h2>
+                    <p className="mt-1 text-[14px] font-normal leading-5 text-[#5e6a7a]">
+                        Live previews of what's happening across your workspace.
+                    </p>
+                </div>
+
+                <div className="grid gap-4 xl:grid-cols-3">
+                    <article className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
+                        <div className="flex w-full items-center justify-between pb-[14.065px]">
+                            <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
+                                <span className="size-[5.274px] rounded-full bg-[#00e59e]" />
+                                Recharge
+                            </div>
+                            <ArrowUpRight className="size-[14.065px] text-[#5e6a7a]" />
+                        </div>
+                        <h3 className="mb-[16.262px] text-[13.185px] font-bold leading-[19.778px] text-[#091123]">
+                            Add credits to your wallet
+                        </h3>
+                        <div className="flex flex-col gap-[21px]">
+                          <div className="rounded-[14.065px] bg-[#fff2d0] px-[14.065px] pb-[14.065px] pt-[13.185px]">
+                            <p className="text-[9.669px] font-bold uppercase leading-[14.504px] tracking-[0.4835px] text-[#5e6a7a]">
+                                Current Balance
+                            </p>
+                            <p className="pt-[1.758px] text-[26.371px] font-bold leading-[31.645px] tracking-[-0.6593px] text-[#f09c17]">
+                                {'\u20b9'}739.22
+                            </p>
+                            <p className="text-[10.548px] font-normal leading-[14.065px] text-[#5e6a7a]">
+                                {'\u2248'} 1,478 verifications remaining
+                            </p>
+                          </div>
+                          <div className="grid h-[33.403px] grid-cols-3 gap-[7.032px]">
+                            <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}1,000</button>
+                            <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#f09c17] bg-[#fff2d0] text-[12.306px] font-normal leading-[17.581px] text-[#f09c17]">{'\u20b9'}5,000</button>
+                            <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}10,000</button>
+                          </div>
+                          <button
+                              onClick={handleRecharge}
+                              className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] bg-[#f09c17] py-[8.79px] text-[12.306px] font-normal leading-[17.581px] text-[#fcfcfc]"
+                          >
+                              Recharge now
+                              <Plus className="size-[12.306px]" />
+                          </button>
+                        </div>
+                    </article>
+
+                    <article className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
+                        <div className="flex w-full items-center justify-between pb-[14.065px]">
+                            <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
+                                <span className="size-[5.274px] rounded-full bg-[#0019ff]" />
+                                Analytics
+                            </div>
+                            <ArrowUpRight className="size-[14.065px] text-[#5e6a7a]" />
+                        </div>
+                        <h3 className="mb-[16.262px] text-[13.185px] font-bold leading-[19.778px] text-[#091123]">
+                            {'Verification volume \u2014 last 12 months'}
+                        </h3>
+                        <div className="flex h-[150px] items-end justify-center gap-[5.274px]">
+                            {barHeights.map((height, index) => (
+                                <div
+                                    key={height + index}
+                                    className={`min-w-px flex-1 rounded-t-[8.79px] ${index === barHeights.length - 1 ? 'bg-[#f09c17]' : 'bg-[#fff2d0]'}`}
+                                    style={{ height }}
+                                />
+                            ))}
+                        </div>
+                        <div className="mt-4 flex items-center justify-between">
+                            <div>
+                                <p className="text-[14.065px] font-bold leading-[21.097px] text-[#091123]">
+                                    +24.6%
+                                </p>
+                                <p className="text-[10.548px] font-normal leading-[14.065px] text-[#5e6a7a]">
+                                    vs. previous period
+                                </p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-[14.065px] font-bold leading-[21.097px] text-[#091123]">
+                                    12,408
+                                </p>
+                                <p className="text-[10.548px] font-normal leading-[14.065px] text-[#5e6a7a]">
+                                    total verifications
+                                </p>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
+                        <div className="flex w-full items-center justify-between pb-[14.065px]">
+                            <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
+                                <span className="size-[5.274px] rounded-full bg-[#00e59e]" />
+                                Transactions
+                            </div>
+                            <ArrowUpRight className="size-[14.065px] text-[#5e6a7a]" />
+                        </div>
+                        <h3 className="mb-[16.262px] text-[13.185px] font-bold leading-[19.778px] text-[#091123]">
+                            Recent activity
+                        </h3>
+                        <div className="flex flex-col gap-[7.032px]">
+                            {quickActivity.map(([name, txn, status, amount]) => (
+                                <div key={txn} className="grid h-[47.065px] grid-cols-[1fr_auto_auto] items-center gap-[10.548px]">
+                                    <div>
+                                        <p className="text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{name}</p>
+                                        <p className="text-[9.669px] font-normal leading-[14.504px] text-[#5e6a7a]">{txn}</p>
+                                    </div>
+                                    <span className={`rounded-full px-[7.032px] py-[1.758px] text-[8.79px] font-bold uppercase leading-[13.185px] ${status === 'Success' ? 'bg-[#ddfcef] text-[#007a55]' : 'bg-[#fef2f2] text-[#e7000b]'}`}>
+                                        {status}
+                                    </span>
+                                    <span className="text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{amount}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </article>
+
+                    <article className="h-[230.831px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
+                        <div className="flex w-full items-center justify-between pb-[14.065px]">
+                            <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
+                                <span className="size-[5.274px] rounded-full bg-[#0019ff]" />
+                                Billing
+                            </div>
+                            <ArrowUpRight className="size-[14.065px] text-[#5e6a7a]" />
+                        </div>
+                        <h3 className="mb-[16.262px] text-[13.185px] font-bold leading-[19.778px] text-[#091123]">May 2026 invoice</h3>
+                        <div className="flex flex-col gap-[10.548px] pb-[9.23px]">
+                          <div className="rounded-[14.065px] border-[0.879px] border-[#dfe5ed] p-[14.944px]">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[12.306px] font-normal leading-[17.581px] text-[#091123]">INV-00012</span>
+                                <span className="rounded-full bg-[#fff0c5] px-[7.032px] py-[1.758px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[0.2198px] text-[#bb4d00]">Sandbox</span>
+                            </div>
+                            <p className="pt-[5.274px] text-[21.097px] font-bold leading-[28.129px] tracking-[-0.5274px] text-[#091123]">{'\u20b9'}0.00</p>
+                            <p className="text-[10.548px] font-normal leading-[14.065px] text-[#5e6a7a]">Due Jun 12, 2026</p>
+                          </div>
+                          <div className="flex items-center justify-between">
+                              <span className="text-[10.548px] font-normal leading-[14.065px] text-[#5e6a7a]">3 invoices this quarter</span>
+                              <button className="inline-flex items-center gap-[3.516px] text-[10.548px] font-normal leading-[14.065px] text-[#f09c17]">
+                                View all
+                                <ArrowUpRight className="size-[10.548px]" />
+                              </button>
+                          </div>
+                        </div>
+                    </article>
+
+                    <article className="h-[230.831px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
+                        <div className="flex w-full items-center justify-between pb-[14.065px]">
+                            <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
+                                <span className="size-[5.274px] rounded-full bg-[#0019ff]" />
+                                API Testing
+                            </div>
+                            <ArrowUpRight className="size-[14.065px] text-[#5e6a7a]" />
+                        </div>
+                        <h3 className="mb-[16.262px] text-[13.185px] font-bold leading-[19.778px] text-[#091123]">
+                            Try an endpoint live
+                        </h3>
+                        <div className="flex h-[131px] flex-col gap-5">
+                          <div className="h-[79px] overflow-hidden rounded-[14.065px] bg-[#fbfcfe] px-[10.548px] pb-[10.548px] pt-[9.669px] font-mono">
+                              <p className="pb-[0.774px] text-[8.615px] font-normal leading-[15.717px] text-[#00d492]">POST</p>
+                              <p className="h-[15.717px] text-[9.669px] font-normal leading-[15.717px] text-black/70">/v1/verify/pan</p>
+                              <p className="pb-[0.774px] pt-[4.395px] text-[9.669px] font-normal leading-[15.717px] text-black/40">{'{ "pan": "ABCDE1234F" }'}</p>
+                          </div>
+                          <button
+                              onClick={handleStartTesting}
+                              className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] border-[0.879px] border-[#f09c17] bg-[#fff2d0] px-[0.879px] py-[7.911px] text-[12.306px] font-normal leading-[17.581px] text-[#f09c17]"
+                          >
+                              <FlaskConical className="size-[12.306px]" />
+                              Open API console
+                          </button>
+                        </div>
+                    </article>
+
+                    <article className="h-[230.831px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
+                        <div className="flex w-full items-center justify-between pb-[14.065px]">
+                            <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
+                                <span className="size-[5.274px] rounded-full bg-[#00e59e]" />
+                                Branding
+                            </div>
+                            <ArrowUpRight className="size-[14.065px] text-[#5e6a7a]" />
+                        </div>
+                        <h3 className="mb-[16.262px] text-[13.185px] font-bold leading-[19.778px] text-[#091123]">
+                            Bring your brand to life
+                        </h3>
+                        <div className="flex flex-col gap-[10.548px]">
+                          <div className="overflow-hidden rounded-[14.065px] bg-[#fff2d0] p-[14.065px]">
+                            <div className="flex items-center gap-[7.032px] pb-[6.153px]">
+                                <div className="grid size-[24.613px] place-items-center rounded-[8.79px] bg-[rgba(240,156,23,0.2)]">
+                                    <span className="text-[10.548px] font-bold leading-[14.065px] text-[#f09c17]">A</span>
+                                </div>
+                                <span className="text-[12.306px] font-bold leading-[17.581px] text-black">Brand Logo</span>
+                            </div>
+                            <div className="h-[5.274px] overflow-hidden rounded-full bg-[rgba(240,156,23,0.2)]">
+                                <div className="h-full w-[60%] rounded-full bg-[#f09c17]" />
+                            </div>
+                            <p className="mt-[4.395px] text-[9.669px] font-normal leading-[14.504px] text-black/80">60% customized</p>
+                          </div>
+                          <button
+                              onClick={handleStartCustomizing}
+                              className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] border-[0.879px] border-[#dfe5ed] px-[0.879px] py-[7.911px] text-[12.306px] font-normal leading-[17.581px] text-[#091123]"
+                          >
+                              <Palette className="size-[12.306px]" />
+                              Customize SDK
+                          </button>
+                        </div>
+                    </article>
+                </div>
+            </motion.section>
+        )
+    }
+
     const renderBalanceValue = () => {
         if (loading) return <Skeleton className="h-8 w-24" />
         if (error) {
@@ -46,7 +284,7 @@ const ActionCards = () => {
         const balance = data?.balance ?? 0
         return (
             <p className="font-medium text-[28px] lg:text-[32px] text-[#0019ff] tracking-[-0.32px]">
-                ₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {'\u20b9'}{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
         )
     }
@@ -57,20 +295,16 @@ const ActionCards = () => {
             title: 'Current Balance',
             description: 'Add funds to your account to continue using verification services without interruptions.',
             variant: 'balance',
+            icon: <CreditCard className="size-8 text-[#0019ff]" />,
             button: { label: 'Recharge Now', icon: Plus, action: handleRecharge },
             renderValue: renderBalanceValue
         },
         {
             id: 'testing',
             title: 'API Testing',
-            description: 'Run and validate your integrations in the sandbox environment—risk-free.',
+            description: 'Run and validate your integrations in the sandbox environment - risk-free.',
             variant: 'default',
-            icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="29" viewBox="0 0 32 29" fill="none">
-                    <path d="M30.1667 27.25V1H1V27.25L30.1667 27.25Z" stroke="#0019FF" stroke-width="2" stroke-linejoin="round" />
-                    <path d="M9.75033 9.74967L10.699 9.43345L10.4711 8.74967H9.75033V9.74967ZM8.29199 9.74967V8.74967H7.51122L7.32185 9.50714L8.29199 9.74967ZM16.3128 9.74967V8.74967H15.3128V9.74967H16.3128ZM9.75033 9.74967V8.74967H8.29199V9.74967V10.7497H9.75033V9.74967ZM8.29199 9.74967L7.32185 9.50714L5.86352 15.3405L6.83366 15.583L7.8038 15.8255L9.26213 9.99221L8.29199 9.74967ZM6.83366 15.583L5.86352 15.3405L5.13435 18.2571L6.10449 18.4997L7.07463 18.7422L7.8038 15.8255L6.83366 15.583ZM9.75033 9.74967L8.80164 10.0659L10.7461 15.8992L11.6948 15.583L12.6435 15.2668L10.699 9.43345L9.75033 9.74967ZM11.6948 15.583L10.7461 15.8992L11.7183 18.8159L12.667 18.4997L13.6157 18.1834L12.6435 15.2668L11.6948 15.583ZM6.83366 15.583V16.583H11.6948V15.583V14.583H6.83366V15.583ZM16.3128 9.74967V10.7497H19.2295V9.74967V8.74967H16.3128V9.74967ZM16.3128 9.74967H15.3128V14.1247H16.3128H17.3128V9.74967H16.3128ZM16.3128 14.1247H15.3128V18.4997H16.3128H17.3128V14.1247H16.3128ZM19.2295 14.1247V13.1247H16.3128V14.1247V15.1247H19.2295V14.1247ZM21.417 11.9372H20.417C20.417 12.593 19.8853 13.1247 19.2295 13.1247V14.1247V15.1247C20.9899 15.1247 22.417 13.6976 22.417 11.9372H21.417ZM19.2295 9.74967V10.7497C19.8853 10.7497 20.417 11.2813 20.417 11.9372H21.417H22.417C22.417 10.1768 20.9899 8.74967 19.2295 8.74967V9.74967ZM25.0628 9.02051H24.0628V19.2288H25.0628H26.0628V9.02051H25.0628Z" fill="#0019FF" />
-                </svg>
-            ),
+            icon: <Code className="size-8 text-[#0019ff]" />,
             button: { label: 'Start Testing', icon: Code, action: handleStartTesting }
         },
         {
@@ -78,13 +312,7 @@ const ActionCards = () => {
             title: 'API Documentation',
             description: 'Explore every endpoint, payload, and response with ready-to-try recipes.',
             variant: 'default',
-            icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="32" viewBox="0 0 30 32" fill="none">
-                    <path d="M26.9792 1.42519C26.9792 0.638079 26.3434 0 25.5592 0H10.7715L0 10.8112V29.929C0 30.7161 0.635737 31.3542 1.41996 31.3542H11.3211V28.5039H2.83976V12.8268H12.7795L12.7795 2.85044H24.1391V17.1355H26.9792V1.42519Z" fill="#0019FF" />
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M25.7715 25.9482L22.4277 22.6044L24.4901 20.542L29.8963 25.9482L24.4901 31.3544L22.4277 29.292L25.7715 25.9482Z" fill="#0019FF" />
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M16.7705 25.9482L20.1143 22.6044L18.0519 20.542L12.6457 25.9482L18.0519 31.3544L20.1143 29.292L16.7705 25.9482Z" fill="#0019FF" />
-                </svg>
-            ),
+            icon: <BookOpen className="size-8 text-[#0019ff]" />,
             button: { label: 'Open Doc', icon: BookOpen, action: handleOpenDocs }
         },
         {
@@ -93,117 +321,22 @@ const ActionCards = () => {
             description:
                 'Personalize the SDK with your logo, colors, and messaging. Preview every flow and make it feel 100% yours.',
             variant: 'promo',
+            icon: <Paintbrush className="size-8 text-[#b47d1f]" />,
             button: { label: 'Start Customizing', icon: SlidersHorizontal, action: handleStartCustomizing }
         }
     ]
 
-    const renderButton = (card: ActionCardConfig) => {
-        // const isBalance = card.variant === 'balance1'
-        const isBalance = false
-        const isPromo = card.variant === 'promo'
-
-        if (isPromo) {
-            return (
-                <button
-                    type="button"
-                    onClick={card.button.action}
-                    className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#fff7ea] text-[12px] font-medium tracking-[-0.12px] text-[#b47d1f]"
-                >
-                    <span>{card.button.label}</span>
-                    {card.button.icon && <card.button.icon className="size-4 text-[#b47d1f]" />}
-                </button>
-            )
-        }
-
-        const wrapperClasses = [
-            'h-10 w-full rounded-lg border border-[#e7e8ea]',
-            !isBalance ? 'bg-[#e6e8ff]' : ''
-        ]
-            .filter(Boolean)
-            .join(' ')
-
-        const buttonClasses = [
-            'flex h-10 w-full items-center justify-center gap-2 rounded-lg px-3 text-[12px] font-medium tracking-[-0.12px]',
-            isBalance ? 'text-white' : 'text-[#0019ff]'
-        ]
-            .filter(Boolean)
-            .join(' ')
-
-        const backgroundStyle = isBalance
-            ? {
-                backgroundImage:
-                    "url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 229.5 40\\' preserveAspectRatio=\\'none\\'><g transform=\\'matrix(4.883 -6.5519e-16 2.4069e-15 4.7 114.75 20)\\'><foreignObject x=\\'-446.5\\' y=\\'-446.5\\' width=\\'893\\' height=\\'893\\'><div xmlns=\\'http://www.w3.org/1999/xhtml\\' style=\\'background-image: conic-gradient(from 90deg, rgba(138, 149, 255, 1) 0%, rgba(104, 118, 255, 1) 25%, rgba(69, 87, 255, 1) 50%, rgba(35, 56, 255, 1) 75%, rgba(17, 41, 255, 1) 87.5%, rgba(0, 25, 255, 1) 100%); opacity:1; height: 100%; width: 100%;\\'></div></foreignObject></g></svg>')"
-            }
-            : {}
-
-        return (
-            <div className={wrapperClasses} style={backgroundStyle}>
-                <button
-                    type="button"
-                    onClick={card.button.action}
-                    className={buttonClasses}
-                >
-                    <>
-                        <span>{card.button.label}</span>
-                        {card.button.icon && <card.button.icon className={`size-4 ${isBalance ? 'text-white' : 'text-[#0019ff]'}`} />}
-                    </>
-                </button>
-            </div>
-        )
-    }
-
-    const renderPromoCard = (card: ActionCardConfig) => (
-        <div className="flex h-full flex-col rounded-2xl border border-[#e7e8ea] bg-white">
-            <div className="relative h-[48px] w-full overflow-hidden rounded-t-2xl bg-[#fff7ea]" style={{ minHeight: '48px' }}>
-                <div className="absolute inset-0 bg-gradient-to-r from-[#fff0d9] via-[#fff7ea] to-[#f8fffb]" />
-                {/* {promoEllipses.map((ellipse) => (
-                    <img
-                        key={ellipse.src}
-                        src={ellipse.src}
-                        alt=""
-                        aria-hidden
-                        className="absolute h-[26px] w-[26px]"
-                        style={ellipse.style}
-                    />
-                ))} */}
-                <img
-                    src={promoIllustration}
-                    alt="SDK preview"
-                    className="absolute right-4 -top-2 w-[110px] drop-shadow-[0_12px_24px_rgba(0,0,0,0.18)]"
-                    loading="lazy"
-                />
-            </div>
-            <div className="flex flex-1 flex-col gap-4 rounded-b-2xl p-4">
-                <div className="flex flex-col gap-3">
-                    <p className="text-[12px] font-medium tracking-[-0.12px] text-[#b47d1f]">{card.title}</p>
-                    <p className="text-[12px] leading-[1.4] text-[#9296a0]">{card.description}</p>
-                </div>
-                <div className="mt-auto">{renderButton(card)}</div>
-            </div>
-        </div>
-    )
-
-    const renderDefaultCard = (card: ActionCardConfig) => (
-        <div
-            className={`flex h-full flex-col justify-between gap-6 rounded-2xl border border-[#e7e8ea] p-4 ${card.variant === 'balance' ? 'bg-[#f7f8ff]' : 'bg-white'
-                }`}
+    const renderButton = (card: ActionCardConfig) => (
+        <button
+            type="button"
+            onClick={card.button.action}
+            className={`flex h-10 w-full items-center justify-center gap-2 rounded-lg px-3 text-[12px] font-medium tracking-[-0.12px] ${
+                card.variant === 'promo' ? 'bg-[#fff7ea] text-[#b47d1f]' : 'border border-[#e7e8ea] bg-[#e6e8ff] text-[#0019ff]'
+            }`}
         >
-            <div className="flex flex-col gap-4">
-                {card.icon}
-                <div className="flex flex-col gap-2">
-                    <p className="text-[12px] font-[500] tracking-[-0.12px] text-[#0019FF]">{card.title}</p>
-                    {card.renderValue ? (
-                        <>
-                            {card.renderValue()}
-                            <p className="text-[12px] leading-[1.4] text-[#9296a0]">{card.description}</p>
-                        </>
-                    ) : (
-                        <p className="text-[12px] leading-[1.4] text-[#9296a0]">{card.description}</p>
-                    )}
-                </div>
-            </div>
-            {renderButton(card)}
-        </div>
+            <span>{card.button.label}</span>
+            {card.button.icon && <card.button.icon className="size-4" />}
+        </button>
     )
 
     return (
@@ -219,9 +352,25 @@ const ActionCards = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.2 + index * 0.1 }}
-                    className="h-full"
+                    className={`flex h-full flex-col justify-between gap-6 rounded-2xl border border-[#e7e8ea] p-4 ${
+                        card.variant === 'promo' ? 'bg-[#fffaf0]' : card.variant === 'balance' ? 'bg-[#f7f8ff]' : 'bg-white'
+                    }`}
                 >
-                    {card.variant === 'promo' ? renderPromoCard(card) : renderDefaultCard(card)}
+                    <div className="flex flex-col gap-4">
+                        {card.icon}
+                        <div className="flex flex-col gap-2">
+                            <p className={`text-[12px] font-[500] tracking-[-0.12px] ${card.variant === 'promo' ? 'text-[#b47d1f]' : 'text-[#0019FF]'}`}>{card.title}</p>
+                            {card.renderValue ? (
+                                <>
+                                    {card.renderValue()}
+                                    <p className="text-[12px] leading-[1.4] text-[#9296a0]">{card.description}</p>
+                                </>
+                            ) : (
+                                <p className="text-[12px] leading-[1.4] text-[#9296a0]">{card.description}</p>
+                            )}
+                        </div>
+                    </div>
+                    {renderButton(card)}
                 </motion.div>
             ))}
         </motion.div>
@@ -229,4 +378,3 @@ const ActionCards = () => {
 }
 
 export default ActionCards
-

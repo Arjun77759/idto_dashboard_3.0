@@ -1,24 +1,225 @@
 import { motion } from 'framer-motion'
-import WelcomeSection from '@/components/dashboard/WelcomeSection'
-import StatsGrid from '@/components/dashboard/StatsGrid'
+import { ArrowUpRight, Camera,Building2, CreditCard, FileText, IdCard, ShieldCheck } from 'lucide-react'
+import { useEffect} from 'react'
+import { useNavigate } from 'react-router-dom'
+
 import ActionCards from '@/components/dashboard/ActionCards'
 import ChartSection from '@/components/dashboard/ChartSection'
+import EnvironmentStatus from '@/components/dashboard/EnvironmentStatus'
 import InvoicesTable from '@/components/dashboard/InvoicesTable'
-import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
+import StatsGrid from '@/components/dashboard/StatsGrid'
+import WelcomeSection from '@/components/dashboard/WelcomeSection'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
+import { useUserProfile } from '@/hooks/useUserProfile'
+
+
+
+const sandboxApis = [
+  {
+    title: 'PAN Verify',
+    description: 'Validate Indian PAN against govt records.',
+    calls: '412 sandbox calls',
+    icon: IdCard,
+  },
+  {
+    title: 'Aadhaar OTP',
+    description: 'OKYC with Aadhaar OTP flow.',
+    calls: '218 sandbox calls',
+    icon: ShieldCheck,
+  },
+  {
+    title: 'Bank Account Verify',
+    description: 'Penny-drop with name match.',
+    calls: '96 sandbox calls',
+    icon: CreditCard,
+  },
+  {
+    title: 'GST Verify',
+    description: 'Validate GSTIN and fetch entity details.',
+    calls: '41 sandbox calls',
+    icon: Building2,
+  },
+  {
+    title: 'Document OCR',
+    description: 'Any govt ID -> structured JSON.',
+    calls: '14 sandbox calls',
+    icon: FileText,
+  },
+  {
+    title: 'Face Match + Liveness',
+    description: 'Selfie to ID, with passive liveness.',
+    calls: '8 sandbox calls',
+    icon: Camera,
+  },
+]
+
+const recommendations = [
+  {
+    helper: 'Most fintech teams add this after PAN Verify',
+    title: 'Document OCR',
+    description: 'Any government ID -> structured JSON in 2 seconds.',
+    icon: FileText,
+  },
+  {
+    helper: 'Complete your KYC stack',
+    title: 'Face Match + Liveness',
+    description: 'Selfie to ID with passive liveness - no user friction.',
+    icon: Camera,
+  },
+  {
+    helper: "You haven't tried this yet",
+    title: 'Watchlist Screening',
+    description: 'Screen users against PEP, sanctions and adverse media.',
+    icon: ShieldCheck,
+  },
+]
+
+const YourApisSection = () => (
+  <section className="w-full rounded-[22px] border border-[#e0e5eb] bg-white p-[21px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]">
+    <div className="mb-4 flex items-start justify-between gap-4">
+      <div>
+        <h2 className="text-[20px] font-medium leading-7 tracking-[-0.5px] text-[#0a121f]">
+          Your APIs
+        </h2>
+        <p className="mt-1 text-[14px] font-normal leading-5 text-[#5b6472]">
+          Products you've enabled - all returning dummy responses in sandbox.
+        </p>
+      </div>
+      <button className="inline-flex items-center gap-1 text-[14px] font-normal leading-5 text-[#231eec]">
+        View all
+        <ArrowUpRight className="size-3.5" />
+      </button>
+    </div>
+
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {sandboxApis.map((api) => {
+        const Icon = api.icon
+        const [callCount, ...callLabel] = api.calls.split(' ')
+        return (
+          <article
+            key={api.title}
+            className="flex min-h-[191px] flex-col gap-1 overflow-hidden rounded-[22px] border border-[#fff2d0] bg-white p-[21px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
+          >
+            <div className="flex items-start justify-between">
+              <div className="grid size-10 place-items-center rounded-[18px] bg-[#fff2d0] text-[#f09c17]">
+                <Icon className="size-5" strokeWidth={2} />
+              </div>
+              <span className="rounded-full bg-[#fff0c5] px-[7.032px] py-[1.758px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[0.2198px] text-[#bb4d00]">
+                Sandbox
+              </span>
+            </div>
+            <h3 className="pt-3 text-[16px] font-medium leading-6 tracking-[-0.32px] text-[#0a121f]">
+              {api.title}
+            </h3>
+            <p className="min-h-8 pb-3 text-[14px] font-normal leading-5 text-[#5b6472]">
+              {api.description}
+            </p>
+            <div className="border-t border-[#fff2d0] pt-[13px]">
+              <span className="text-[12px] font-normal leading-4">
+                <span className="text-[#0a121f]">{callCount}</span>
+                <span className="text-[#5b6472]"> {callLabel.join(' ')}</span>
+              </span>
+            </div>
+          </article>
+        )
+      })}
+    </div>
+  </section>
+)
+
+const RecommendedSection = () => (
+  <section className="w-full rounded-[22px] border border-[#e0e5eb] bg-[#fff2d0] p-[33px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]">
+    <div className="mb-5">
+      <span className="inline-flex h-[23px] items-center rounded-full bg-white/80 px-[10px] py-1 text-[10px] font-normal uppercase leading-[15px] tracking-[0.5px] text-[#bb4d00] backdrop-blur">
+        Recommended for Acme Fintech
+      </span>
+      <h2 className="pt-[12.5px] text-[20px] font-medium leading-7 tracking-[-0.5px] text-[#0a121f]">
+        Teams like yours also use
+      </h2>
+      <p className="text-[14px] font-normal leading-5 text-[#5b6472]">
+        Based on your industry, current stack, and what similar teams enabled next.
+      </p>
+    </div>
+
+    <div className="grid gap-4 md:grid-cols-3">
+      {recommendations.map((item, index) => {
+        const Icon = item.icon
+        return (
+          <article
+            key={item.title}
+            className="h-[222.5px] rounded-[18px] border border-[#e0e5eb] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
+          >
+            <div className="grid size-10 place-items-center rounded-[18px] bg-[#fff2d0] text-[#f09c17]">
+              <Icon className="size-5" />
+            </div>
+            <p className="mt-4 text-[10px] font-normal uppercase leading-[16.5px] tracking-[0.55px] text-[#5b6472]">
+              {item.helper}
+            </p>
+            <h3 className="mt-2 text-[16px] font-medium leading-6 tracking-[-0.32px] text-[#0a121f]">
+              {item.title}
+            </h3>
+            <p className="mt-1 text-[14px] font-normal leading-5 text-[#5b6472]">
+              {item.description}
+            </p>
+            <button className={`mt-4 inline-flex items-center gap-1 text-center font-normal leading-5 text-[#f09c17] ${index === 2 ? 'text-[12px]' : 'text-[14px]'}`}>
+              Try in sandbox
+              <ArrowUpRight className="size-3.5" />
+            </button>
+          </article>
+        )
+      })}
+    </div>
+  </section>
+)
 
 const DashboardPage = () => {
   const { data: onboardingStatus } = useOnboardingStatus()
+  const { data: userProfile } = useUserProfile()
+  const isProduction = Boolean(onboardingStatus?.is_onboarded)
   const showWelcomeSection = onboardingStatus ? !onboardingStatus.is_onboarded : true
   const isMobile = useIsMobile()
   const navigate = useNavigate()
+
   useEffect(() => {
     if (isMobile) {
       navigate('/mobile-production-redirect')
     }
-  }, [isMobile])
+  }, [isMobile, navigate])
+
+  if (!isProduction) {
+    const firstName = userProfile?.name?.split(' ')?.[0] || 'Riya'
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="mx-auto flex w-full max-w-[1090px] flex-col gap-8"
+      >
+        <section className="pt-3">
+          <div className="flex items-center gap-1.5 text-[12px] font-normal uppercase leading-[16.5px] tracking-[1.98px] text-[#5b6472]">
+            <span className="size-1.5 rounded-full bg-[#00d395]" />
+            {'Sandbox \u00b7 Test Data'}
+          </div>
+          <h1 className="mt-1 text-[30px] font-semibold leading-[30px] tracking-[-0.8px] text-[#0a121f]">
+            Welcome back, <span className="text-[#0019ff]">{firstName}</span>
+          </h1>
+          <p className="mt-1 text-[14px] font-normal leading-[21px] text-[#5b6472]">
+            Your sandbox is provisioned. Every product is live in test mode with dummy responses.
+          </p>
+        </section>
+
+        <EnvironmentStatus />
+        <WelcomeSection />
+        <StatsGrid />
+        <ActionCards />
+        <YourApisSection />
+        <RecommendedSection />
+        <InvoicesTable />
+      </motion.div>
+    )
+  }
 
   return (
     <motion.div

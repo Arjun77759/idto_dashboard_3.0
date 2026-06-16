@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowUpRight, Play, X } from 'lucide-react'
+import { ArrowRight, Rocket, Zap } from 'lucide-react'
 import SwitchToProductionModal from '@/components/modals/switchToProductionModal/SwitchToProductionModal'
 
 export const LOGO_SRC =
@@ -8,18 +8,6 @@ export const LOGO_SRC =
 
 const WelcomeSection = () => {
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false)
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false)
-  const handleClose = () => {
-    console.log('Close welcome section')
-  }
-
-  const handlePlayVideo = () => {
-    setIsVideoPlaying(true)
-  }
-
-  const handleSwitchMode = () => {
-    setIsSwitchModalOpen(true)
-  }
 
   const handleConfirmSwitch = () => {
     console.log('Confirmed switch to production')
@@ -27,91 +15,47 @@ const WelcomeSection = () => {
   }
 
   return (
-    <motion.div
+    <motion.section
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.1 }}
-      className="bg-[#f7f7f8] border border-[#eceef2] min-w-[280px] relative rounded-2xl shadow-sm w-full"
+      className="relative w-full overflow-hidden rounded-[22px] bg-gradient-to-r from-[#3168dd] via-[#118fcb] to-[#02b8aa] px-[50px] py-8 text-white shadow-[0_16px_38px_rgba(17,143,203,0.22)]"
     >
-      <div className="flex flex-col h-full gap-4 sm:gap-5 items-end justify-center overflow-hidden p-4 sm:p-6 lg:p-8 relative rounded-[inherit] w-full">
-        <div className="flex items-start justify-between w-full">
-          <div className="h-6 sm:h-7 overflow-hidden relative w-[45px] sm:w-[52px]">
-            <img
-              alt="idto logo"
-              className="block max-w-none size-full"
-              src={LOGO_SRC}
-              style={{
-                filter: 'brightness(0) invert(0)',
-                WebkitFilter: 'brightness(0) invert(0)',
-              }}
-            />
+      <div className="relative z-10 flex max-w-[845px] gap-[18px]">
+        <div className="relative grid size-14 shrink-0 place-items-center rounded-[18px] bg-white/16 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)] backdrop-blur">
+          <Rocket className="size-6 text-white" />
+          <span className="absolute -right-1 -top-1 size-3 rounded-full bg-[#ffde59]" />
+        </div>
+
+        <div className="flex flex-col items-start">
+          <div className="mb-[18px] inline-flex h-[23px] items-center gap-2 rounded-full border border-[#998332] bg-[rgba(255,210,48,0.2)] px-3 py-1 text-[10px] font-bold leading-[15px] tracking-[1.6px] text-[#fee685] backdrop-blur-[4px]">
+            <Zap className="size-3 shrink-0" />
+            You're in sandbox
           </div>
+          <h2 className="text-[40px] font-bold leading-none tracking-[-0.7px] text-white">
+            Stop testing. <span className="text-[#ffe28a]">Start verifying real users.</span>
+          </h2>
+          <p className="mt-[18px] max-w-[769px] text-[18px] leading-7 text-white/85">
+            Flip one switch to go live same endpoints, real UIDAI / NPCI data, production-grade rate limits. Onboarding finishes in under 2 minutes.
+          </p>
           <button
             type="button"
-            onClick={handleClose}
-            className="flex gap-2 items-center px-2 sm:px-3 py-1.5 rounded hover:bg-white transition-colors"
+            onClick={() => setIsSwitchModalOpen(true)}
+            className="mt-5 inline-flex h-[42px] items-center gap-2 rounded-full bg-white px-5 text-[14px] font-bold leading-5 text-[#3168dd] shadow-[0_12px_24px_rgba(19,27,49,0.18)]"
           >
-            <p className="font-medium leading-[1.4] text-[10px] sm:text-[12px] text-[#131b31] tracking-[-0.1px] sm:tracking-[-0.12px]">
-              Close
-            </p>
-            <X className="size-3 sm:size-4 text-[#131b31]" />
+            Move to Production
+            <ArrowRight className="size-4" />
           </button>
         </div>
-
-        <div className="flex flex-col h-full lg:flex-row gap-4 lg:gap-6 items-start w-full">
-          <div className="flex justify-between h-full flex-col gap-4 sm:gap-6 grow items-start min-w-0">
-            <p className="font-medium leading-[1.2] text-[20px] sm:text-[24px] lg:text-[28px] text-[#131b31] tracking-[-0.2px] sm:tracking-[-0.24px] lg:tracking-[-0.28px]">
-              Welcome aboard! Let’s get you started.
-            </p>
-
-            <div className="flex flex-col gap-4 rounded-lg">
-              <div className="flex flex-col gap-2">
-                <p className="font-medium text-[15px] sm:text-[16px] text-[#131b31] tracking-[-0.16px]">
-                  You’re currently in <span className="text-[#b47d1f]">Simulation Mode</span>
-                </p>
-                <p className="text-[12px] sm:text-[13px] leading-[1.4] text-[#616675]">
-                  This environment uses simulated data for testing.
-                </p>
-                <p className="text-[12px] sm:text-[13px] leading-[1.4] text-[#616675]">
-                  Switch to Live Mode to view real-time data, insights, and reports.
-                </p>
-              </div>
-
-              <button
-                type='button'
-                onClick={handleSwitchMode}
-                className="bg-[#e6e8ff] flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-[#0019ff] font-medium text-[12px] tracking-[-0.12px] hover:bg-[#d8dbff] transition-colors w-max"
-              >
-                Switch to Live Mode
-                <ArrowUpRight className="size-4" />
-              </button>
-            </div>
-          </div>
-
-          {isVideoPlaying ? <video controls autoPlay src={LOGO_SRC} className="bg-white border border-[#f0f0f4] overflow-hidden rounded-2xl w-full lg:w-[420px] h-[180px] sm:h-[200px] lg:h-[223px] flex items-center justify-center object-cover" /> : (
-            <div className="bg-white relative border border-[#f0f0f4] overflow-hidden rounded-2xl w-full lg:w-[420px] h-[180px] sm:h-[200px] lg:h-[223px] flex items-center justify-center">
-              <video muted src={LOGO_SRC} className="bg-white border absolute top-0 left-0 w-full h-full border-[#f0f0f4] overflow-hidden rounded-2xl w-full lg:w-[420px] h-[180px] sm:h-[200px] lg:h-[223px] flex items-center justify-center object-cover" />
-              <button
-                onClick={handlePlayVideo}
-                className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative"
-              >
-                <div className="[grid-area:1_/_1] ml-0 mt-0 relative size-[60px] sm:size-[70px] lg:size-[79px]">
-                  <div className='bg-[#E6E8FF] rounded-full size-[60px] sm:size-[70px] lg:size-[79px]' />
-                </div>
-                <div className="[grid-area:1_/_1] ml-4 sm:ml-5 lg:ml-6 mt-4 sm:mt-5 lg:mt-6 relative size-6 sm:size-7 lg:size-8">
-                  <Play className="size-6 sm:size-7 lg:size-8 text-[#3143e6]" />
-                </div>
-              </button>
-            </div>
-          )}
-        </div>
       </div>
+
+      <div className="absolute -right-20 -top-24 size-72 rounded-full bg-white/10 blur-3xl" />
       <SwitchToProductionModal
         isOpen={isSwitchModalOpen}
         onClose={() => setIsSwitchModalOpen(false)}
         onConfirm={handleConfirmSwitch}
       />
-    </motion.div>
+    </motion.section>
   )
 }
 
