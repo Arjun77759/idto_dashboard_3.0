@@ -8,21 +8,27 @@ import AnalyticsPage from '../pages/AnalyticsPage'
 import ApiCredentialsPage from '../pages/ApiCredentialsPage'
 import ApiTestingPage from '../pages/ApiTestingPage'
 import BillingPage from '../pages/BillingPage'
+import BusinessProfilePage from '../pages/BusinessProfilePage'
+import BusinessTypePage from '../pages/BusinessTypePage'
 import CheckInboxPage from '../pages/CheckInboxPage'
+import ConfirmNumberPage from '../pages/ConfirmNumberPage'
 import DashboardPage from '../pages/DashboardPage'
 import ForgetPasswordPage from '../pages/ForgetPasswordPage'
+import GoogleConnectingPage from '../pages/GoogleConnectingPage'
 import HomePage from '../pages/HomePage'
 import LoginPage from '../pages/LoginPage'
 import MobileProductionRedirectPage from '../pages/MobileProductionRedirectPage'
 import PostSignupInfoPage from '../pages/PostSignupInfoPage'
 import RegisterPage from '../pages/RegisterPage'
 import ResetPasswordCheckInboxPage from '../pages/ResetPasswordCheckInboxPage'
+import SandboxReadyPage from '../pages/SandboxReadyPage'
 import SettingsPage from '../pages/SettingsPage'
 import SwitchToProductionMobilePage from '../pages/SwitchToProductionMobilePage'
 import SwitchToProductionMobileStepPage from '../pages/SwitchToProductionMobileStepPage'
 import TransactionDetailPage from '../pages/TransactionDetailPage'
 import TransactionsPage from '../pages/TransactionsPage'
 import UsersPage from '../pages/UsersPage'
+import WorkspaceProfilePage from '../pages/WorkspaceProfilePage'
 
 const publicRoutes = [
   {
@@ -52,6 +58,30 @@ const publicRoutes = [
   {
     path: 'create-password',
     element: <CreatePassword />
+  },
+  {
+    path: 'google-connecting',
+    element: <GoogleConnectingPage />
+  },
+  {
+    path: 'confirm-number',
+    element: <ConfirmNumberPage />
+  },
+  {
+    path: 'workspace-profile',
+    element: <WorkspaceProfilePage />
+  },
+  {
+    path: 'business-profile',
+    element: <BusinessProfilePage />
+  },
+  {
+    path: 'business-type',
+    element: <BusinessTypePage />
+  },
+  {
+    path: 'sandbox-ready',
+    element: <SandboxReadyPage />
   },
   {
     path: 'kyc-callback',

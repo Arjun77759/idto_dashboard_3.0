@@ -1,35 +1,31 @@
-import { Eye, EyeOff, MoveRight, CheckCircle2, Circle } from 'lucide-react'
-import { useIsMobile } from '@/hooks/use-mobile'
+import { useToast } from '@/hooks/use-toast'
+import { Check, Eye, EyeOff, LockKeyhole, Sparkles, X, ArrowRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { createPassword } from '../api/authApi'
-import { useToast } from '../hooks/use-toast'
+import idtoLogo from '../assets/idto-logo.svg'
+import { getSignupDraft, updateSignupDraft } from '../lib/signupDraft'
 
 const CreatePassword = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { toast } = useToast()
-  const isMobile = useIsMobile()
   const [formData, setFormData] = useState({
-    fullName: '',
-    organisationName: '',
     password: '',
     confirmPassword: ''
   })
-  const [errors, setErrors] = useState<{ fullName?: string; organisationName?: string; password?: string; confirmPassword?: string; form?: string }>({})
+  const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string; form?: string }>({})
   const [submitting, setSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
-  // Check if this is a reset password flow based on isReset query param
   const isResetPassword = searchParams.get('isReset') === 'true'
   const token = searchParams.get('token')
+  const customerId = searchParams.get('customer_id')
+  const isDraftSignup = searchParams.get('draft') === 'true'
 
-  // Check if customer_id exists
   useEffect(() => {
-    const customerId = searchParams.get('customer_id')
-
-    if (!customerId) {
+    if (!customerId && !isDraftSignup) {
       toast({
         title: 'Invalid link',
         description: 'Missing customer ID. Redirecting to login...',
@@ -37,27 +33,24 @@ const CreatePassword = () => {
       })
       navigate('/login')
     }
-  }, [searchParams, navigate, toast])
+  }, [customerId, isDraftSignup, navigate, toast])
+
+  const passwordRequirements = {
+    minLength: formData.password.length >= 8,
+    hasNumber: /[0-9]/.test(formData.password),
+    hasSpecialChar: /[^A-Za-z0-9]/.test(formData.password),
+  }
 
   const validate = () => {
-    const next: { fullName?: string; organisationName?: string; password?: string; confirmPassword?: string } = {}
-
-    // Only validate full name and organisation name if not reset password
-    if (!isResetPassword) {
-      // These fields are optional, so no validation needed
-    }
+    const next: { password?: string; confirmPassword?: string } = {}
 
     if (!formData.password) {
       next.password = 'Password is required'
-    } else if (formData.password.length < 8) {
+    } else if (!passwordRequirements.minLength) {
       next.password = 'Password must be at least 8 characters'
-    } else if (!/[A-Z]/.test(formData.password)) {
-      next.password = 'Password must contain at least one uppercase letter'
-    } else if (!/[a-z]/.test(formData.password)) {
-      next.password = 'Password must contain at least one lowercase letter'
-    } else if (!/[0-9]/.test(formData.password)) {
+    } else if (!passwordRequirements.hasNumber) {
       next.password = 'Password must contain at least one number'
-    } else if (!/[^A-Za-z0-9]/.test(formData.password)) {
+    } else if (!passwordRequirements.hasSpecialChar) {
       next.password = 'Password must contain at least one special character'
     }
 
@@ -76,7 +69,23 @@ const CreatePassword = () => {
     setErrors({})
     if (!validate()) return
 
-    const customerId = searchParams.get('customer_id')
+    if (isDraftSignup) {
+      const draft = getSignupDraft()
+
+      if (!draft.email) {
+        setErrors((prev) => ({ ...prev, form: 'Please enter your email first.' }))
+        navigate('/register')
+        return
+      }
+
+      updateSignupDraft({ password: formData.password })
+      toast({
+        title: 'Password saved',
+        description: 'Continuing setup before we create your account.',
+      })
+      navigate('/confirm-number')
+      return
+    }
 
     if (!customerId) {
       setErrors((prev) => ({ ...prev, form: 'Missing customer ID. Please use the link from your email.' }))
@@ -95,17 +104,6 @@ const CreatePassword = () => {
         password: formData.password
       }
 
-      // Add optional fields only if provided and not reset password flow
-      if (!isResetPassword) {
-        if (formData.fullName) {
-          payload.full_name = formData.fullName
-        }
-        if (formData.organisationName) {
-          payload.organisation_name = formData.organisationName
-        }
-      }
-
-      // Add token if reset password flow
       if (token) {
         payload.token = token
       }
@@ -119,7 +117,6 @@ const CreatePassword = () => {
           : 'Your password has been set. Redirecting to login...',
       })
 
-      // Navigate to login after successful password creation/reset
       setTimeout(() => {
         navigate('/login')
       }, 1500)
@@ -145,328 +142,131 @@ const CreatePassword = () => {
     })
   }
 
-  // Helper function to check password requirements
-  const checkPasswordRequirements = (password: string) => {
-    return {
-      minLength: password.length >= 8,
-      hasUppercase: /[A-Z]/.test(password),
-      hasLowercase: /[a-z]/.test(password),
-      hasNumber: /[0-9]/.test(password),
-      hasSpecialChar: /[^A-Za-z0-9]/.test(password)
-    }
-  }
-
-  const passwordRequirements = checkPasswordRequirements(formData.password)
-
-  // Password Requirements Component
-  const PasswordRequirements = () => {
-    const requirements = [
-      { key: 'minLength', label: 'At least 8 characters', met: passwordRequirements.minLength },
-      { key: 'hasUppercase', label: 'One uppercase letter', met: passwordRequirements.hasUppercase },
-      { key: 'hasLowercase', label: 'One lowercase letter', met: passwordRequirements.hasLowercase },
-      { key: 'hasNumber', label: 'One number', met: passwordRequirements.hasNumber },
-      { key: 'hasSpecialChar', label: 'One special character', met: passwordRequirements.hasSpecialChar }
-    ]
-
-    // Only show if password field has focus or has value
-    if (!formData.password) return null
-
-    return (
-      <div className="flex flex-col gap-2 mt-1">
-        {requirements.map((req) => (
-          <div key={req.key} className="flex items-center gap-2">
-            {req.met ? (
-              <CheckCircle2 className="size-4 text-green-600 shrink-0" strokeWidth={2} />
-            ) : (
-              <Circle className="size-4 text-[#9296a0] shrink-0" strokeWidth={2} />
-            )}
-            <span className={`text-[12px] leading-[16px] ${req.met ? 'text-green-600' : 'text-[#616675]'}`}>
-              {req.label}
-            </span>
-          </div>
-        ))}
-      </div>
-    )
-  }
-
-  // Logo SVG component
-  const Logo = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="57" height="32" viewBox="0 0 57 32" fill="none">
-      <path d="M17.5745 20.5918H11.0039V27.4367H17.5745V20.5918Z" fill="#00E59E" />
-      <path d="M17.5748 16.0283V9.1834H11.0042V4.62012H4.43359V20.5916H11.0042V16.0283H17.5748Z" fill="#0019FF" />
-      <path d="M23.3594 9.37695C22.97 9.37695 22.6384 9.51956 22.3647 9.80159C22.0909 10.0868 21.957 10.429 21.957 10.8378C21.957 11.2466 22.0939 11.5889 22.3647 11.8741C22.6354 12.1561 22.967 12.2987 23.3594 12.2987C23.7518 12.2987 24.0803 12.1561 24.3541 11.8741C24.6248 11.592 24.7617 11.2466 24.7617 10.8378C24.7617 10.429 24.6248 10.0868 24.3541 9.80159C24.0803 9.51956 23.7518 9.37695 23.3594 9.37695Z" fill="#131B31" />
-      <path d="M24.6403 13.2432H22.082V22.8736H24.6403V13.2432Z" fill="#131B31" />
-      <path d="M35.1131 9.19922H32.5548V14.3678H32.494C32.2263 13.8861 31.8491 13.5153 31.3624 13.2523C30.8757 12.9893 30.2916 12.8593 29.6133 12.8593C28.7311 12.8593 27.9737 13.0653 27.3409 13.4773C26.7082 13.8893 26.2306 14.4723 25.899 15.2265C25.5705 15.9808 25.4062 16.8617 25.4062 17.8663C25.4062 18.8708 25.5766 19.736 25.9143 20.4902C26.2519 21.2444 26.7538 21.8306 27.417 22.2489C28.0801 22.6672 28.8832 22.8764 29.8292 22.8764C30.608 22.8764 31.2742 22.7211 31.8248 22.4105C32.3753 22.1 32.8134 21.6658 33.1419 21.1113H33.7899V22.6831H36.3785V20.0497H35.1161V9.19922H35.1131ZM32.5579 18.3004C32.5579 19.0071 32.3541 19.5617 31.9495 19.961C31.5449 20.3634 30.9973 20.5631 30.3099 20.5631C29.5281 20.5631 28.944 20.3222 28.5547 19.8405C28.1653 19.3589 27.9706 18.6997 27.9706 17.8663C27.9706 17.0328 28.1653 16.3737 28.5547 15.892C28.944 15.4103 29.5311 15.1695 30.3099 15.1695C30.9973 15.1695 31.5449 15.3692 31.9495 15.7716C32.3541 16.1741 32.5579 16.7255 32.5579 17.4321V18.3004Z" fill="#131B31" />
-      <path d="M40.1978 15.3307H42.3089V13.2455H40.1674V10.3555H37.673V13.2455H36.0547V15.3307H37.6426V20.7559C37.6426 21.4721 37.8251 22.0045 38.1901 22.3531C38.5552 22.7017 39.0662 22.876 39.7233 22.876H42.5279V20.7908H40.2009V15.3339L40.1978 15.3307Z" fill="#131B31" />
-      <path d="M51.8479 15.2012C51.4463 14.4534 50.8775 13.8734 50.1383 13.4678C49.3991 13.0622 48.5261 12.8594 47.5192 12.8594C46.5123 12.8594 45.618 13.0622 44.8696 13.4678C44.1183 13.8734 43.5434 14.4534 43.1357 15.2012C42.7312 15.9491 42.5273 16.8332 42.5273 17.8505C42.5273 18.8677 42.7342 19.7645 43.1449 20.5155C43.5555 21.2666 44.1335 21.8465 44.8788 22.2553C45.624 22.6673 46.5001 22.8732 47.504 22.8732C48.5078 22.8732 49.3869 22.6704 50.1292 22.2648C50.8744 21.8592 51.4463 21.2793 51.8479 20.525C52.2494 19.7708 52.4502 18.8867 52.4502 17.8695C52.4502 16.8522 52.2494 15.9554 51.8479 15.2044V15.2012ZM49.2744 19.8311C48.8637 20.3191 48.2736 20.5599 47.504 20.5599C46.7344 20.5599 46.126 20.3159 45.7092 19.8311C45.2925 19.343 45.0856 18.6839 45.0856 17.8505C45.0856 17.017 45.2925 16.3611 45.7092 15.8857C46.126 15.4104 46.7222 15.1727 47.504 15.1727C48.2857 15.1727 48.8637 15.4104 49.2744 15.8857C49.685 16.3611 49.8919 17.017 49.8919 17.8505C49.8919 18.6839 49.685 19.3462 49.2744 19.8311Z" fill="#131B31" />
-    </svg>
+  const Requirement = ({ met, label }: { met: boolean; label: string }) => (
+    <div className="flex items-center gap-2 text-[12px] leading-4">
+      <span className={`grid size-4 place-items-center rounded-full ${met ? 'bg-[#00e59e]/30 text-[#0a8a5e]' : 'bg-[#f4f4f5] text-[#71717b]'}`}>
+        {met ? <Check className="size-2.5" strokeWidth={2.2} /> : <X className="size-2.5" strokeWidth={2} />}
+      </span>
+      <span className={met ? 'text-[#3f3f46]' : 'text-[#71717b]'}>{label}</span>
+    </div>
   )
 
-  // Mobile layout
-  if (isMobile) {
-    return (
-      <div className="min-h-screen w-full bg-white flex flex-col">
-        {/* Logo at top left */}
-        <div className="px-4 pt-6 pb-8">
-          <Logo />
-        </div>
-
-        {/* Main content - centered vertically */}
-        <div className="flex-1 flex justify-center px-4 pb-8">
-          <div className="w-full max-w-full flex flex-col gap-6">
-            {/* Title and subtitle */}
-            <div className="text-center flex flex-col gap-2">
-              <h1 className="text-[24px] font-[500] leading-[1.25] text-[#131b31]">
-                Setup your Account
-              </h1>
-              <p className="text-[14px] font-medium leading-[20px] text-[#616675]">
-                Please enter your details
-              </p>
-            </div>
-
-            {/* Form */}
-            <form className="flex flex-col gap-6" onSubmit={handleSubmit} noValidate>
-              {/* Full Name field - only show if not reset password */}
-              {!isResetPassword && (
-                <div className="flex flex-col gap-1">
-                  <label className="text-[12px] font-medium leading-[16.8px] text-[#616675]">
-                    Full Name
-                  </label>
-                  <div className="flex h-12 items-center gap-2 rounded-[6px] border border-[#e7e8ea] bg-[#f7f7f8] px-3">
-                    <input
-                      type="text"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleChange}
-                      placeholder="Enter your full name"
-                      className="flex-1 border-none bg-transparent text-[16px] font-medium leading-[24px] text-[#1c252e] outline-none placeholder:text-[#9296a0]"
-                    />
-                  </div>
-                  {errors.fullName && <p className="text-[12px] text-red-600">{errors.fullName}</p>}
-                </div>
-              )}
-
-              {/* Organization Name field - only show if not reset password */}
-              {!isResetPassword && (
-                <div className="flex flex-col gap-1">
-                  <label className="text-[12px] font-medium leading-[16.8px] text-[#616675]">
-                    Organization Name
-                  </label>
-                  <div className="flex h-12 items-center gap-2 rounded-[6px] border border-[#e7e8ea] bg-[#f7f7f8] px-3">
-                    <input
-                      type="text"
-                      name="organisationName"
-                      value={formData.organisationName}
-                      onChange={handleChange}
-                      placeholder="Enter your organization name"
-                      className="flex-1 border-none bg-transparent text-[16px] font-medium leading-[24px] text-[#1c252e] outline-none placeholder:text-[#9296a0]"
-                    />
-                  </div>
-                  {errors.organisationName && <p className="text-[12px] text-red-600">{errors.organisationName}</p>}
-                </div>
-              )}
-
-              {/* New Password field */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[12px] font-medium leading-[16.8px] text-[#616675]">
-                  New Password
-                </label>
-                <div className="flex h-12 items-center gap-2 rounded-[6px] border border-[#e7e8ea] bg-[#f7f7f8] px-3">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="********"
-                    className="flex-1 border-none bg-transparent text-[16px] font-medium leading-[24px] text-[#1c252e] outline-none placeholder:text-[#9296a0]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(prev => !prev)}
-                    className="text-[#9296a0] transition hover:text-[#616675] shrink-0"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <Eye className="size-6" strokeWidth={1.5} /> : <EyeOff className="size-6" strokeWidth={1.5} />}
-                  </button>
-                </div>
-                <PasswordRequirements />
-                {errors.password && <p className="text-[12px] text-red-600">{errors.password}</p>}
-              </div>
-
-              {/* Confirm Password field */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[12px] font-medium leading-[16.8px] text-[#616675]">
-                  Confirm Password
-                </label>
-                <div className="flex h-12 items-center gap-2 rounded-[6px] border border-[#e7e8ea] bg-[#f7f7f8] px-3">
-                  <input
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="********"
-                    className="flex-1 border-none bg-transparent text-[16px] font-medium leading-[24px] text-[#1c252e] outline-none placeholder:text-[#9296a0]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(prev => !prev)}
-                    className="text-[#9296a0] transition hover:text-[#616675] shrink-0"
-                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showConfirmPassword ? <Eye className="size-6" strokeWidth={1.5} /> : <EyeOff className="size-6" strokeWidth={1.5} />}
-                  </button>
-                </div>
-                {errors.confirmPassword && <p className="text-[12px] text-red-600">{errors.confirmPassword}</p>}
-              </div>
-
-              {/* Form error */}
-              {errors.form && <p className="text-[13px] text-red-600">{errors.form}</p>}
-
-              {/* Proceed button */}
-              <button
-                type="submit"
-                disabled={submitting}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#e7e8ea] bg-[#E6E8FF] text-[12px] font-bold leading-[16px] text-[#0019FF] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {submitting ? 'Processing...' : 'Proceed'}
-                <MoveRight className="size-4" strokeWidth={2} />
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Web layout
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col gap-[40px] px-4 py-8 sm:py-12">
-      {/* Logo */}
-      <div className="flex items-center px-10">
-        <Logo />
-      </div>
-
-      {/* Main content */}
-      <div className="flex w-full max-w-[480px] flex-col gap-6 mx-auto">
-        <div className="bg-white p-8 flex flex-col gap-6 rounded-[4px]">
-          {/* Title and subtitle */}
-          <div className="text-center flex flex-col gap-2">
-            <h1 className="text-[24px] font-[500] leading-[1.24] text-[#131b31] tracking-[-0.24px]">
-              Setup your Account
+    <div className="min-h-screen w-full bg-white p-4 text-[#050c13] sm:p-6 lg:p-[25px]">
+      <div className="grid min-h-[calc(100vh-32px)] grid-cols-1 gap-10 lg:min-h-[calc(100vh-50px)] lg:grid-cols-[minmax(420px,669px)_minmax(430px,1fr)] lg:gap-[72px] xl:gap-[108px]">
+        <section className="relative hidden min-h-[640px] overflow-hidden rounded-[18px] bg-[#050c13] lg:block">
+          <img
+            src="/create-password-hero.png"
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute left-[41px] right-[42px] top-[44px] rounded-[24px] border border-white/20 bg-white/10 p-[21px] text-white shadow-[0_24px_80px_rgba(0,0,0,0.22)] backdrop-blur-md">
+            <div className="mb-5 inline-flex h-6 items-center gap-2 rounded-full bg-white/10 px-3 text-[12px] leading-4 text-white/80">
+              <Sparkles className="size-3" strokeWidth={1.5} />
+              AI-native identity verification
+            </div>
+            <h1 className="font-['TikTok_Sans'] text-[44px] font-medium leading-[42px] text-white xl:text-[56px] xl:leading-[50px]">
+              Verify smarter.
+              <span className="block text-[#5ee9b5]">Decide faster.</span>
             </h1>
-            <p className="text-[14px] font-medium leading-[20px] text-[#616675] tracking-[-0.14px]">
-              Please enter your details
+            <p className="mt-5 max-w-[430px] text-[28px] font-normal leading-[1.23] tracking-normal text-white xl:text-[32px]">
+              Everything you need,
+              <span className="block">
+                in <span className="font-serif italic">one place</span>.
+              </span>
             </p>
           </div>
+        </section>
 
-          {/* Form */}
-          <form className="flex flex-col gap-6" onSubmit={handleSubmit} noValidate>
-            {/* Full Name field - only show if not reset password */}
-            {!isResetPassword && (
-              <div className="flex flex-col gap-1">
-                <label className="text-[12px] font-medium leading-[16.8px] text-[#616675] tracking-[-0.12px]">
-                  Full Name
-                </label>
-                <div className="flex h-12 items-center gap-2 rounded-[6px] border border-[#e7e8ea] bg-[#f7f7f8] px-3">
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    placeholder="Enter your full name"
-                    className="flex-1 border-none bg-transparent text-[16px] font-medium leading-[24px] text-[#1c252e] outline-none placeholder:text-[#9296a0] tracking-[-0.16px]"
-                  />
-                </div>
-                {errors.fullName && <p className="text-[12px] text-red-600">{errors.fullName}</p>}
-              </div>
-            )}
-
-            {/* Organization Name field - only show if not reset password */}
-            {!isResetPassword && (
-              <div className="flex flex-col gap-1">
-                <label className="text-[12px] font-medium leading-[16.8px] text-[#616675] tracking-[-0.12px]">
-                  Organization Name
-                </label>
-                <div className="flex h-12 items-center gap-2 rounded-[6px] border border-[#e7e8ea] bg-[#f7f7f8] px-3">
-                  <input
-                    type="text"
-                    name="organisationName"
-                    value={formData.organisationName}
-                    onChange={handleChange}
-                    placeholder="Enter your organization name"
-                    className="flex-1 border-none bg-transparent text-[16px] font-medium leading-[24px] text-[#1c252e] outline-none placeholder:text-[#9296a0] tracking-[-0.16px]"
-                  />
-                </div>
-                {errors.organisationName && <p className="text-[12px] text-red-600">{errors.organisationName}</p>}
-              </div>
-            )}
-
-            {/* New Password field */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[12px] font-medium leading-[16.8px] text-[#616675] tracking-[-0.12px]">
-                New Password
-              </label>
-              <div className="flex h-12 items-center gap-2 rounded-[6px] border border-[#e7e8ea] bg-[#f7f7f8] px-3">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="********"
-                  className="flex-1 border-none bg-transparent text-[16px] font-medium leading-[24px] text-[#1c252e] outline-none placeholder:text-[#9296a0] tracking-[-0.16px]"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(prev => !prev)}
-                  className="text-[#9296a0] transition hover:text-[#616675] shrink-0"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <Eye className="size-6" strokeWidth={1.5} /> : <EyeOff className="size-6" strokeWidth={1.5} />}
-                </button>
-              </div>
-              <PasswordRequirements />
-              {errors.password && <p className="text-[12px] text-red-600">{errors.password}</p>}
+        <div className="flex min-h-[calc(100vh-32px)] items-center justify-center py-5 lg:min-h-[calc(100vh-50px)] lg:py-0">
+          <div className="w-full max-w-[518px]">
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#e2e8f0] px-[13px] py-[5px] text-[12px] leading-4 text-[#62748e] lg:mb-[72px]">
+              <LockKeyhole className="size-[14px]" strokeWidth={1.7} />
+              Set password
             </div>
 
-            {/* Confirm Password field */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[12px] font-medium leading-[16.8px] text-[#616675] tracking-[-0.12px]">
-                Confirm Password
-              </label>
-              <div className="flex h-12 items-center gap-2 rounded-[6px] border border-[#e7e8ea] bg-[#f7f7f8] px-3">
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="********"
-                  className="flex-1 border-none bg-transparent text-[16px] font-medium leading-[24px] text-[#1c252e] outline-none placeholder:text-[#9296a0] tracking-[-0.16px]"
-                />
+            <div className="flex flex-col items-center">
+              <img src={idtoLogo} alt="idto" className="mb-[30px] h-10 w-[70px]" />
+
+              <h1 className="mb-5 w-full text-center font-serif text-[30px] font-normal leading-9 text-[#050c13]">
+                Create your password
+              </h1>
+
+              <form className="w-full space-y-5" onSubmit={handleSubmit} noValidate>
+                <div className="space-y-1.5 pt-[5.5px]">
+                  <label htmlFor="new-password" className="block text-[12px] leading-4 text-[#3f3f46]">
+                    New password
+                  </label>
+                  <div className="flex items-center gap-2 rounded-[14px] border border-[#e4e4e7] bg-white p-[13px]">
+                    <LockKeyhole className="size-4 shrink-0 text-[#9f9fa9]" strokeWidth={1.8} />
+                    <input
+                      id="new-password"
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="Enter password"
+                      className="min-w-0 flex-1 bg-transparent text-[14px] leading-none text-[#050c13] outline-none placeholder:text-[#0a0e1f]/50"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(prev => !prev)}
+                      className="text-[#9f9fa9] transition hover:text-[#050c13]"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="size-4" strokeWidth={1.8} /> : <Eye className="size-4" strokeWidth={1.8} />}
+                    </button>
+                  </div>
+                  {errors.password ? <p className="text-[12px] leading-4 text-red-600">{errors.password}</p> : null}
+                </div>
+
+                <div className="space-y-1.5 pt-[5.5px]">
+                  <label htmlFor="confirm-password" className="block text-[12px] leading-4 text-[#3f3f46]">
+                    Confirm password
+                  </label>
+                  <div className="flex items-center gap-2 rounded-[14px] border border-[#e4e4e7] bg-white p-[13px]">
+                    <LockKeyhole className="size-4 shrink-0 text-[#9f9fa9]" strokeWidth={1.8} />
+                    <input
+                      id="confirm-password"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      placeholder="Re-enter password"
+                      className="min-w-0 flex-1 bg-transparent text-[14px] leading-none text-[#050c13] outline-none placeholder:text-[#0a0e1f]/50"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(prev => !prev)}
+                      className="text-[#9f9fa9] transition hover:text-[#050c13]"
+                      aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showConfirmPassword ? <EyeOff className="size-4" strokeWidth={1.8} /> : <Eye className="size-4" strokeWidth={1.8} />}
+                    </button>
+                  </div>
+                  {errors.confirmPassword ? <p className="text-[12px] leading-4 text-red-600">{errors.confirmPassword}</p> : null}
+                </div>
+
+                <div className="space-y-2 rounded-[14px] border border-[#e4e4e7] bg-white p-[17px]">
+                  <p className="text-[12px] leading-4 text-[#3f3f46]">Password must include:</p>
+                  <Requirement met={passwordRequirements.minLength} label="Minimum 8 characters" />
+                  <Requirement met={passwordRequirements.hasNumber} label="At least 1 number" />
+                  <Requirement met={passwordRequirements.hasSpecialChar} label="At least 1 special character" />
+                </div>
+
+                {errors.form ? <p className="text-[13px] leading-5 text-red-600">{errors.form}</p> : null}
+
                 <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(prev => !prev)}
-                  className="text-[#9296a0] transition hover:text-[#616675] shrink-0"
-                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                  type="submit"
+                  disabled={submitting}
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-[20px] bg-[#050c13] px-4 text-[14px] font-normal leading-5 text-[#fafcfe] transition hover:bg-[#131b31] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {showConfirmPassword ? <Eye className="size-6" strokeWidth={1.5} /> : <EyeOff className="size-6" strokeWidth={1.5} />}
+                  {submitting ? 'Saving...' : 'Save & continue'}
+                  <ArrowRight className="size-4" strokeWidth={1.8} />
                 </button>
-              </div>
-              {errors.confirmPassword && <p className="text-[12px] text-red-600">{errors.confirmPassword}</p>}
+              </form>
             </div>
-
-            {/* Form error */}
-            {errors.form && <p className="text-[13px] text-red-600">{errors.form}</p>}
-
-            {/* Proceed button */}
-            <button
-              type="submit"
-              disabled={submitting}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-[8px] border border-[#e7e8ea] bg-[#E6E8FF] text-[12px] font-bold leading-[16px] text-[#0019FF] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 tracking-[-0.12px]"
-            >
-              {submitting ? 'Processing...' : 'Proceed'}
-              <MoveRight className="size-4" strokeWidth={2} />
-            </button>
-          </form>
+          </div>
         </div>
       </div>
     </div>

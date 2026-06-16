@@ -29,6 +29,48 @@ export async function register(payload: RegisterPayload): Promise<RegisterRespon
   return data
 }
 
+export type RequestSignupOtpPayload = {
+  email: string
+}
+
+export type RequestSignupOtpResponse = {
+  status?: string
+  message?: string
+  otp_sent?: boolean
+  email_sent?: boolean
+}
+
+const requestSignupOtpEndpoints = [
+  '/onboard/request-email-otp',
+  '/onboard/send-email-otp',
+  '/onboard/send-signup-otp',
+  '/onboard/request-otp',
+  '/auth/request-email-otp',
+  '/auth/send-email-otp',
+]
+
+export async function requestSignupOtp(payload: RequestSignupOtpPayload): Promise<RequestSignupOtpResponse> {
+  let lastError: any
+
+  for (const endpoint of requestSignupOtpEndpoints) {
+    try {
+      const { data } = await http.post<RequestSignupOtpResponse>(endpoint, payload)
+      return data
+    } catch (err: any) {
+      lastError = err
+      const status = err?.response?.status
+
+      if (status && status !== 404 && status !== 405) {
+        throw err
+      }
+    }
+  }
+
+  const error = new Error('Signup email OTP is not available on the backend yet.')
+  ;(error as any).cause = lastError
+  throw error
+}
+
 export type CreatePasswordPayload = {
   customer_id: string
   password: string
@@ -76,6 +118,94 @@ export type ResendEmailResponse = {
 export async function resendVerificationEmail(payload: ResendEmailPayload): Promise<ResendEmailResponse> {
   const { data } = await http.post<ResendEmailResponse>('/onboard/resend-email', payload)
   return data
+}
+
+export type VerifySignupOtpPayload = {
+  email: string
+  otp: string
+}
+
+export type VerifySignupOtpResponse = {
+  status?: string
+  message?: string
+  customer_id?: string
+  customerId?: string
+  token?: string
+  verification_token?: string
+  signup_token?: string
+}
+
+const signupOtpEndpoints = [
+  '/onboard/verify-email-otp',
+  '/onboard/verify-otp',
+  '/onboard/verify-email',
+]
+
+export async function verifySignupOtp(payload: VerifySignupOtpPayload): Promise<VerifySignupOtpResponse> {
+  let lastError: any
+
+  for (const endpoint of signupOtpEndpoints) {
+    try {
+      const { data } = await http.post<VerifySignupOtpResponse>(endpoint, {
+        email: payload.email,
+        otp: payload.otp,
+        code: payload.otp,
+      })
+      return data
+    } catch (err: any) {
+      lastError = err
+      const status = err?.response?.status
+
+      if (status && status !== 404 && status !== 405) {
+        throw err
+      }
+    }
+  }
+
+  const error = new Error('Signup OTP verification is not available on the backend yet.')
+  ;(error as any).cause = lastError
+  throw error
+}
+
+export type CompleteSignupPayload = {
+  email: string
+  password: string
+  verification_token?: string
+}
+
+export type CompleteSignupResponse = {
+  status?: string
+  message?: string
+  access_token?: string
+  user_agent?: string
+}
+
+const completeSignupEndpoints = [
+  '/onboard/complete-signup',
+  '/onboard/signup/complete',
+  '/onboard/register',
+]
+
+export async function completeSignup(payload: CompleteSignupPayload): Promise<CompleteSignupResponse> {
+  let lastError: any
+
+  for (const endpoint of completeSignupEndpoints) {
+    try {
+      const { data } = await http.post<CompleteSignupResponse>(endpoint, payload)
+      return data
+    } catch (err: any) {
+      lastError = err
+      const status = err?.response?.status
+
+      if (status && status !== 404 && status !== 405) {
+        throw err
+      }
+    }
+  }
+
+  const error = new Error('Final signup completion is not available on the backend yet.')
+  ;(error as any).cause = lastError
+  throw error
 }
 
 export type RequestPasswordResetPayload = {
