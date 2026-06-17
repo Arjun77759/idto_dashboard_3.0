@@ -1,14 +1,13 @@
-import CompanyHeader from '@/components/dashboard/CompanyHeader'
-import EnvironmentStatus from '@/components/dashboard/EnvironmentStatus'
 import SimulationModeModal from '@/components/modals/simulationModeModal/SimulationModeModal'
 import SwitchToProductionModal from '@/components/modals/switchToProductionModal/SwitchToProductionModal'
 import Sidebar from '@/components/Sidebar'
 import { useSimulationModeModal } from '@/contexts/SimulationModeModalContext'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
+import { useUsageCredits } from '@/hooks/useUsageCredits'
 import { getAccessToken } from '@/lib/auth'
 import { motion } from 'framer-motion'
-import { Menu, X } from 'lucide-react'
+import { Menu, Plus, Zap, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
@@ -21,7 +20,12 @@ const PrivateLayout = () => {
   const isMobile = useIsMobile()
   const { isModalOpen, closeModal } = useSimulationModeModal()
   const { data: onboardingStatus, loading: onboardingLoading } = useOnboardingStatus({ enabled: Boolean(token) })
+  const { data: creditsData } = useUsageCredits()
   const isProduction = Boolean(onboardingStatus?.is_onboarded)
+  const liveCredits = `\u20b9${(creditsData?.balance ?? 0).toLocaleString('en-IN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`
 
   const handleMoveToProduction = () => {
     closeModal()
@@ -124,7 +128,7 @@ const PrivateLayout = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="h-screen bg-white flex overflow-y-auto"
+      className="h-screen bg-white flex overflow-hidden"
     >
       {/* Mobile Overlay */}
       {sidebarOpen && (
@@ -139,37 +143,62 @@ const PrivateLayout = () => {
         fixed lg:relative z-50 lg:z-auto
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         transition-all duration-300 ease-in-out
-        w-64 lg:w-64
+        w-[238px]
         h-full
-        overflow-hidden bg-white border-r border-gray-200
+        overflow-hidden bg-white border-r border-[#eef0f3]
       `}>
         <Sidebar />
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 min-w-0 flex flex-col overflow-y-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex flex-col gap-4 sm:gap-5 items-start p-4 sm:p-6 relative w-full h-full overflow-y-auto"
-        >
-          <div className='flex items-start justify-between w-full gap-4'>
-            <div className='flex items-start gap-4 flex-1'>
+      <div className="flex-1 min-w-0 flex flex-col bg-[#f7f7f8] overflow-hidden">
+        <header className="h-[71px] shrink-0 border-b border-[#e7e8ea] bg-white/95 backdrop-blur flex items-center justify-between px-6 lg:px-10">
+          <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 block md:hidden mt-1"
+              className="p-2 rounded-md text-[#616675] hover:text-[#131b31] hover:bg-[#f7f7f8] block lg:hidden"
               >
-                {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
-              <div className="flex flex-col gap-3 w-full">
-                <CompanyHeader />
-                <EnvironmentStatus />
+            <div>
+              <div className="flex items-center gap-2 text-[12px] font-semibold uppercase leading-[17px] tracking-[1.98px] text-[#5b6472]">
+                <span className="size-1.5 rounded-full bg-[#00d395]" />
+                Live Data
               </div>
+              <h1 className="text-[36px] font-bold leading-[39px] tracking-[-1.08px] text-[#0a121f]">
+                idto.ai
+              </h1>
             </div>
           </div>
-          <Outlet />
-        </motion.div>
+          <div className="hidden h-[42px] items-center gap-3 rounded-full border border-[#e0e5eb] bg-white/90 px-[17px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] sm:flex">
+            <div className="flex items-center gap-1.5 text-[12px] font-bold uppercase leading-[17px] tracking-[0.6px] text-[#5b6472]">
+              <Zap className="size-3.5 text-[#0019ff]" />
+              Live Credits
+            </div>
+            <span className="text-[18px] font-bold leading-[22.5px] tracking-[-0.36px] text-[#0a121f]">
+              {liveCredits}
+            </span>
+            <button
+              type="button"
+              onClick={() => navigate('/billing')}
+              className="grid size-6 place-items-center rounded-full bg-[#eef2ff] text-[#0019ff]"
+              aria-label="Top up credits"
+            >
+              <Plus className="size-3.5" />
+            </button>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="p-6 lg:p-8"
+          >
+            <Outlet />
+          </motion.div>
+        </main>
       </div>
       {/* Only show simulation mode modal if not in production */}
       {!isProduction && (

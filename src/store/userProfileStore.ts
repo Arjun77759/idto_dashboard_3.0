@@ -39,6 +39,8 @@ let state: UserProfileStoreState = {
 // Track ongoing fetch to prevent concurrent calls
 let fetchPromise: Promise<UserProfile | null> | null = null
 let isFetching = false // Additional flag to prevent race conditions
+let fetchedForToken: string | null = null
+let fetchPromiseToken: string | null = null
 
 const setState = (partial: Partial<UserProfileStoreState>) => {
   state = { ...state, ...partial }
@@ -61,30 +63,31 @@ export const useUserProfileStore = <T,>(
 }
 
 export const fetchUserProfile = async (): Promise<UserProfile | null> => {
+  const token = getAccessToken()
+
   // If a fetch is already in progress, return the existing promise
-  if (fetchPromise) {
+  if (fetchPromise && fetchPromiseToken === token) {
     return fetchPromise
   }
   
   // If we're already fetching (race condition guard), wait briefly for promise to be set
-  if (isFetching) {
+  if (isFetching && fetchPromiseToken === token) {
     // Since both are set synchronously, wait one tick and check again
     await new Promise(resolve => setTimeout(resolve, 0))
-    if (fetchPromise) {
+    if (fetchPromise && fetchPromiseToken === token) {
       return fetchPromise
     }
     // If still no promise after one tick, something went wrong, reset and continue
     isFetching = false
   }
 
-  // If already fetched, return cached data immediately
-  if (state.hasFetched && state.data) {
+  // If already fetched for the current authenticated user, return cached data immediately.
+  if (state.hasFetched && state.data && fetchedForToken === token) {
     return state.data
   }
 
-  // Don't make API call if user is not authenticated
-  const token = getAccessToken()
   if (!token) {
+    fetchedForToken = null
     setState({
       loading: false,
       hasFetched: false,
@@ -96,19 +99,29 @@ export const fetchUserProfile = async (): Promise<UserProfile | null> => {
   // Set flags synchronously to prevent concurrent calls
   // These assignments happen atomically in JavaScript's single-threaded execution
   isFetching = true
-  setState({ loading: true, error: null })
+  fetchPromiseToken = token
+  setState({
+    loading: true,
+    error: null,
+    ...(fetchedForToken !== token ? { data: null, hasFetched: false } : {}),
+  })
 
   // Create the fetch promise (this assignment is also synchronous)
   fetchPromise = (async () => {
+    const requestToken = token
     try {
       const { data } = await http.get<UserProfile>('/me/profile')
-      setState({
-        data,
-        loading: false,
-        hasFetched: true,
-        error: null,
-      })
+      if (getAccessToken() === requestToken) {
+        setState({
+          data,
+          loading: false,
+          hasFetched: true,
+          error: null,
+        })
+        fetchedForToken = requestToken
+      }
       fetchPromise = null // Clear the promise after successful fetch
+      fetchPromiseToken = null
       isFetching = false
       return data
     } catch (error: any) {
@@ -122,13 +135,17 @@ export const fetchUserProfile = async (): Promise<UserProfile | null> => {
           email: 'john.doe@brightwave.com',
           active: true
         }
-        setState({
-          data: mock,
-          loading: false,
-          hasFetched: true,
-          error: null,
-        })
+        if (getAccessToken() === requestToken) {
+          setState({
+            data: mock,
+            loading: false,
+            hasFetched: true,
+            error: null,
+          })
+          fetchedForToken = requestToken
+        }
         fetchPromise = null
+        fetchPromiseToken = null
         isFetching = false
         return mock
       }
@@ -138,12 +155,15 @@ export const fetchUserProfile = async (): Promise<UserProfile | null> => {
         error?.response?.data?.message ||
         error?.message ||
         'Failed to load user profile'
-      setState({
-        error: message,
-        loading: false,
-        hasFetched: true,
-      })
+      if (getAccessToken() === requestToken) {
+        setState({
+          error: message,
+          loading: false,
+          hasFetched: true,
+        })
+      }
       fetchPromise = null // Clear the promise after error
+      fetchPromiseToken = null
       isFetching = false
       throw error
     }
@@ -155,6 +175,8 @@ export const fetchUserProfile = async (): Promise<UserProfile | null> => {
 export const invalidateUserProfile = () => {
   fetchPromise = null
   isFetching = false
+  fetchedForToken = null
+  fetchPromiseToken = null
   setState({
     data: null,
     loading: false,
@@ -166,6 +188,8 @@ export const invalidateUserProfile = () => {
 export const resetUserProfileStore = () => {
   fetchPromise = null
   isFetching = false
+  fetchedForToken = null
+  fetchPromiseToken = null
   setState({
     data: null,
     loading: false,

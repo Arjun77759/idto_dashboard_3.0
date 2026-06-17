@@ -12,7 +12,11 @@ export interface ApiSubscription {
  * Hook to fetch subscribed APIs for the current user
  * Returns the list of APIs that the user has access to
  */
-export function useApiSubscriptions() {
+type UseApiSubscriptionsOptions = {
+  forceBackend?: boolean
+}
+
+export function useApiSubscriptions(options: UseApiSubscriptionsOptions = {}) {
   const { data: onboardingStatus } = useOnboardingStatus()
   const isProduction = Boolean(onboardingStatus?.is_onboarded)
   const [data, setData] = useState<ApiSubscription[] | null>(null)
@@ -24,7 +28,7 @@ export function useApiSubscriptions() {
     async function fetchSubscriptions() {
       try {
         setLoading(true)
-        if (!isProduction) {
+        if (!isProduction && !options.forceBackend) {
           // Mock data for non-production environments
           if (!cancelled) {
             setData([])
@@ -61,7 +65,7 @@ export function useApiSubscriptions() {
     return () => {
       cancelled = true
     }
-  }, [isProduction])
+  }, [isProduction, options.forceBackend])
 
   return { data, loading, error }
 }

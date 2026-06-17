@@ -9,14 +9,13 @@ export function useUserProfile() {
   const storeState = useUserProfileStore((store) => store)
 
   useEffect(() => {
-    // Only fetch if not already fetched and not currently loading
-    // The store's fetchUserProfile function has additional guards
-    if (!storeState.hasFetched && !storeState.loading) {
+    // The shared store decides whether the active token has cached profile data.
+    if (!storeState.loading) {
       fetchUserProfile().catch(() => {
         // errors are stored in the shared store, so we intentionally swallow here
       })
     }
-  }, [storeState.hasFetched, storeState.loading])
+  }, [storeState.loading])
 
   return {
     data: storeState.data,

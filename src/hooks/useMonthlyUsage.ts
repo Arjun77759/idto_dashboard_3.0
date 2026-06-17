@@ -22,7 +22,11 @@ export const invalidateMonthlyUsage = () => {
   listeners.forEach((listener) => listener())
 }
 
-export function useMonthlyUsage() {
+type UseMonthlyUsageOptions = {
+  forceBackend?: boolean
+}
+
+export function useMonthlyUsage(options: UseMonthlyUsageOptions = {}) {
   const { data: onboardingStatus } = useOnboardingStatus()
   const isProduction = Boolean(onboardingStatus?.is_onboarded)
   const [data, setData] = useState<MonthlyUsage | null>(null)
@@ -43,7 +47,7 @@ export function useMonthlyUsage() {
     async function fetchMonthlyUsage() {
       try {
         setLoading(true)
-        if (!isProduction) {
+        if (!isProduction && !options.forceBackend) {
           // Mock API response for non-production environments
           if (!cancelled) {
             setData(mockMonthlyUsage)
@@ -82,7 +86,7 @@ export function useMonthlyUsage() {
       cancelled = true
     }
   // Depend on isProduction to react to onboarding status changes
-  }, [isProduction, refreshToken])
+  }, [isProduction, options.forceBackend, refreshToken])
 
   return { data, loading, error }
 }

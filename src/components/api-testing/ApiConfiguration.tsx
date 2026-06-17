@@ -15,6 +15,7 @@ interface ApiConfigurationProps {
   loading?: boolean
   isSubscribed?: boolean
   isProduction?: boolean
+  forceBackendExecution?: boolean
 }
 
 const ApiConfiguration = ({ 
@@ -23,7 +24,8 @@ const ApiConfiguration = ({
   onApiRun, 
   loading: pageLoading = false,
   isSubscribed = true,
-  isProduction = false
+  isProduction = false,
+  forceBackendExecution = false
 }: ApiConfigurationProps) => {
   const [inputValues, setInputValues] = useState<Record<string, any>>({})
   const [isLoading, setIsLoading] = useState(false)
@@ -58,7 +60,7 @@ const ApiConfiguration = ({
     if (!apiConfig) return
 
     // Check if API is subscribed in production mode
-    if (isProduction && !isSubscribed) {
+    if ((isProduction || forceBackendExecution) && !isSubscribed) {
       onApiRun({
         success: false,
         error: {
@@ -75,7 +77,7 @@ const ApiConfiguration = ({
     const startTime = Date.now()
 
     // In sandbox mode, return sample output instead of making actual API call
-    if (isSandboxMode) {
+    if (isSandboxMode && !forceBackendExecution) {
       // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500))
       

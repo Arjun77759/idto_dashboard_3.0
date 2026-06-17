@@ -1,7 +1,7 @@
 import { Dialog, DialogContent } from '../../ui/dialog'
 import { Sheet, SheetContent } from '../../ui/sheet'
 import { useIsMobile } from '../../../hooks/use-mobile'
-import { AlertTriangle, X, ArrowRight } from 'lucide-react'
+import { ArrowRight, CheckCircle2, FlaskConical, Lock, X } from 'lucide-react'
 
 interface SimulationModeModalProps {
   isOpen: boolean
@@ -14,97 +14,75 @@ const SimulationModeModal = ({ isOpen, onClose, onMoveToProduction }: Simulation
 
   const handleMoveToProduction = () => {
     onMoveToProduction()
-    onClose()
   }
 
-  // Mobile content
-  const MobileContent = () => (
-    <div className="bg-white flex flex-col gap-6 items-center px-4 py-6 relative rounded-lg w-full">
-      {/* Header Section */}
-      <div className="flex flex-col gap-6 items-center pb-2 pt-0 px-0 relative shrink-0 w-full border-b border-[#e7e8ea]">
-        <div className="relative shrink-0 size-8">
-          <AlertTriangle className="size-8 text-[#b47d1f]" />
-        </div>
-        <p className="font-medium leading-[1.4] not-italic relative shrink-0 text-[20px] text-[#131b31] text-center tracking-[-0.2px]">
-          <span>You're in </span>
-          <span className="text-[#b47d1f]">Simulation Mode</span>
-        </p>
-      </div>
-
-      {/* Body Text */}
-      <div className="flex flex-col gap-1 items-start pb-2 pt-0 px-0 relative shrink-0 w-full">
-        <p className="font-normal leading-6 not-italic relative shrink-0 text-base text-[#616675] text-center tracking-[-0.16px] w-full">
-          All data shown here is sample data to help you explore the dashboard and test features safely. To run real verifications or see live results, please switch to Production Mode.
-        </p>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex flex-col gap-4 items-start relative shrink-0 w-full">
-        <div className="flex gap-2 items-start relative shrink-0 w-full">
+  const ModalContent = () => (
+    <div className="w-full overflow-hidden rounded-[18px] bg-white shadow-[0_0_0_1px_rgba(0,25,255,0.1),0_30px_80px_-20px_rgba(0,25,255,0.25)]">
+      <div className="flex flex-col gap-[11.2px] bg-[linear-gradient(160.78deg,#2c67ce_0%,#0493c9_50.48%,#02afb9_100%)] p-7">
+        <div className="flex w-full items-start justify-between gap-6">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[10px] font-normal leading-4 text-[#fcfcfc] backdrop-blur">
+            <FlaskConical className="size-[14px]" strokeWidth={1.8} />
+            Sandbox Mode
+          </div>
           <button
+            type="button"
             onClick={onClose}
-            className="bg-[#f7f7f8] border border-[#e7e8ea] border-solid relative rounded-lg shrink-0 w-[146px] h-10 flex gap-2 items-center justify-center px-2"
+            className="-mr-1 -mt-1 flex size-7 items-center justify-center rounded-full p-1 text-[#90a1b9] transition hover:bg-white/10 hover:text-white"
+            aria-label="Close sandbox preview"
           >
-            <p className="font-medium leading-[1.4] not-italic relative shrink-0 text-xs text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
-              Cancel
-            </p>
-            <X className="size-4 text-[#9296a0]" />
-          </button>
-          <button
-            onClick={handleMoveToProduction}
-            className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid grow min-h-0 min-w-0 relative rounded-lg shrink-0 h-10 flex gap-2 items-center justify-center px-2"
-          >
-            <p className="font-medium leading-[1.4] not-italic relative shrink-0 text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
-              Move to Production
-            </p>
-            <ArrowRight className="size-4 text-[#0019ff]" />
+            <X className="size-5" strokeWidth={1.8} />
           </button>
         </div>
-      </div>
-    </div>
-  )
 
-  // Desktop content
-  const DesktopContent = () => (
-    <div className="bg-white border border-[#e7e8ea] border-solid flex flex-col gap-12 items-center px-4 py-6 relative rounded-lg w-full">
-      {/* Header Section */}
-      <div className="flex flex-col gap-6 items-center pb-2 pt-0 px-0 relative shrink-0 w-full border-b border-[#e7e8ea]">
-        <div className="relative shrink-0 size-8">
-          <AlertTriangle className="size-8 text-[#b47d1f]" />
+        <div className="pt-[8.8px]">
+          <h2 className="text-[30px] font-semibold leading-9 tracking-[-0.75px] text-white">
+            This is a sandbox preview
+          </h2>
         </div>
-        <p className="font-medium leading-[1.4] not-italic relative shrink-0 text-[20px] text-[#131b31] text-center tracking-[-0.2px]">
-          <span>You're in </span>
-          <span className="text-[#b47d1f]">Simulation Mode</span>
+        <p className="max-w-[498px] pb-[0.565px] text-[12px] font-normal leading-[24.38px] text-[#e1e4f3]">
+          Actions are disabled here - everything you see uses simulated data so you can explore safely.
         </p>
       </div>
 
-      {/* Body Text */}
-      <div className="flex flex-col gap-1 items-start pb-2 pt-0 px-0 relative shrink-0 w-full">
-        <p className="font-normal leading-6 not-italic relative shrink-0 text-base text-[#616675] text-center tracking-[-0.16px] w-full">
-          All data shown here is sample data to help you explore the dashboard and test features safely. To run real verifications or see live results, please switch to Production Mode.
-        </p>
-      </div>
+      <div className="h-px w-full bg-[#f1f5f9]" />
 
-      {/* Action Buttons */}
-      <div className="flex flex-col gap-4 items-start relative shrink-0 w-full">
-        <div className="flex gap-2 items-start relative shrink-0 w-full">
+      <div className="flex flex-col gap-4 p-7">
+        <div className="flex w-full flex-col gap-3">
+          <div className="flex w-full items-center gap-3">
+            <CheckCircle2 className="size-4 shrink-0 text-[#00e59e]" strokeWidth={2} />
+            <p className="text-[12px] font-normal leading-[22.5px] text-[#314158]">
+              Browse the full dashboard with sample verifications, invoices and APIs.
+            </p>
+          </div>
+          <div className="flex w-full items-center gap-3">
+            <CheckCircle2 className="size-4 shrink-0 text-[#00e59e]" strokeWidth={2} />
+            <p className="text-[12px] font-normal leading-[22.5px] text-[#314158]">
+              Test API calls return dummy responses - nothing is charged.
+            </p>
+          </div>
+          <div className="flex w-full items-center gap-3">
+            <Lock className="size-4 shrink-0 text-[#62748e]" strokeWidth={1.8} />
+            <p className="text-[12px] font-normal leading-[22.5px] text-[#62748e]">
+              Buttons, forms and live actions are locked until you go live.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex w-full flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
           <button
+            type="button"
             onClick={onClose}
-            className="bg-[#f7f7f8] border border-[#e7e8ea] border-solid relative rounded-lg shrink-0 w-[146px] h-10 flex gap-2 items-center justify-center px-2"
+            className="flex h-9 items-center justify-center rounded-[12px] border border-[#e2e8f0] bg-white px-[21px] py-[11px] text-center text-[14px] font-normal leading-5 text-[#314158] transition hover:bg-[#f8fafc]"
           >
-            <p className="font-medium leading-[1.4] not-italic relative shrink-0 text-xs text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
-              Cancel
-            </p>
-            <X className="size-4 text-[#9296a0]" />
+            Keep exploring
           </button>
           <button
+            type="button"
             onClick={handleMoveToProduction}
-            className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid grow min-h-0 min-w-0 relative rounded-lg shrink-0 h-10 flex gap-2 items-center justify-center px-2"
+            className="flex h-9 items-center justify-center gap-1 rounded-[12px] bg-[#435bcf] px-4 py-2 text-center text-[14px] font-normal leading-5 text-[#fcfcfc] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] transition hover:bg-[#344ac1]"
           >
-            <p className="font-medium leading-[1.4] not-italic relative shrink-0 text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
-              Move to Production
-            </p>
-            <ArrowRight className="size-4 text-[#0019ff]" />
+            Switch to production
+            <ArrowRight className="size-4" strokeWidth={1.8} />
           </button>
         </div>
       </div>
@@ -114,15 +92,24 @@ const SimulationModeModal = ({ isOpen, onClose, onMoveToProduction }: Simulation
   return (
     <>
       {isMobile ? (
-        <Sheet open={isOpen} onOpenChange={onClose}>
-          <SheetContent side="bottom" className="h-auto p-0 flex flex-col overflow-hidden">
-            <MobileContent />
+        <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+          <SheetContent
+            side="bottom"
+            onEscapeKeyDown={(event) => event.preventDefault()}
+            onInteractOutside={(event) => event.preventDefault()}
+            className="h-auto border-0 bg-transparent p-4 shadow-none [&>button]:hidden"
+          >
+            <ModalContent />
           </SheetContent>
         </Sheet>
       ) : (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className="max-w-[485px] w-full p-0 flex flex-col">
-            <DesktopContent />
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+          <DialogContent
+            onEscapeKeyDown={(event) => event.preventDefault()}
+            onInteractOutside={(event) => event.preventDefault()}
+            className="w-[calc(100vw-48px)] max-w-[577px] border-0 bg-transparent p-0 shadow-none sm:rounded-[18px] [&>button]:hidden"
+          >
+            <ModalContent />
           </DialogContent>
         </Dialog>
       )}

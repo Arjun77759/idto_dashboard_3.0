@@ -147,6 +147,7 @@ const Sidebar = () => {
   const { data: userProfile, loading: profileLoading } = useUserProfile()
   const { data: onboardingStatus } = useOnboardingStatus()
   const isProduction = Boolean(onboardingStatus?.is_onboarded)
+  const useFigmaSidebar = true
   const [isBookCallOpen, setIsBookCallOpen] = useState(false)
   const [bookCallForm, setBookCallForm] = useState<DemoRequestPayload>(initialBookCallForm)
   const [bookCallErrors, setBookCallErrors] = useState<Partial<Record<keyof DemoRequestPayload, string>>>({})
@@ -187,6 +188,7 @@ const Sidebar = () => {
     const nextErrors: Partial<Record<keyof DemoRequestPayload, string>> = {}
 
     if (!bookCallForm.fullName.trim()) nextErrors.fullName = 'Name is required.'
+    if (!bookCallForm.companyName.trim()) nextErrors.companyName = 'Company name is required.'
     if (!bookCallForm.workEmail.trim()) {
       nextErrors.workEmail = 'Email is required.'
     } else if (!isWorkEmail(bookCallForm.workEmail)) {
@@ -225,11 +227,8 @@ const Sidebar = () => {
   const handleBookCallSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const companyName =
-      userProfile?.brand_name || userProfile?.registered_name || userProfile?.name || 'Dashboard user'
     const nextForm = {
       ...bookCallForm,
-      companyName,
       consentToContact: true,
     }
     const nextErrors = validateBookCallForm()
@@ -413,7 +412,7 @@ const Sidebar = () => {
     },
   ]
 
-  const visibleCategories = isProduction ? categories : sandboxCategories
+  const visibleCategories = useFigmaSidebar ? sandboxCategories : (isProduction ? categories : sandboxCategories)
 
   return (
     <motion.div
@@ -426,15 +425,15 @@ const Sidebar = () => {
       <EnvironmentStatus variant="header" />
 
       {/* Navigation List */}
-      <div className={`grow min-h-0 min-w-0 relative w-full overflow-y-auto ${isProduction ? 'flex flex-col gap-2 items-start px-3' : 'flex flex-col items-start px-3 py-2'}`}>
+      <div className={`grow min-h-0 min-w-0 relative w-full overflow-y-auto ${useFigmaSidebar || !isProduction ? 'flex flex-col items-start px-3 py-2' : 'flex flex-col gap-2 items-start px-3'}`}>
         {visibleCategories.map((category, categoryIndex) => (
           <div key={categoryIndex} className="w-full">
             {/* Category Header */}
-            <div className={`flex gap-1 items-center overflow-hidden relative ${isProduction ? 'w-[206px] pb-2 pt-4 px-0' : 'h-7 w-full px-2 pb-1 pt-[7px]'}`}>
-              <p className={`relative text-nowrap whitespace-pre ${isProduction ? 'font-normal text-[12px] leading-[1.4] text-[#9296a0] tracking-[-0.12px]' : 'text-[12px] font-normal leading-[17px] text-[#9296a0]'}`}>
+            <div className={`flex gap-1 items-center overflow-hidden relative ${useFigmaSidebar || !isProduction ? 'h-7 w-full px-2 pb-1 pt-[7px]' : 'w-[206px] pb-2 pt-4 px-0'}`}>
+              <p className={`relative text-nowrap whitespace-pre ${useFigmaSidebar || !isProduction ? 'text-[12px] font-normal leading-[17px] text-[#9296a0]' : 'font-normal text-[12px] leading-[1.4] text-[#9296a0] tracking-[-0.12px]'}`}>
                 {category.name}
               </p>
-              {isProduction && <div className="grow h-0 min-h-px min-w-0 relative ">
+              {!useFigmaSidebar && isProduction && <div className="grow h-0 min-h-px min-w-0 relative ">
                 <div className="absolute bottom-0 left-0 right-0 top-[-1px] border-t border-[#e7e8ea]"></div>
               </div>}
             </div>
@@ -444,7 +443,7 @@ const Sidebar = () => {
               const IconComponent = item.icon
 
               if (item.isDisabled) {
-                if (!isProduction) {
+                if (useFigmaSidebar || !isProduction) {
                   return (
                     <div
                       key={itemIndex}
@@ -480,7 +479,7 @@ const Sidebar = () => {
               }
 
               if (item.isExternal) {
-                if (!isProduction) {
+                if (useFigmaSidebar || !isProduction) {
                   return (
                     <a
                       key={itemIndex}
@@ -526,7 +525,7 @@ const Sidebar = () => {
                 )
               }
 
-              if (!isProduction) {
+              if (useFigmaSidebar || !isProduction) {
                 return (
                   <Link
                     key={itemIndex}
@@ -570,23 +569,36 @@ const Sidebar = () => {
         ))}
       </div>
 
-      {!isProduction && (
-        <div className="mx-3 mb-3 flex w-[214px] flex-col items-start gap-1 rounded-[18px] bg-[linear-gradient(144.44deg,#dff0ff_0%,#adf3f7_100%)] p-4">
-          <div className="relative size-4 shrink-0 text-[#0019ff]">
-            <Settings className="size-4" />
+      {useFigmaSidebar && (
+        <div className="mx-3 mb-3 flex w-[214px] flex-col gap-3">
+          <div className="flex flex-col items-start gap-1 rounded-[18px] bg-[linear-gradient(144.44deg,#dff0ff_0%,#adf3f7_100%)] p-4">
+            <div className="relative size-4 shrink-0 text-[#0019ff]">
+              <Settings className="size-4" />
+            </div>
+            <p className="pt-[3px] text-[14px] font-bold leading-[17.5px] text-[#070d1a]">
+              Need a guided setup?
+            </p>
+            <p className="pb-2 text-[12px] font-normal leading-4 text-[#5a6472]">
+              Book 20 min with an integration engineer.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsBookCallOpen(true)}
+              className="relative flex w-full items-center justify-center rounded-[14px] bg-gradient-to-r from-[#2031c2] to-[#009daa] py-2 text-center text-[12px] font-bold leading-4 text-white shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
+            >
+              Book a call
+            </button>
           </div>
-          <p className="pt-[3px] text-[14px] font-bold leading-[17.5px] text-[#070d1a]">
-            Need a guided setup?
-          </p>
-          <p className="pb-2 text-[12px] font-normal leading-4 text-[#5a6472]">
-            Book 20 min with an integration engineer.
-          </p>
+
           <button
             type="button"
-            onClick={() => setIsBookCallOpen(true)}
-            className="relative flex w-full items-center justify-center rounded-[14px] bg-gradient-to-r from-[#2031c2] to-[#009daa] py-2 text-center text-[12px] font-bold leading-4 text-white shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
+            onClick={handleLogout}
+            className="flex h-9 w-full items-center gap-3 rounded-[14px] px-3 py-2 text-[rgba(7,13,26,0.7)] transition hover:bg-[#f7f9fc] hover:text-[#d83a3a]"
           >
-            Book a call
+            <LogOut className="size-4" strokeWidth={2} />
+            <span className="text-[14px] font-normal leading-5">
+              Logout
+            </span>
           </button>
         </div>
       )}
@@ -705,19 +717,33 @@ const Sidebar = () => {
                     </label>
                   </div>
 
-                  <label className="flex flex-col gap-1 pt-1.5 text-[14px] font-normal leading-[14px] text-[#121b29]">
-                    Phone Number
-                    <input
-                      name="phone"
-                      type="tel"
-                      value={formatPhoneValue(bookCallForm.phone)}
-                      onChange={handleBookCallChange}
-                      className="h-9 rounded-[12px] border border-[#e1e5eb] bg-white px-3 text-[12px] font-normal text-[#121b29] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] outline-none transition placeholder:text-[#5d646f] focus:border-[#435bcf]"
-                      placeholder="+91 98765 43210"
-                      inputMode="tel"
-                    />
-                    {bookCallErrors.phone && <span className="text-[11px] leading-4 text-red-600">{bookCallErrors.phone}</span>}
-                  </label>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <label className="flex flex-col gap-1 pt-1.5 text-[14px] font-normal leading-[14px] text-[#121b29]">
+                      Company Name
+                      <input
+                        name="companyName"
+                        value={bookCallForm.companyName}
+                        onChange={handleBookCallChange}
+                        className="h-9 rounded-[12px] border border-[#e1e5eb] bg-white px-3 text-[12px] font-normal text-[#121b29] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] outline-none transition placeholder:text-[#5d646f] focus:border-[#435bcf]"
+                        placeholder="Acme Fintech"
+                      />
+                      {bookCallErrors.companyName && <span className="text-[11px] leading-4 text-red-600">{bookCallErrors.companyName}</span>}
+                    </label>
+
+                    <label className="flex flex-col gap-1 pt-1.5 text-[14px] font-normal leading-[14px] text-[#121b29]">
+                      Phone Number
+                      <input
+                        name="phone"
+                        type="tel"
+                        value={formatPhoneValue(bookCallForm.phone)}
+                        onChange={handleBookCallChange}
+                        className="h-9 rounded-[12px] border border-[#e1e5eb] bg-white px-3 text-[12px] font-normal text-[#121b29] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] outline-none transition placeholder:text-[#5d646f] focus:border-[#435bcf]"
+                        placeholder="+91 98765 43210"
+                        inputMode="tel"
+                      />
+                      {bookCallErrors.phone && <span className="text-[11px] leading-4 text-red-600">{bookCallErrors.phone}</span>}
+                    </label>
+                  </div>
 
                   <label className="flex flex-col gap-1 pt-1.5 text-[14px] font-normal leading-[14px] text-[#121b29]">
                     Query / Message
@@ -754,7 +780,7 @@ const Sidebar = () => {
       )}
 
       {/* User Profile */}
-      {isProduction && <DropdownMenu>
+      {!useFigmaSidebar && isProduction && <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="flex gap-2.5 items-center justify-between px-2 py-1 relative w-full hover:bg-gray-50 rounded transition-colors cursor-pointer">
             <div className="flex gap-2.5 items-center">

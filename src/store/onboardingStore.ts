@@ -28,6 +28,8 @@ let state: OnboardingStoreState = {
 // Track ongoing fetch to prevent concurrent calls
 let fetchPromise: Promise<OnboardingStatus | null> | null = null
 let isFetching = false // Additional flag to prevent race conditions
+let fetchedForToken: string | null = null
+let fetchPromiseToken: string | null = null
 
 const setState = (partial: Partial<OnboardingStoreState>) => {
   state = { ...state, ...partial }
@@ -50,31 +52,32 @@ export const useOnboardingStore = <T,>(
 }
 
 export const fetchOnboardingStatus = async () => {
+  const token = getAccessToken()
+
   // If a fetch is already in progress, return the existing promise
-  if (fetchPromise) {
+  if (fetchPromise && fetchPromiseToken === token) {
     return fetchPromise
   }
   
   // If we're already fetching (race condition guard), create a promise that waits for the actual one
   // This handles the case where another call just set isFetching but hasn't created promise yet
-  if (isFetching) {
+  if (isFetching && fetchPromiseToken === token) {
     // Since both are set synchronously, wait one tick and check again
     await new Promise(resolve => setTimeout(resolve, 0))
-    if (fetchPromise) {
+    if (fetchPromise && fetchPromiseToken === token) {
       return fetchPromise
     }
     // If still no promise after one tick, something went wrong, reset and continue
     isFetching = false
   }
 
-  // If already fetched, return cached data immediately
-  if (state.hasFetched && state.data) {
+  // If already fetched for the current authenticated user, return cached data immediately.
+  if (state.hasFetched && state.data && fetchedForToken === token) {
     return state.data
   }
 
-  // Don't make API call if user is not authenticated
-  const token = getAccessToken()
   if (!token) {
+    fetchedForToken = null
     setState({
       loading: false,
       hasFetched: false,
@@ -86,19 +89,29 @@ export const fetchOnboardingStatus = async () => {
   // Set flags synchronously to prevent concurrent calls
   // These assignments happen atomically in JavaScript's single-threaded execution
   isFetching = true
-  setState({ loading: true, error: null })
+  fetchPromiseToken = token
+  setState({
+    loading: true,
+    error: null,
+    ...(fetchedForToken !== token ? { data: null, hasFetched: false } : {}),
+  })
 
   // Create the fetch promise (this assignment is also synchronous)
   fetchPromise = (async () => {
+    const requestToken = token
     try {
       const { data } = await http.get<OnboardingStatus>('/onboard/check')
-      setState({
-        data,
-        loading: false,
-        hasFetched: true,
-        error: null,
-      })
+      if (getAccessToken() === requestToken) {
+        setState({
+          data,
+          loading: false,
+          hasFetched: true,
+          error: null,
+        })
+        fetchedForToken = requestToken
+      }
       fetchPromise = null // Clear the promise after successful fetch
+      fetchPromiseToken = null
       isFetching = false
       return data
     } catch (error: any) {
@@ -107,12 +120,15 @@ export const fetchOnboardingStatus = async () => {
         error?.response?.data?.message ||
         error?.message ||
         'Failed to fetch onboarding status'
-      setState({
-        error: message,
-        loading: false,
-        hasFetched: true,
-      })
+      if (getAccessToken() === requestToken) {
+        setState({
+          error: message,
+          loading: false,
+          hasFetched: true,
+        })
+      }
       fetchPromise = null // Clear the promise after error
+      fetchPromiseToken = null
       isFetching = false
       throw error
     }
@@ -124,6 +140,8 @@ export const fetchOnboardingStatus = async () => {
 export const invalidateOnboardingStatus = () => {
   fetchPromise = null
   isFetching = false
+  fetchedForToken = null
+  fetchPromiseToken = null
   setState({
     data: null,
     loading: false,
@@ -135,6 +153,8 @@ export const invalidateOnboardingStatus = () => {
 export const resetOnboardingStore = () => {
   fetchPromise = null // Clear any ongoing fetch
   isFetching = false
+  fetchedForToken = null
+  fetchPromiseToken = null
   setState({
     data: null,
     loading: false,

@@ -1,12 +1,16 @@
 import { motion } from 'framer-motion'
 import {
+  ArrowUpRight,
+  Check,
   ChevronRight,
+  Code2,
+  FileText,
+  Lock,
+  Pin,
   Plus,
   Search,
+  Sparkles,
   Zap,
-  Eye,
-  Code2,
-  Info
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -14,24 +18,21 @@ import { useNavigate } from 'react-router-dom'
 import ApiConfiguration from '@/components/api-testing/ApiConfiguration'
 import ApiResponse from '@/components/api-testing/ApiResponse'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import type { ApiEndpoint } from '@/config/apiEndpoints'
-import { useMonthlyUsage } from '@/hooks/useMonthlyUsage'
-import { useOpenApiEndpoints, getAllCategories, getAllMethods, getTagsByCategory } from '@/hooks/useOpenApiEndpoints'
 import { useApiSubscriptions } from '@/hooks/useApiSubscriptions'
+import { useMonthlyUsage } from '@/hooks/useMonthlyUsage'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
+import { useOpenApiEndpoints } from '@/hooks/useOpenApiEndpoints'
 import { cn } from '@/lib/utils'
+
+const API_DOCS_URL = 'https://idtoai.readme.io/reference/idtoai-verification-apis'
 
 const formatCredits = (value?: number | null) => {
   if (value === null || value === undefined) return '0'
   return value.toLocaleString('en-IN', { maximumFractionDigits: 2 })
 }
 
-/**
- * Maps API subscription names from backend to API endpoint IDs
- * Handles variations in naming conventions
- */
 const normalizeApiIdentifier = (value: string) =>
   value
     .toLowerCase()
@@ -65,8 +66,6 @@ const getApiIdAliases = (api: ApiEndpoint) => {
 }
 
 const mapSubscriptionNameToApiIds = (apiName: string, apiEndpoints: ApiEndpoint[]): string[] => {
-  if (!apiEndpoints) return []
-
   const normalizedName = normalizeApiIdentifier(apiName)
   const subscriptionAliases = new Set([
     normalizedName,
@@ -83,7 +82,7 @@ const mapSubscriptionNameToApiIds = (apiName: string, apiEndpoints: ApiEndpoint[
 
   if (matches.size > 0) return Array.from(matches)
 
-  const fuzzyMatch = apiEndpoints.find(api => {
+  const fuzzyMatch = apiEndpoints.find((api) => {
     const firstToken = normalizedName.split('_')[0]
     const apiNameLower = api.name.toLowerCase()
     const apiIdLower = api.id.toLowerCase()
@@ -93,57 +92,55 @@ const mapSubscriptionNameToApiIds = (apiName: string, apiEndpoints: ApiEndpoint[
   return fuzzyMatch ? [fuzzyMatch.id] : []
 }
 
+const getCategoryLabel = (category: ApiEndpoint['category']) =>
+  category.replace(/\s+Verification$/i, '').toUpperCase()
+
+const getShortDescription = (api: ApiEndpoint) => {
+  const description = api.shortDescription || api.longDescription
+  if (description.length <= 88) return description
+  return `${description.slice(0, 85).trim()}...`
+}
+
+type MarketplaceTab = 'All' | 'Enabled' | 'Pinned'
+
 const ApiTestingPage = () => {
   const navigate = useNavigate()
-  const { data: usageData, loading: usageLoading } = useMonthlyUsage()
-  const { data: apiEndpoints, loading: endpointsLoading } = useOpenApiEndpoints()
-  const { data: subscribedApis, loading: subscriptionsLoading } = useApiSubscriptions()
+  const { data: usageData, loading: usageLoading, error: usageError } = useMonthlyUsage({ forceBackend: true })
+  const { data: apiEndpoints, loading: endpointsLoading, error: endpointsError } = useOpenApiEndpoints()
+  const { data: subscribedApis, loading: subscriptionsLoading, error: subscriptionsError } = useApiSubscriptions({ forceBackend: true })
   const { data: onboardingStatus } = useOnboardingStatus()
   const isProduction = Boolean(onboardingStatus?.is_onboarded)
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [solutionFilter, setSolutionFilter] = useState<'All' | string>('All')
-  const [typeFilter, setTypeFilter] = useState<'All' | string>('All')
-  const [tagFilter, setTagFilter] = useState<'All' | string>('All')
-  const [showSavedOnly, setShowSavedOnly] = useState(false)
+  const [activeTab, setActiveTab] = useState<MarketplaceTab>('All')
   const [savedApis, setSavedApis] = useState<string[]>([])
   const [selectedApi, setSelectedApi] = useState<string | null>(null)
   const [apiResponse, setApiResponse] = useState<any>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [showSampleResponse, setShowSampleResponse] = useState(false)
 
-  // Get subscribed API IDs
   const subscribedApiIds = useMemo(() => {
     if (!subscribedApis || !apiEndpoints || subscribedApis.length === 0) return new Set<string>()
-    return new Set(
-      subscribedApis
-        .flatMap(sub => mapSubscriptionNameToApiIds(sub.api_name, apiEndpoints))
-    )
+    return new Set(subscribedApis.flatMap((subscription) => mapSubscriptionNameToApiIds(subscription.api_name, apiEndpoints)))
   }, [subscribedApis, apiEndpoints])
 
-  // Load saved APIs from localStorage
   useEffect(() => {
     if (typeof window === 'undefined') return
     const stored = window.localStorage.getItem('idto-saved-api-testing')
-    if (stored) {
-      try {
-        setSavedApis(JSON.parse(stored))
-        return
-      } catch {
-        /* noop */
-      }
+    if (!stored) return
+
+    try {
+      const parsed = JSON.parse(stored)
+      setSavedApis(Array.isArray(parsed) ? parsed : [])
+    } catch {
+      setSavedApis([])
     }
-    setSavedApis(['pan_verification'])
   }, [])
 
-  // Auto-pin subscribed APIs when they load
   useEffect(() => {
     if (subscribedApiIds.size === 0) return
-    
-    setSavedApis(prev => {
-      const combined = [...new Set([...prev, ...Array.from(subscribedApiIds)])]
-      return combined
-    })
+
+    setSavedApis((current) => [...new Set([...current, ...Array.from(subscribedApiIds)])])
   }, [subscribedApiIds])
 
   useEffect(() => {
@@ -151,53 +148,54 @@ const ApiTestingPage = () => {
     window.localStorage.setItem('idto-saved-api-testing', JSON.stringify(savedApis))
   }, [savedApis])
 
-  // Reset tag filter when solution filter changes
-  useEffect(() => {
-    setTagFilter('All')
-  }, [solutionFilter])
-
-  const solutionOptions = useMemo(
-    () => getAllCategories(apiEndpoints),
-    [apiEndpoints]
-  )
-  const typeOptions = useMemo(
-    () => getAllMethods(apiEndpoints),
-    [apiEndpoints]
-  )
-  const tagOptions = useMemo(
-    () => getTagsByCategory(apiEndpoints, solutionFilter),
-    [apiEndpoints, solutionFilter]
+  const enabledApis = useMemo(
+    () => (apiEndpoints || []).filter((api) => subscribedApiIds.has(api.id)),
+    [apiEndpoints, subscribedApiIds]
   )
 
-  const filteredApis = useMemo(() => {
+  const pinnedApis = useMemo(
+    () => (apiEndpoints || []).filter((api) => savedApis.includes(api.id)),
+    [apiEndpoints, savedApis]
+  )
+
+  const marketplaceApis = useMemo(() => {
     if (!apiEndpoints) return []
-    const query = searchQuery.trim().toLowerCase()
-    
-    // Show all APIs, but we'll check subscription when user tries to run
-    const filtered = apiEndpoints.filter((api) => {
-      const matchesSearch =
-        !query ||
-        api.name.toLowerCase().includes(query) ||
-        api.id.toLowerCase().includes(query) ||
-        api.shortDescription.toLowerCase().includes(query)
-      const matchesSolution = solutionFilter === 'All' || api.category === solutionFilter
-      const matchesType = typeFilter === 'All' || api.method === typeFilter
-      const matchesTag = tagFilter === 'All' || (api.tags && api.tags.includes(tagFilter))
-      const matchesSaved = !showSavedOnly || savedApis.includes(api.id)
-      return matchesSearch && matchesSolution && matchesType && matchesTag && matchesSaved
-    })
-    
-    // Sort: pinned APIs first, then others
-    return filtered.sort((a, b) => {
-      const aIsPinned = savedApis.includes(a.id)
-      const bIsPinned = savedApis.includes(b.id)
-      if (aIsPinned && !bIsPinned) return -1
-      if (!aIsPinned && bIsPinned) return 1
-      return 0
-    })
-  }, [apiEndpoints, searchQuery, solutionFilter, typeFilter, tagFilter, showSavedOnly, savedApis])
 
-  const remainingCredits = usageLoading ? '...' : formatCredits(usageData?.balance)
+    const query = searchQuery.trim().toLowerCase()
+    return apiEndpoints
+      .filter((api) => {
+        const matchesSearch =
+          !query ||
+          api.name.toLowerCase().includes(query) ||
+          api.id.toLowerCase().includes(query) ||
+          api.shortDescription.toLowerCase().includes(query) ||
+          api.category.toLowerCase().includes(query)
+        const matchesTab =
+          activeTab === 'All' ||
+          (activeTab === 'Enabled' && subscribedApiIds.has(api.id)) ||
+          (activeTab === 'Pinned' && savedApis.includes(api.id))
+
+        return matchesSearch && matchesTab
+      })
+      .sort((a, b) => {
+        const aEnabled = subscribedApiIds.has(a.id)
+        const bEnabled = subscribedApiIds.has(b.id)
+        const aPinned = savedApis.includes(a.id)
+        const bPinned = savedApis.includes(b.id)
+
+        if (aEnabled !== bEnabled) return aEnabled ? -1 : 1
+        if (aPinned !== bPinned) return aPinned ? -1 : 1
+        return a.name.localeCompare(b.name)
+      })
+  }, [activeTab, apiEndpoints, savedApis, searchQuery, subscribedApiIds])
+
+  const recommendedApis = useMemo(() => {
+    const source = enabledApis.length > 0 ? enabledApis : apiEndpoints || []
+    return source.slice(0, 4)
+  }, [apiEndpoints, enabledApis])
+
+  const selectedApiData = selectedApi ? apiEndpoints?.find((api) => api.id === selectedApi) : undefined
+  const remainingCredits = usageLoading ? '...' : usageError ? 'Unavailable' : `₹${formatCredits(usageData?.balance)}`
 
   const handleApiRun = (response: any) => {
     setApiResponse(response)
@@ -210,14 +208,32 @@ const ApiTestingPage = () => {
     setIsSheetOpen(true)
   }
 
-
   const toggleSaveApi = (apiId: string) => {
-    setSavedApis((prev) => {
-      if (prev.includes(apiId)) {
-        return prev.filter((id) => id !== apiId)
-      }
-      return [...prev, apiId]
-    })
+    setSavedApis((current) => (
+      current.includes(apiId) ? current.filter((id) => id !== apiId) : [...current, apiId]
+    ))
+  }
+
+  const renderEmptyState = () => {
+    if (endpointsError || subscriptionsError) {
+      return (
+        <div className="flex min-h-[260px] flex-col items-center justify-center gap-2 text-center">
+          <p className="text-[14px] font-semibold leading-5 text-[#0a121f]">Unable to load APIs</p>
+          <p className="max-w-[420px] text-[12px] font-normal leading-5 text-[#5c646f]">
+            {endpointsError || subscriptionsError}
+          </p>
+        </div>
+      )
+    }
+
+    return (
+      <div className="flex min-h-[260px] flex-col items-center justify-center gap-2 text-center">
+        <p className="text-[14px] font-semibold leading-5 text-[#0a121f]">No APIs found</p>
+        <p className="max-w-[360px] text-[12px] font-normal leading-5 text-[#5c646f]">
+          Try a different search term or switch marketplace tabs.
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -225,116 +241,147 @@ const ApiTestingPage = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-[#f7f7f8] flex flex-col gap-6 p-4 sm:p-6 rounded-2xl w-full min-h-0 overflow-y-auto"
+      className="flex min-h-full w-full flex-col gap-5 bg-[#fafafb]"
     >
-      <div className="flex flex-wrap items-center gap-4 rounded px-3 py-1.5">
-        <div className="flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="22" viewBox="0 0 20 22" fill="none">
-            <path d="M14.75 1.5H12.998V7.06543L19.4238 20.4248C19.5356 20.6572 19.52 20.9311 19.3828 21.1494C19.2456 21.3677 19.0059 21.5 18.748 21.5H0.75C0.492072 21.5 0.251504 21.3678 0.114258 21.1494C-0.0228654 20.9311 -0.0376128 20.6571 0.0742188 20.4248L5.16211 9.85352L5.15625 9.84863L5.17871 9.81934L6.49805 7.0791V1.5H4.75V0H14.75V1.5ZM13.7227 16.4912C13.5797 15.9578 13.0314 15.6414 12.498 15.7842L12.4893 15.7861C11.9559 15.929 11.6395 16.4774 11.7822 17.0107C11.9252 17.5442 12.4734 17.8617 13.0068 17.7188L13.0156 17.7158C13.5489 17.5728 13.8656 17.0246 13.7227 16.4912ZM7.72266 14.4912C7.57973 13.9578 7.03144 13.6414 6.49805 13.7842L6.48926 13.7861C5.95591 13.929 5.63951 14.4774 5.78223 15.0107C5.92517 15.5442 6.47338 15.8617 7.00684 15.7188L7.01562 15.7158C7.54894 15.5728 7.86556 15.0246 7.72266 14.4912ZM7.99707 7.42188L7.22266 9.03027C7.3721 9.0529 7.51844 9.08727 7.66016 9.12891C8.46038 9.36408 9.33152 9.90964 10.1543 10.4375C11.132 11.0646 11.7832 11.0608 12.1758 10.9287C12.487 10.8239 12.737 10.605 12.9102 10.3457L11.4971 7.40723V1.5H7.99707V7.42188Z" fill="#131B31" />
-          </svg>
-          <div>
-            <p className="text-xl font-semibold text-[#131b31] tracking-[-0.2px]">API Testing</p>
-
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => navigate('/billing')}
-          className="ml-auto flex items-center gap-3 rounded-lg border border-[#e7e8ea] bg-white px-4 py-3 text-sm font-medium text-[#616675] transition hover:-translate-y-0.5 hover:shadow"
-        >
-          <span>
-            Remaining Credits :{' '}
-            <span className="text-base font-[500] text-[#131b31]">{remainingCredits}</span>
-          </span>
-          <Plus className="size-4 text-[#131b31]" />
-        </button>
+      <div className="flex flex-col gap-[3.769px]">
+        <h1 className="text-[30px] font-bold leading-[33.919px] tracking-[-0.7066px] text-[#0a121f]">
+          API Marketplace
+        </h1>
+        <p className="text-[14px] font-normal leading-[18.844px] text-[#5b6472]">
+          Discover, pin and request the APIs your business needs.
+        </p>
       </div>
 
-      <section className="w-full rounded-2xl border border-[#e7e8ea] bg-white p-4 sm:p-6">
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center rounded-lg border border-[#e7e8ea] bg-[#f7f7f8] px-4 max-w-[70%]">
-            <Search className="mr-3 size-5 text-[#9296a0]" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search for ID, name, product etc"
-              className="border-0 bg-transparent px-0 text-sm text-[#131b31] focus-visible:ring-0 focus:outline-none focus:ring-0"
-            />
+      <section className="overflow-hidden rounded-[20.728px] border border-[#e0e5eb] bg-[linear-gradient(134.74deg,#345fcf_0%,#01b7bd_100%)] p-[31px] shadow-[0_0.942px_1.884px_rgba(8,21,44,0.04),0_3.769px_15.075px_rgba(8,21,44,0.04)]">
+        <div className="grid gap-8 lg:grid-cols-[1fr_1.35fr] lg:items-center">
+          <div className="max-w-[440px]">
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1 text-[10px] font-semibold leading-[15px] text-[#dbe9ff]">
+              <Sparkles className="size-3" />
+              Trending for your business
+            </span>
+            <h2 className="mt-4 text-[28px] font-bold leading-[32px] tracking-[-0.45px] text-white">
+              Personalised APIs to ship onboarding faster
+            </h2>
+            <p className="mt-3 text-[12px] font-normal leading-5 text-white/80">
+              Curated picks based on what your account can access. View docs or open any API in a click.
+            </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4">
-            <p className="text-xs font-medium text-[#616675]">Filters :</p>
-            <Select value={solutionFilter} onValueChange={(value) => setSolutionFilter(value)}>
-              <SelectTrigger className="h-10 w-[200px] border-[#e7e8ea] bg-[#f7f7f8] text-xs text-[#616675]">
-                <SelectValue placeholder="Solution" />
-              </SelectTrigger>
-              <SelectContent>
-                {solutionOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-           
-
-            <Select value={tagFilter} onValueChange={(value) => setTagFilter(value)}>
-              <SelectTrigger className="h-10 w-[200px] border-[#e7e8ea] bg-[#f7f7f8] text-xs text-[#616675]">
-                <SelectValue placeholder="Tag" />
-              </SelectTrigger>
-              <SelectContent>
-                {tagOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* <label className="flex items-center gap-2 text-xs font-medium text-[#616675]">
-              <Checkbox checked={showSavedOnly} onCheckedChange={(checked) => setShowSavedOnly(Boolean(checked))} />
-              Show only saved APIs
-            </label> */}
+          <div className="grid gap-3 md:grid-cols-2">
+            {endpointsLoading ? (
+              Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="h-[86px] animate-pulse rounded-[14px] bg-white/10" />
+              ))
+            ) : (
+              recommendedApis.map((api) => {
+                const isEnabled = subscribedApiIds.has(api.id)
+                return (
+                  <div key={api.id} className="rounded-[14px] border border-white/10 bg-white/10 p-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] font-bold leading-5">{api.name}</p>
+                        <p className="truncate text-[10px] font-normal leading-[15px] text-white/70">
+                          {getCategoryLabel(api.category)} - {api.credit} credits / call
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-white/20 px-2 py-0.5 text-[9px] font-semibold leading-4">
+                        Trending
+                      </span>
+                    </div>
+                    <div className="mt-4 flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleSelectApi(api.id)}
+                        className="h-8 rounded-[10px] bg-white px-3 text-[12px] font-normal leading-4 text-[#0a121f]"
+                      >
+                        {isEnabled ? 'Try API' : 'Request access'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => window.open(API_DOCS_URL, '_blank', 'noopener,noreferrer')}
+                        className="inline-flex items-center gap-1 text-[11px] font-normal leading-4 text-white"
+                      >
+                        <FileText className="size-3.5" />
+                        View docs
+                      </button>
+                    </div>
+                  </div>
+                )
+              })
+            )}
           </div>
+        </div>
+      </section>
 
-          {/* API Access Info Note */}
-          <div className="flex items-start gap-2 rounded-lg border border-[#e7e8ea] bg-[#f0f9ff] p-3">
-            <Info className="size-4 text-[#0019ff] mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-xs font-medium text-[#131b31] mb-1">API Access Information</p>
-              <p className="text-xs text-[#616675] leading-relaxed">
-                All APIs are shown here for reference. APIs marked with a <span className="font-medium text-[#131b31]">green background</span> and "Pinned" badge are automatically pinned from your active subscription. APIs marked as "Not Enabled" require subscription activation. You can only test APIs that are enabled for your account.
-              </p>
+      <section className="rounded-[20px] border border-[#e0e5eb] bg-white p-6 shadow-[0_1px_2px_rgba(8,21,44,0.04),0_4px_15px_rgba(8,21,44,0.04)]">
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex w-max rounded-full border border-[#e1e5ea] bg-white p-1">
+              {([
+                ['All', apiEndpoints?.length || 0],
+                ['Enabled', enabledApis.length],
+                ['Pinned', pinnedApis.length],
+              ] as [MarketplaceTab, number][]).map(([tab, count]) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setActiveTab(tab)}
+                  className={cn(
+                    'h-8 rounded-full px-4 text-[12px] font-normal leading-4 transition',
+                    activeTab === tab ? 'bg-[#255be8] text-white shadow-sm' : 'text-[#5c646f] hover:bg-[#f7f9fc]'
+                  )}
+                >
+                  {tab} ({count})
+                </button>
+              ))}
+            </div>
+
+            <div className="flex h-10 w-full items-center rounded-[12px] border border-[#e1e5ea] bg-white px-3 shadow-[0_1px_1px_rgba(17,22,31,0.04)] lg:w-[320px]">
+              <Search className="mr-2 size-4 text-[#90a1b9]" />
+              <Input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search APIs"
+                className="h-full border-0 bg-transparent px-0 text-[13px] text-[#0a121f] shadow-none focus-visible:ring-0"
+              />
             </div>
           </div>
 
-          <div className="min-h-[400px] border-t-[1px] border-[#e7e8ea] p-3">
+          <div className="flex flex-col gap-2 rounded-[14px] border border-[#e1e5ea] bg-[#fbfdff] px-4 py-3 md:flex-row md:items-center md:justify-between">
+            <div className="inline-flex items-center gap-2 text-[12px] font-semibold uppercase leading-[16.5px] tracking-[0.55px] text-[#737373]">
+              <Zap className="size-4 text-[#0019ff]" />
+              Live Credits
+              <span className="text-[16px] font-semibold normal-case leading-[22.5px] tracking-normal text-[#171717]">
+                {remainingCredits}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/billing')}
+              className="inline-flex h-8 w-max items-center justify-center gap-1 rounded-full bg-[#0019ff] px-3 text-[12px] font-semibold text-white"
+            >
+              <Plus className="size-3.5" />
+              Top up credits
+            </button>
+          </div>
+
+          <div className="min-h-[400px]">
             {endpointsLoading || subscriptionsLoading ? (
-              <div className="flex h-64 flex-col items-center justify-center gap-2 text-center text-[#9296a0]">
-                <p className="text-sm font-medium">Loading API endpoints...</p>
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {Array.from({ length: 9 }).map((_, index) => (
+                  <div key={index} className="h-[166px] animate-pulse rounded-[20px] border border-[#e1e5ea] bg-[#f6f8fb]" />
+                ))}
               </div>
-            ) : filteredApis.length === 0 ? (
-              <div className="flex h-64 flex-col items-center justify-center gap-2 text-center text-[#9296a0]">
-                <p className="text-sm font-medium">
-                  {subscribedApiIds.size === 0 
-                    ? 'No APIs are currently enabled for your account' 
-                    : 'No APIs match the current filters'}
-                </p>
-                <p className="text-xs">
-                  {subscribedApiIds.size === 0
-                    ? 'Please contact support to enable APIs for your account.'
-                    : 'Try adjusting your search or filter selections.'}
-                </p>
-              </div>
+            ) : marketplaceApis.length === 0 ? (
+              renderEmptyState()
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredApis.map((api) => (
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {marketplaceApis.map((api) => (
                   <ApiCard
                     key={api.id}
                     api={api}
                     isPinned={savedApis.includes(api.id)}
-                    isSubscribed={!isProduction || subscribedApiIds.size === 0 || subscribedApiIds.has(api.id)}
+                    isEnabled={subscribedApiIds.has(api.id)}
                     onSelect={() => handleSelectApi(api.id)}
                     onTogglePin={() => toggleSaveApi(api.id)}
                   />
@@ -348,65 +395,52 @@ const ApiTestingPage = () => {
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-3xl">
           <SheetHeader className="border-b border-[#e7e8ea] pb-4 text-left">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div>
                 <SheetTitle className="text-lg font-semibold text-[#131b31]">
-                  {selectedApi ? apiEndpoints?.find((api) => api.id === selectedApi)?.name : 'API Details'}
+                  {selectedApiData?.name || 'API Details'}
                 </SheetTitle>
                 <SheetDescription className="text-xs text-[#616675]">
-                  Configure inputs and view responses without leaving the catalog.
+                  Configure inputs and run this API through your backend connection.
                 </SheetDescription>
               </div>
-              {selectedApi && apiEndpoints && (
+              {selectedApiData && (
                 <button
                   type="button"
-                  onClick={() => setShowSampleResponse(!showSampleResponse)}
+                  onClick={() => setShowSampleResponse((current) => !current)}
                   className="flex items-center gap-2 rounded-lg border border-[#e7e8ea] bg-white px-3 py-2 text-xs font-medium text-[#616675] transition hover:bg-[#f7f7f8]"
                 >
-                  {showSampleResponse ? (
-                    <>
-                      <Code2 className="size-4" />
-                      Hide Sample
-                    </>
-                  ) : (
-                    <>
-                      <Eye className="size-4" />
-                      View Sample
-                    </>
-                  )}
+                  <Code2 className="size-4" />
+                  {showSampleResponse ? 'Hide Schema Sample' : 'View Schema Sample'}
                 </button>
               )}
             </div>
           </SheetHeader>
           <div className="mt-6 flex flex-col gap-4 pb-8">
-            {showSampleResponse && selectedApi && apiEndpoints ? (
-              <div className="bg-white border border-[#e7e8ea] rounded-2xl p-4">
-                <div className="flex items-center gap-2 mb-4">
+            {showSampleResponse && selectedApiData ? (
+              <div className="rounded-2xl border border-[#e7e8ea] bg-white p-4">
+                <div className="mb-4 flex items-center gap-2">
                   <Code2 className="size-5 text-[#0019ff]" />
-                  <h3 className="text-sm font-semibold text-[#131b31]">Sample Response</h3>
+                  <h3 className="text-sm font-semibold text-[#131b31]">Schema sample from OpenAPI</h3>
                 </div>
-                <div className="bg-gray-50 border border-[#e7e8ea] rounded-lg p-4 max-h-96 overflow-auto">
-                  <pre className="text-[11px] text-[#616675] font-mono leading-relaxed whitespace-pre-wrap">
-                    {(() => {
-                      const selectedApiData = apiEndpoints.find((api) => api.id === selectedApi)
-                      const sampleOutput = selectedApiData?.sampleOutput
-                      if (typeof sampleOutput === 'string') {
-                        return sampleOutput
-                      }
-                      return JSON.stringify(sampleOutput || {}, null, 2)
-                    })()}
+                <div className="max-h-96 overflow-auto rounded-lg border border-[#e7e8ea] bg-gray-50 p-4">
+                  <pre className="whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-[#616675]">
+                    {typeof selectedApiData.sampleOutput === 'string'
+                      ? selectedApiData.sampleOutput
+                      : JSON.stringify(selectedApiData.sampleOutput || {}, null, 2)}
                   </pre>
                 </div>
               </div>
             ) : (
               <>
-                <ApiConfiguration 
-                  selectedApi={selectedApi} 
-                  apiEndpoints={apiEndpoints} 
-                  onApiRun={handleApiRun} 
+                <ApiConfiguration
+                  selectedApi={selectedApi}
+                  apiEndpoints={apiEndpoints}
+                  onApiRun={handleApiRun}
                   loading={endpointsLoading}
-                  isSubscribed={selectedApi ? (!isProduction || subscribedApiIds.size === 0 || subscribedApiIds.has(selectedApi)) : true}
+                  isSubscribed={selectedApi ? subscribedApiIds.has(selectedApi) : false}
                   isProduction={isProduction}
+                  forceBackendExecution
                 />
                 <ApiResponse response={apiResponse} />
               </>
@@ -418,48 +452,78 @@ const ApiTestingPage = () => {
   )
 }
 
-
 type ApiCardProps = {
   api: ApiEndpoint
   isPinned: boolean
-  isSubscribed: boolean
+  isEnabled: boolean
   onSelect: () => void
   onTogglePin: () => void
 }
 
-const ApiCard = ({ api, isPinned, isSubscribed, onSelect, onTogglePin }: ApiCardProps) => (
+const ApiCard = ({ api, isPinned, isEnabled, onSelect, onTogglePin }: ApiCardProps) => (
   <div
-    className={cn(
-      'flex h-full cursor-pointer flex-col gap-4 rounded-xl border border-[#e7e8ea] p-4 transition hover:shadow-md',
-      isPinned ? 'bg-[#e6fcf5]' : 'bg-white',
-      !isSubscribed && 'opacity-75'
-    )}
+    className="flex min-h-[166px] cursor-pointer flex-col rounded-[20px] border border-[#e1e5ea] bg-white p-[21px] shadow-[0_1px_1px_rgba(17,22,31,0.04),0_1px_1.5px_rgba(17,22,31,0.06)] transition hover:-translate-y-0.5 hover:shadow-md"
     onClick={onSelect}
   >
     <div className="flex items-start justify-between gap-3">
-      <div className="flex-1">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-semibold text-[#131b31]">{api.name}</p>
-          {!isSubscribed && (
-            <span className="text-[10px] font-medium text-[#9296a0] bg-[#f7f7f8] px-2 py-0.5 rounded">
-              Not Enabled
-            </span>
+      <div className="min-w-0 pb-0.5">
+        <p className="line-clamp-2 text-[16px] font-bold leading-5 text-[#0c121a]">{api.name}</p>
+        <p className="mt-[6.5px] text-[10px] font-normal uppercase leading-[15px] tracking-[0.5px] text-[#5c646f]">
+          {getCategoryLabel(api.category)}
+        </p>
+      </div>
+      <div className="flex shrink-0 items-center gap-1.5">
+        <span
+          className={cn(
+            'inline-flex h-[20.5px] items-center gap-1 rounded-[10px] px-2 text-[10px] font-normal leading-[16.5px]',
+            isEnabled ? 'bg-[#e1faec] text-[#1f9a5b]' : 'bg-[#eef2f7] text-[#5c646f]'
           )}
-        </div>
-        <p className="text-xs text-[#616675]">{api.shortDescription}</p>
+        >
+          {isEnabled ? <Check className="size-3" /> : <Lock className="size-3" />}
+          {isEnabled ? 'Enabled' : 'Locked'}
+        </span>
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            onTogglePin()
+          }}
+          className={cn(
+            'grid size-8 place-items-center rounded-full border border-[#e1e5ea] bg-white p-px transition hover:border-[#b9c5d6]',
+            isPinned && 'border-[#b9cdfd] bg-[#e8f3ff] text-[#195cdf]'
+          )}
+          aria-label={isPinned ? `Unpin ${api.name}` : `Pin ${api.name}`}
+        >
+          <Pin className="size-3.5" />
+        </button>
       </div>
     </div>
-    {isPinned && (
-      <p className="text-xs font-medium text-[#616675]">
-        <span className="rounded-full bg-white/60 px-2 py-0.5">Pinned</span>
-      </p>
-    )}
-    <div className="mt-auto flex items-center justify-between text-xs font-medium text-[#616675]">
-      <div className="flex items-center gap-2">
-        <Zap className="size-4 text-[#616675]" />
-        {api.credit} Credits
-      </div>
-      <ChevronRight className="size-4 text-[#9296a0]" />
+
+    <p className="mt-3 min-h-10 text-[14px] font-normal leading-5 text-[#5c646f]">
+      {getShortDescription(api)}
+    </p>
+
+    <div className="mt-auto pt-4">
+      {isEnabled ? (
+        <div className="flex items-center justify-between">
+          <span className="inline-flex items-center gap-1 text-[12px] font-normal leading-4 text-[#009a5f]">
+            <Zap className="size-3.5" />
+            {api.credit} Credits
+          </span>
+          <ChevronRight className="size-4 text-[#5c646f]" />
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            onSelect()
+          }}
+          className="flex h-9 w-full items-center justify-center rounded-[12px] bg-[#195cdf] text-center text-[14px] font-semibold leading-5 text-white transition hover:bg-[#124ec4]"
+        >
+          Request Access
+        </button>
+      )}
     </div>
   </div>
 )

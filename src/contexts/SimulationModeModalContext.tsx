@@ -12,34 +12,41 @@ const SimulationModeModalContext = createContext<SimulationModeModalContextType 
 
 export const SimulationModeModalProvider = ({ children }: { children: ReactNode }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [hasResolvedModal, setHasResolvedModal] = useState(false)
   const { data: onboardingStatus, loading } = useOnboardingStatus()
   const isProduction = Boolean(onboardingStatus?.is_onboarded)
 
   const openModal = useCallback(() => {
     if (!isProduction) {
+      setHasResolvedModal(false)
       setIsModalOpen(true)
     }
   }, [isProduction])
 
   const closeModal = useCallback(() => {
+    setHasResolvedModal(true)
     setIsModalOpen(false)
   }, [])
 
   const handleMoveToProduction = useCallback(() => {
     // Close the simulation mode modal
     // The actual switch to production modal will be opened from the component using this context
+    setHasResolvedModal(true)
     setIsModalOpen(false)
   }, [])
 
   // Show modal only when /onboard/check API is in flight
   useEffect(() => {
-    // Only show modal when API is loading and user is not in production
-    if (loading && !isProduction) {
-      setIsModalOpen(true)
-    } else {
+    if (isProduction) {
       setIsModalOpen(false)
+      return
     }
-  }, [loading, isProduction])
+
+    // Open during onboarding-status loading, then keep it open until the user chooses an action.
+    if (loading && !hasResolvedModal) {
+      setIsModalOpen(true)
+    }
+  }, [loading, isProduction, hasResolvedModal])
 
   const value = {
     isModalOpen,
