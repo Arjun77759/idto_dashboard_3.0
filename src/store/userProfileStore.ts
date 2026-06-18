@@ -16,6 +16,7 @@ export type UserProfile = {
   industry?: string | null
   brand_name?: string | null
   registered_name?: string | null
+  entity_type?: string | null
 }
 
 type UserProfileStoreState = {

@@ -5,6 +5,7 @@ import type { OnboardingStatus } from "@/hooks/useOnboardingStatus"
 import type { OnboardingStepsStatus } from "@/hooks/useOnboardingSteps"
 import { updateBasicDetails } from "@/api/onboardingApi"
 import { invalidateOnboardingSteps } from "@/store/onboardingStepsStore"
+import { fetchUserProfile, invalidateUserProfile } from "@/store/userProfileStore"
 import { useIsMobile } from "@/hooks/use-mobile"
 
 interface BasicDetailsFormProps {
@@ -98,6 +99,8 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
       }
       await updateBasicDetails(payload)
       invalidateOnboardingSteps() // Invalidate cache so it refetches
+      invalidateUserProfile()
+      await fetchUserProfile().catch(() => null)
       onNext()
     } catch (err: any) {
       const errorMessage = err?.response?.data?.message || err?.response?.data?.detail || err?.message || 'Failed to update basic details. Please try again.'

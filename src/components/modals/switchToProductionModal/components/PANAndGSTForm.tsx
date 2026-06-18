@@ -5,7 +5,7 @@ import type { OnboardingStatus } from "@/hooks/useOnboardingStatus"
 import type { OnboardingStepsStatus } from "@/hooks/useOnboardingSteps"
 import { updatePAN, updateGST } from "@/api/onboardingApi"
 import { invalidateOnboardingSteps } from "@/store/onboardingStepsStore"
-import { useUserProfileStore } from "@/store/userProfileStore"
+import { fetchUserProfile, invalidateUserProfile, useUserProfileStore } from "@/store/userProfileStore"
 import { useIsMobile } from "@/hooks/use-mobile"
 
 interface PANAndGSTFormProps {
@@ -35,11 +35,13 @@ const gstinSchema = z.object({
 const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPrevious = false, isLoading: externalLoading = false, initialData: _initialData, stepsStatus }: PANAndGSTFormProps) => {
   const isMobile = useIsMobile()
   const userProfile = useUserProfileStore((state) => state.data)
+  const isProprietorship = userProfile?.entity_type === 'proprietorship'
   
   const [formData, setFormData] = useState({
     pan_number: '',
     gst_number: ''
   })
+  const hasGSTInput = formData.gst_number.trim().length > 0
 
   const [errors, setErrors] = useState({
     pan_number: '',
@@ -87,6 +89,11 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
   }
 
   const validateGST = () => {
+    if (isProprietorship && !hasGSTInput) {
+      setErrors(prev => ({ ...prev, gst_number: '' }))
+      return true
+    }
+
     const result = gstinSchema.safeParse({ gst_number: formData.gst_number })
     if (!result.success) {
       const fieldError = result.error.issues.find(issue => issue.path[0] === 'gst_number')
@@ -127,8 +134,11 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
         }
       }
 
-      // Submit GST only if not already completed
-      if (!stepsStatus?.gstin) {
+      const storedGST = (userProfile?.gst_number || '').trim().toUpperCase()
+      const shouldVerifyGST = hasGSTInput && (!stepsStatus?.gstin || storedGST !== formData.gst_number)
+
+      // If a GSTIN is provided, verify it even when proprietorship has marked GST as not applicable.
+      if (shouldVerifyGST) {
         const gstPayload = { gst_number: formData.gst_number }
         const gstResponse = await updateGST(gstPayload)
         
@@ -140,6 +150,8 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
       }
       
       invalidateOnboardingSteps() // Invalidate cache so it refetches
+      invalidateUserProfile()
+      await fetchUserProfile().catch(() => null)
       onNext()
     } catch (err: any) {
       const errorMessage = err?.response?.data?.message || err?.response?.data?.detail || err?.message || 'Failed to verify. Please check the details and try again.'
@@ -149,9 +161,8 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
     }
   }
 
-  // Form is valid if both fields are properly filled
-  // If a step is already completed, we still require the field to be filled (for display/confirmation)
-  const isFormValid = formData.pan_number.length === 10 && formData.gst_number.length === 15
+  // Proprietorship can proceed without GSTIN. If GSTIN is entered, it must be complete and verified.
+  const isFormValid = formData.pan_number.length === 10 && (isProprietorship ? (!hasGSTInput || formData.gst_number.length === 15) : formData.gst_number.length === 15)
 
   // Mobile layout matching Figma
   if (isMobile) {
@@ -206,7 +217,7 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
           <div className="flex flex-col gap-1 w-full">
             <label className="text-[12px] font-medium leading-[1.4] text-[#616675] tracking-[-0.12px]">
               <span>Enter 15-digit GSTIN </span>
-              <span className="text-[#b43e28]">*</span>
+              {!isProprietorship && <span className="text-[#b43e28]">*</span>}
             </label>
             <div className={`bg-[#f7f7f8] border ${errors.gst_number ? 'border-red-500' : 'border-[#e7e8ea]'} flex h-12 items-center px-3 py-2 rounded-[6px] w-full`}>
               <input
@@ -221,6 +232,9 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
             </div>
             {errors.gst_number && (
               <p className="text-xs text-red-600 mt-1">{errors.gst_number}</p>
+            )}
+            {isProprietorship && !errors.gst_number && (
+              <p className="text-xs text-[#9296a0] mt-1">Optional for sole proprietorship. If entered, it will be verified.</p>
             )}
           </div>
         </div>
@@ -307,7 +321,7 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
             <label className="flex gap-2.5 items-center relative shrink-0 w-full">
               <p className="font-medium leading-[1.4] relative shrink-0 text-xs text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
                 <span>Enter 15-digit GSTIN </span>
-                <span className="text-[#b43e28]">*</span>
+                {!isProprietorship && <span className="text-[#b43e28]">*</span>}
               </p>
             </label>
             <div className={`bg-[#f7f7f8] border ${errors.gst_number ? 'border-red-500' : 'border-[#e7e8ea]'} border-solid flex gap-1 h-12 items-center px-3 py-2 relative rounded-md shrink-0 w-full`}>
@@ -323,6 +337,9 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
             </div>
             {errors.gst_number && (
               <p className="text-xs text-red-600 mt-1">{errors.gst_number}</p>
+            )}
+            {isProprietorship && !errors.gst_number && (
+              <p className="text-xs text-[#9296a0] mt-1">Optional for sole proprietorship. If entered, it will be verified.</p>
             )}
           </div>
         </div>

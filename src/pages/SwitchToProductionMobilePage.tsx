@@ -15,6 +15,7 @@ const SwitchToProductionMobilePage = () => {
     const { data: onboardingStatus } = useOnboardingStatus({ enabled: Boolean(token) })
     const stepsStatus = useOnboardingSteps()
     const { data: userProfile } = useUserProfile()
+    const isProprietorship = userProfile?.entity_type === 'proprietorship'
     const [isTermsModalOpen, setIsTermsModalOpen] = useState(false)
     const [agreedToTerms, setAgreedToTerms] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
@@ -51,7 +52,7 @@ const SwitchToProductionMobilePage = () => {
             firstIncompleteStep = 'basic-details'
         } else if (!stepsStatus.businessInfo) {
             firstIncompleteStep = 'business-info'
-        } else if (!stepsStatus.businessPAN || !stepsStatus.gstin) {
+        } else if (!stepsStatus.businessPAN || (!isProprietorship && !stepsStatus.gstin)) {
             firstIncompleteStep = 'pan-gst'
         } else {
             firstIncompleteStep = 'director-kyc'

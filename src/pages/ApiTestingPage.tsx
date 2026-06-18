@@ -274,7 +274,7 @@ const ApiTestingPage = () => {
               ))
             ) : (
               recommendedApis.map((api) => {
-                const isEnabled = subscribedApiIds.has(api.id)
+                const isEnabled = !isProduction || subscribedApiIds.has(api.id)
                 return (
                   <div key={api.id} className="rounded-[14px] border border-white/10 bg-white/10 p-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                     <div className="flex items-start justify-between gap-3">
@@ -294,7 +294,7 @@ const ApiTestingPage = () => {
                         onClick={() => handleSelectApi(api.id)}
                         className="h-8 rounded-[10px] bg-white px-3 text-[12px] font-normal leading-4 text-[#0a121f]"
                       >
-                        {isEnabled ? 'Try API' : 'Request access'}
+                        {isProduction && !isEnabled ? 'Request access' : 'Try API'}
                       </button>
                       <button
                         type="button"
@@ -382,6 +382,7 @@ const ApiTestingPage = () => {
                     api={api}
                     isPinned={savedApis.includes(api.id)}
                     isEnabled={subscribedApiIds.has(api.id)}
+                    isProduction={isProduction}
                     onSelect={() => handleSelectApi(api.id)}
                     onTogglePin={() => toggleSaveApi(api.id)}
                   />
@@ -440,7 +441,7 @@ const ApiTestingPage = () => {
                   loading={endpointsLoading}
                   isSubscribed={selectedApi ? subscribedApiIds.has(selectedApi) : false}
                   isProduction={isProduction}
-                  forceBackendExecution
+                  forceBackendExecution={isProduction}
                 />
                 <ApiResponse response={apiResponse} />
               </>
@@ -456,11 +457,12 @@ type ApiCardProps = {
   api: ApiEndpoint
   isPinned: boolean
   isEnabled: boolean
+  isProduction: boolean
   onSelect: () => void
   onTogglePin: () => void
 }
 
-const ApiCard = ({ api, isPinned, isEnabled, onSelect, onTogglePin }: ApiCardProps) => (
+const ApiCard = ({ api, isPinned, isEnabled, isProduction, onSelect, onTogglePin }: ApiCardProps) => (
   <div
     className="flex min-h-[166px] cursor-pointer flex-col rounded-[20px] border border-[#e1e5ea] bg-white p-[21px] shadow-[0_1px_1px_rgba(17,22,31,0.04),0_1px_1.5px_rgba(17,22,31,0.06)] transition hover:-translate-y-0.5 hover:shadow-md"
     onClick={onSelect}
@@ -476,11 +478,11 @@ const ApiCard = ({ api, isPinned, isEnabled, onSelect, onTogglePin }: ApiCardPro
         <span
           className={cn(
             'inline-flex h-[20.5px] items-center gap-1 rounded-[10px] px-2 text-[10px] font-normal leading-[16.5px]',
-            isEnabled ? 'bg-[#e1faec] text-[#1f9a5b]' : 'bg-[#eef2f7] text-[#5c646f]'
+            !isProduction ? 'bg-[#fff0c5] text-[#bb4d00]' : isEnabled ? 'bg-[#e1faec] text-[#1f9a5b]' : 'bg-[#eef2f7] text-[#5c646f]'
           )}
         >
-          {isEnabled ? <Check className="size-3" /> : <Lock className="size-3" />}
-          {isEnabled ? 'Enabled' : 'Locked'}
+          {!isProduction ? <Zap className="size-3" /> : isEnabled ? <Check className="size-3" /> : <Lock className="size-3" />}
+          {!isProduction ? 'Sandbox' : isEnabled ? 'Enabled' : 'Locked'}
         </span>
         <button
           type="button"
@@ -504,11 +506,11 @@ const ApiCard = ({ api, isPinned, isEnabled, onSelect, onTogglePin }: ApiCardPro
     </p>
 
     <div className="mt-auto pt-4">
-      {isEnabled ? (
+      {!isProduction || isEnabled ? (
         <div className="flex items-center justify-between">
           <span className="inline-flex items-center gap-1 text-[12px] font-normal leading-4 text-[#009a5f]">
             <Zap className="size-3.5" />
-            {api.credit} Credits
+            {!isProduction ? 'Sample response' : `${api.credit} Credits`}
           </span>
           <ChevronRight className="size-4 text-[#5c646f]" />
         </div>

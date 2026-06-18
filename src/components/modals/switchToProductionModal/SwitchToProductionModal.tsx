@@ -4,10 +4,12 @@ import { Sheet, SheetContent } from '../../ui/sheet'
 import { useIsMobile } from '../../../hooks/use-mobile'
 import { useOnboardingStatus } from '../../../hooks/useOnboardingStatus'
 import { useOnboardingSteps } from '../../../hooks/useOnboardingSteps'
+import { useUserProfile } from '@/hooks/useUserProfile'
 import { ModalHeader, StepperProgress, StepForm } from './components'
 import DirectorKYCForm from './components/DirectorKYCForm'
 // try to use the store helpers first; fall back to direct axios call if needed
 import { fetchOnboardingStatus, resetOnboardingStore } from '@/store/onboardingStore'
+import { useUserProfileStore } from '@/store/userProfileStore'
 import axiosInstance from '@/api/axiosInstance'
 import { Info, Building2, Building, CreditCard, Lock, ArrowRight, Monitor, Smartphone } from 'lucide-react'
 
@@ -24,6 +26,9 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
   const isMobile = useIsMobile()
   const onboardingData = useOnboardingStatus()
   const stepsStatus = useOnboardingSteps()
+  useUserProfile()
+  const userProfile = useUserProfileStore((state) => state.data)
+  const isProprietorship = userProfile?.entity_type === 'proprietorship'
 
   // Determine the first incomplete step
   useEffect(() => {
@@ -37,8 +42,8 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
         firstIncompleteStep = 'basic-details'
       } else if (!stepsStatus.businessInfo) {
         firstIncompleteStep = 'business-info'
-      } else if (!stepsStatus.businessPAN || !stepsStatus.gstin) {
-        // Combined step: both PAN and GST must be completed
+      } else if (!stepsStatus.businessPAN || (!isProprietorship && !stepsStatus.gstin)) {
+        // Combined step: PAN is required; GST is optional for sole proprietorship.
         firstIncompleteStep = 'pan-gst'
       } else {
         firstIncompleteStep = 'director-kyc'
@@ -51,7 +56,7 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
         setIsInStepperMode(true)
       }
     }
-  }, [stepsStatus, isOpen])
+  }, [stepsStatus, isOpen, isProprietorship])
 
   const stepOrder = ['basic-details', 'business-info', 'pan-gst', 'director-kyc']
 

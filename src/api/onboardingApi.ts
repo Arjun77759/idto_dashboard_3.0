@@ -91,6 +91,7 @@ export async function updatePAN(payload: PANPayload): Promise<PANResponse> {
 // GST
 export type GSTCheckResponse = {
   exists: boolean
+  not_applicable?: boolean
 }
 
 export async function checkGSTExists(): Promise<GSTCheckResponse> {

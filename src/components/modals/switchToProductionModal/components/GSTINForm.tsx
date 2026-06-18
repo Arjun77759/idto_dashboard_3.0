@@ -5,6 +5,7 @@ import type { OnboardingStatus } from '@/hooks/useOnboardingStatus'
 import type { OnboardingStepsStatus } from '@/hooks/useOnboardingSteps'
 import { updateGST } from '@/api/onboardingApi'
 import { invalidateOnboardingSteps } from '@/store/onboardingStepsStore'
+import { fetchUserProfile, invalidateUserProfile, useUserProfileStore } from '@/store/userProfileStore'
 
 interface GSTINFormProps {
   onNext: () => void
@@ -24,9 +25,12 @@ const gstinSchema = z.object({
 })
 
 const GSTINForm = ({ onNext, onPrevious, showPrevious = false, isLoading: externalLoading = false, initialData }: GSTINFormProps) => {
+  const userProfile = useUserProfileStore((state) => state.data)
+  const isProprietorship = userProfile?.entity_type === 'proprietorship'
   const [formData, setFormData] = useState({
     gst_number: ''
   })
+  const hasGSTInput = formData.gst_number.trim().length > 0
 
   const [errors, setErrors] = useState({
     gst_number: ''
@@ -48,6 +52,11 @@ const GSTINForm = ({ onNext, onPrevious, showPrevious = false, isLoading: extern
   }
 
   const validateField = () => {
+    if (isProprietorship && !hasGSTInput) {
+      setErrors({ gst_number: '' })
+      return
+    }
+
     const result = gstinSchema.safeParse(formData)
     
     if (!result.success) {
@@ -61,6 +70,11 @@ const GSTINForm = ({ onNext, onPrevious, showPrevious = false, isLoading: extern
   }
 
   const validateForm = (): boolean => {
+    if (isProprietorship && !hasGSTInput) {
+      setErrors({ gst_number: '' })
+      return true
+    }
+
     try {
       gstinSchema.parse(formData)
       setErrors({ gst_number: '' })
@@ -83,6 +97,14 @@ const GSTINForm = ({ onNext, onPrevious, showPrevious = false, isLoading: extern
     setApiError('')
 
     try {
+      if (!hasGSTInput) {
+        invalidateOnboardingSteps()
+        invalidateUserProfile()
+        await fetchUserProfile().catch(() => null)
+        onNext()
+        return
+      }
+
       const payload = {
         gst_number: formData.gst_number
       }
@@ -95,6 +117,8 @@ const GSTINForm = ({ onNext, onPrevious, showPrevious = false, isLoading: extern
       }
       
       invalidateOnboardingSteps() // Invalidate cache so it refetches
+      invalidateUserProfile()
+      await fetchUserProfile().catch(() => null)
       onNext()
     } catch (err: any) {
       const errorMessage = err?.response?.data?.message || err?.response?.data?.detail || err?.message || 'Failed to verify GST. Please check the GST number and try again.'
@@ -104,7 +128,7 @@ const GSTINForm = ({ onNext, onPrevious, showPrevious = false, isLoading: extern
     }
   }
 
-  const isFormValid = formData.gst_number.length === 15
+  const isFormValid = isProprietorship ? (!hasGSTInput || formData.gst_number.length === 15) : formData.gst_number.length === 15
 
   return (
     <div className="bg-white border border-[#e7e8ea] border-solid grow h-full min-h-px min-w-px relative rounded shrink-0">
@@ -139,7 +163,7 @@ const GSTINForm = ({ onNext, onPrevious, showPrevious = false, isLoading: extern
             <label className="flex gap-2.5 items-center relative shrink-0 w-full">
               <p className="font-medium leading-[1.4] relative shrink-0 text-xs text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
                 <span>Enter 15-digit GSTIN </span>
-                <span className="text-[#b43e28]">*</span>
+                {!isProprietorship && <span className="text-[#b43e28]">*</span>}
               </p>
             </label>
             <div className={`bg-[#f7f7f8] border ${errors.gst_number ? 'border-red-500' : 'border-[#e7e8ea]'} border-solid flex gap-1 h-12 items-center px-3 py-2 relative rounded-md shrink-0 w-full`}>
@@ -155,6 +179,9 @@ const GSTINForm = ({ onNext, onPrevious, showPrevious = false, isLoading: extern
             </div>
             {errors.gst_number && (
               <p className="text-xs text-red-600 mt-1">{errors.gst_number}</p>
+            )}
+            {isProprietorship && !errors.gst_number && (
+              <p className="text-xs text-[#9296a0] mt-1">Optional for sole proprietorship. If entered, it will be verified.</p>
             )}
           </div>
         </div>
