@@ -2,29 +2,13 @@ import { useEffect, useState } from 'react'
 import { getUsageComparison, getUsageOverview } from '@/api/usageApi'
 import type { UsageComparisonResponse } from '@/api/usageApi'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
+import { getSandboxUsageOverview } from '@/mocks/sandboxTransactions'
 
 export type UsageOverview = {
   total: number
   success: number
   failed: number
   balance: number
-}
-
-// Simple mock usage data to use in development/sandbox mode
-function getMockUsageOverview(): UsageComparisonResponse {
-  const now = new Date()
-  return {
-    total_verifications: { count: 0, change_percent: 0 },
-    successful_verifications: { count: 0, change_percent: 0 },
-    failed_verifications: { count: 0, change_percent: 0 },
-    monthly_spend: { amount: 0, change_percent: 0 },
-    period: {
-      requested_month: now.getMonth() + 1,
-      current_year: now.getFullYear(),
-      current_month_window: { start: '', end: '' },
-      previous_month_window: { start: '', end: '' }
-    }
-  }
 }
 
 export function useUsageOverview(period?: number) {
@@ -44,7 +28,7 @@ export function useUsageOverview(period?: number) {
       // If not production, use mock data for sandbox and return early
       if (!isProduction) {
         if (!cancelled) {
-          setData(getMockUsageOverview())
+          setData(getSandboxUsageOverview())
           setError(null)
           setLoading(false)
         }

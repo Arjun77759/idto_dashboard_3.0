@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import http from '@/api/axiosInstance'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
+import { getSandboxTransactionDetail } from '@/mocks/sandboxTransactions'
 
 export interface TransactionDetail {
   trax_id: string
@@ -49,6 +51,8 @@ const parseJsonLikeField = (value: unknown) => {
 }
 
 export function useTransactionDetail(traxId: string | undefined) {
+  const { data: onboardingStatus } = useOnboardingStatus()
+  const isProduction = Boolean(onboardingStatus?.is_onboarded)
   const [data, setData] = useState<TransactionDetail | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
@@ -65,6 +69,14 @@ export function useTransactionDetail(traxId: string | undefined) {
       try {
         setLoading(true)
         setError(null)
+
+        if (!isProduction) {
+          if (!cancelled) {
+            setData(getSandboxTransactionDetail(traxId))
+          }
+          return
+        }
+
         const { data } = await http.get<TransactionDetailApiResponse>(
           `/usage/transaction/${traxId}`
         )
@@ -93,7 +105,7 @@ export function useTransactionDetail(traxId: string | undefined) {
     return () => {
       cancelled = true
     }
-  }, [traxId])
+  }, [isProduction, traxId])
 
   return { data, loading, error }
 }
