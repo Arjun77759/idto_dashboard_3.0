@@ -1,122 +1,82 @@
 import { motion } from 'framer-motion'
-import { Building, IndianRupee, Plus, AlertTriangle, ArrowRight, Copy } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { AlertTriangle, ArrowRight } from 'lucide-react'
+import { type ChangeEvent, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
-import RecentInvoicesTable from '@/components/billing/RecentInvoicesTable'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { useMonthlyUsage } from '@/hooks/useMonthlyUsage'
-import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
-// import CurrentBalanceCard from '@/components/billing/CurrentBalanceCard'
-// import ApiUsageTable from '@/components/billing/ApiUsageTable'
 import ConfiguredApisCard from '@/components/billing/ConfiguredApisCard'
+import RecentInvoicesTable from '@/components/billing/RecentInvoicesTable'
 import ReportsTable, { REPORTS_ALL_APIS_VALUE } from '@/components/billing/ReportsTable'
 import SwitchToProductionModal from '@/components/modals/switchToProductionModal/SwitchToProductionModal'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 import { fetchOnboardingStatus } from '@/store/onboardingStore'
+import addCreditsIcon from '@/assets/figma/billing/add-credits.svg'
+import bankAccountIcon from '@/assets/figma/billing/bank-account.svg'
+import confirmTransferIcon from '@/assets/figma/billing/confirm-transfer.svg'
+import copyIcon from '@/assets/figma/billing/copy.svg'
+import liveModeIcon from '@/assets/figma/billing/live-mode.svg'
+import tutorialPlayIcon from '@/assets/figma/billing/tutorial-play.svg'
+import uploadPaymentIcon from '@/assets/figma/billing/upload-payment.svg'
 
-const formatCurrency = (value: number) => {
-  if (!value) return '-'
-  return `${value.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
+const TUTORIAL_URL = 'https://drive.google.com/file/d/1vV3UIcOSrKOvh0_L_qFAPzMoKwroDMsI/view?usp=sharing'
+
+const BANK_DETAILS = {
+  accountHolder: 'PAYVRIZ TECHNOLOGIES PRIVATE LIMITED',
+  accountNumber: '924020027102018',
+  ifsc: 'UTIB0001527',
+  accountType: 'Current Account',
 }
 
-// Preserved for future use if Razorpay is re-enabled.
-// const LEGACY_PAYMENT_FLOW = {
-//   requiresProductionCheck: true,
-//   supportsGstCollection: true,
-// }
+type BankDetail = {
+  label: string
+  value: string
+}
+
+const bankDetails: BankDetail[] = [
+  { label: 'Name', value: BANK_DETAILS.accountHolder },
+  { label: 'Account Number', value: BANK_DETAILS.accountNumber },
+  { label: 'IFSC Code', value: BANK_DETAILS.ifsc },
+  { label: 'Acc Type', value: BANK_DETAILS.accountType },
+]
 
 const BillingPage = () => {
-  const { data, loading } = useMonthlyUsage()
   const { data: onboardingStatus } = useOnboardingStatus()
   const isProduction = Boolean(onboardingStatus?.is_onboarded)
-
-  // const [creditAmount, setCreditAmount] = useState<string>('')
-  // const [hasGst, setHasGst] = useState<'yes' | 'no'>(userProfile?.gst_number ? 'yes' : 'no')
-  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'bank'>('bank')
   const [selectedReportApiName, setSelectedReportApiName] = useState(REPORTS_ALL_APIS_VALUE)
-  // const [gstNumber, setGstNumber] = useState<string>(userProfile?.gst_number ?? '')
-  // const [companyName, setCompanyName] = useState<string>(userProfile?.brand_name ?? '')
-  // const [stateName, setStateName] = useState<string>(userProfile?.business_state ?? '')
-  // const [businessAddress, setBusinessAddress] = useState<string>(userProfile?.business_address ?? '')
-  const [showBankDetailsModal, setShowBankDetailsModal] = useState(false)
   const [isSwitchToProductionModalOpen, setIsSwitchToProductionModalOpen] = useState(false)
+  const [transferAmount, setTransferAmount] = useState('1000')
+  const [transferReference, setTransferReference] = useState('')
+  const [uploadedFileName, setUploadedFileName] = useState('')
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  // const parsedAmount = Number(creditAmount) || 0
-  // const taxes = useMemo(() => {
-  //   if (!parsedAmount) {
-  //     return { sgst: 0, cgst: 0, finalAmount: 0 }
-  //   }
-  //   const sgst = parsedAmount * 0.09
-  //   const cgst = parsedAmount * 0.09
-  //   return {
-  //     sgst,
-  //     cgst,
-  //     finalAmount: parsedAmount + sgst + cgst,
-  //   }
-  // }, [parsedAmount])
-
-  const liveCredits = loading ? '...' : formatCurrency(data?.balance ?? 0)
   const copyableBankDetails = useMemo(
-    () => [
-      `Name: ${BANK_DETAILS.accountHolder}`,
-      `Account Number: ${BANK_DETAILS.accountNumber}`,
-      `IFSC Code: ${BANK_DETAILS.ifsc}`,
-      `Acc Type: ${BANK_DETAILS.accountType}`,
-    ].join('\n'),
+    () => bankDetails.map((detail) => `${detail.label}: ${detail.value}`).join('\n'),
     []
   )
 
-  const handleProceedToPayment = () => {
-    // if (!parsedAmount || parsedAmount <= 0) {
-    //   toast.error('Please enter a valid credit amount.')
-    //   return
-    // }
-
-    // if (hasGst === 'yes' && !gstNumber.trim()) {
-    //   toast.error('Please enter your GST number.')
-    //   return
-    // }
-
-    if (paymentMethod === 'bank') {
-      setShowBankDetailsModal(true)
-      return
+  const handleCopy = async (value: string, label = 'Details') => {
+    try {
+      await navigator.clipboard.writeText(value)
+      toast.success(`${label} copied`)
+    } catch {
+      toast.error('Failed to copy')
     }
-
-    // Legacy Razorpay flow kept below for reference.
-
-    // const taxTotal = taxes.sgst + taxes.cgst
-    // const sanitizedGstNumber = gstNumber.trim()
-    // const sanitizedCompanyName = companyName.trim()
-    // const sanitizedStateName = stateName.trim()
-    // const sanitizedBusinessAddress = businessAddress.trim()
-
-    // initiatePayment({
-    //   amount: parsedAmount,
-    //   tax: taxTotal,
-    //   description: 'Add Live Credits',
-    //   prefill: {
-    //     name: userProfile?.name || undefined,
-    //     email: userProfile?.email || undefined,
-    //     contact: userProfile?.mobile || undefined,
-    //   },
-    //   gst_number: hasGst === 'yes' && sanitizedGstNumber ? sanitizedGstNumber : undefined,
-    //   company_name: sanitizedCompanyName || undefined,
-    //   state: sanitizedStateName || undefined,
-    //   address: sanitizedBusinessAddress || undefined,
-    // })
-    return
   }
 
-  const handleCopyAllDetails = async () => {
-    try {
-      await navigator.clipboard.writeText(copyableBankDetails)
-      toast.success('Bank details copied')
-    } catch {
-      toast.error('Failed to copy bank details')
-    }
+  const handleSubmitTransfer = () => {
+    toast.info('Transfer verification upload is not connected yet.')
+  }
+
+  const handleViewTutorial = () => {
+    window.open(TUTORIAL_URL, '_blank', 'noopener,noreferrer')
+  }
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setUploadedFileName(file.name)
   }
 
   return (
@@ -124,337 +84,200 @@ const BillingPage = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="bg-[#f7f7f8] flex flex-col gap-6 p-4 sm:p-6 rounded-2xl w-full h-full overflow-y-auto"
+      className="flex h-full w-full flex-col gap-6 overflow-y-auto bg-transparent"
     >
-      <header className="flex flex-wrap items-center gap-4 rounded-md pl-3">
-        <div className="flex items-center gap-3">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18" fill="none">
-            <path d="M21.5 16.75C21.4998 17.1641 21.1641 17.5 20.75 17.5H0.75C0.336043 17.4998 0.000175836 17.164 0 16.75V6.5H21.5V16.75ZM9.75 12V13.5H11.75V12H9.75ZM13.75 12V13.5H17.75V12H13.75ZM20.75 0C21.1642 0 21.5 0.335786 21.5 0.75V5H0V0.75C0 0.335894 0.335935 0.000174227 0.75 0H20.75Z" fill="#131B31" />
-          </svg>
-          <p className="text-xl font-semibold text-[#131b31] tracking-[-0.2px]">Billing</p>
-        </div>
-        <div className="ml-auto flex flex-wrap gap-3">
-          <CreditStat label="Live Credits" value={liveCredits} />
-          {/* <CreditStat label="Testing Credits" value={testingCredits} /> */}
-        </div>
-      </header>
-
-      <section className="flex flex-col gap-4 rounded-2xl border border-[#e7e8ea] bg-white p-6">
-        {!isProduction ? (
-          // Simulation Mode Message
-          <div className="flex flex-col items-center justify-center gap-6 py-12 px-6">
-            <div className="flex flex-col items-center gap-4 text-center">
-              <div className="flex items-center justify-center size-16 rounded-full bg-[#fff7ea]">
-                <AlertTriangle className="size-8 text-[#b47d1f]" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <p className="text-lg font-semibold text-[#131b31]">
-                  You are in Simulation Mode
-                </p>
-                <p className="text-sm text-[#616675] max-w-md">
-                  Please switch to production to see billing details and add credits.
-                </p>
-              </div>
+      {!isProduction ? (
+        <section className="rounded-[22px] border border-[#e5e5e5]/80 bg-white p-8 shadow-[0_1px_0_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.08)]">
+          <div className="flex flex-col items-center justify-center gap-6 py-12 text-center">
+            <div className="grid size-16 place-items-center rounded-[18px] bg-[#fff7ea]">
+              <AlertTriangle className="size-8 text-[#b47d1f]" />
+            </div>
+            <div>
+              <p className="text-[16px] font-semibold leading-7 text-[#171717]">You are in Simulation Mode</p>
+              <p className="mt-1 max-w-md text-[12px] leading-[18px] text-[#737373]">
+                Please switch to production to see billing details and add credits.
+              </p>
             </div>
             <Button
               onClick={() => setIsSwitchToProductionModalOpen(true)}
-              className="flex items-center gap-2 rounded-lg bg-[#b47d1f] px-6 py-3 text-sm font-medium text-white hover:bg-[#9d6a1a]"
+              className="h-10 rounded-[10px] bg-[#b47d1f] px-5 text-[12px] font-medium text-white hover:bg-[#9d6a1a]"
             >
-              <span>Switch to Production</span>
+              Switch to Production
               <ArrowRight className="size-4" />
             </Button>
           </div>
-        ) : (
-          <>
-            {/* <div className="border-b border-[#e7e8ea] pb-4 flex flex-col gap-2">
-              <p className="text-sm font-bold text-[#616675]">Add Live Credits</p>
-              <p className="text-xs text-[#9296a0]">1 Credit = 1 Rupee</p>
-            </div> */}
+        </section>
+      ) : (
+        <>
+          <LiveModeBanner onViewTutorial={handleViewTutorial} />
 
-            <div className="mx-auto flex w-full max-w-[420px] flex-col gap-6">
-          {/* <div className="flex flex-col gap-4">
-            <Label className="text-xs text-[#616675]">Enter Credit Amount</Label>
-            <Input
-              type="number"
-              value={creditAmount}
-              onChange={(event) => setCreditAmount(event.target.value)}
-              placeholder="Enter amount"
-              className="h-10 rounded-lg border-[#e7e8ea] text-sm"
-            />
-            <p className="text-xs text-[#9296a0]">
-              Select the number of credits you want to purchase. Up to 1000 API calls with 3000 credits.
+          <header className="flex flex-wrap items-end gap-3">
+            <h1 className="text-[20px] font-semibold leading-[30px] tracking-[-0.45px] text-[#171717]">
+              Billing
+            </h1>
+            <p className="pb-[5px] text-[12px] leading-[18.75px] text-[#737373]">
+              Manage credits, payments and invoices
             </p>
-            <Button
-              variant="secondary"
-              onClick={handleProceedToPayment}
-              disabled={!parsedAmount}
-              className="w-fit rounded-lg border border-[#e7e8ea] bg-[#e6e8ff] text-xs font-medium text-[#0019ff] disabled:opacity-60"
-            >
-              Proceed
-            </Button>
-          </div> */}
+          </header>
 
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-full bg-[#e6e8ff]">
-                  <Building className="size-5 text-[#0019ff]" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-[#131b31]">Bank Transfer Details</p>
-                  <p className="text-[11px] text-[#9296a0]">Use the following bank details for payment.</p>
-                </div>
+          <section className="rounded-[22px] border border-[#e5e5e5]/80 bg-white p-5 shadow-[0_1px_0_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.08)] sm:p-[33px]">
+            <div className="flex items-center gap-3">
+              <div className="grid size-10 place-items-center rounded-[18px] bg-[#0019ff]/[0.06]">
+                <img src={addCreditsIcon} alt="" className="size-5" />
               </div>
+              <div>
+                <h2 className="text-[16px] font-semibold leading-[27px] tracking-[-0.45px] text-[#171717]">
+                  Add credits
+                </h2>
+                <p className="text-[12px] leading-[18.75px] text-[#737373]">
+                  Choose how you'd like to pay
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 inline-flex rounded-[14px] bg-[#f5f5f5]/80 p-1">
+              <button className="h-7 rounded-[10px] bg-white px-4 text-[12px] font-medium leading-[19.5px] text-[#020618] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]">
+                Bank Transfer
+              </button>
               <button
                 type="button"
-                onClick={handleCopyAllDetails}
-                className="flex shrink-0 items-center gap-2 hover:opacity-70 transition-opacity"
+                onClick={() => toast.info('Coming soon!')}
+                className="flex h-7 items-center gap-2 rounded-[10px] px-4 text-[12px] font-medium leading-[19.5px] text-[#62748e]"
               >
-                <span className="text-[12px] font-medium tracking-[-0.12px] text-[#8a95ff]">Copy All Details</span>
-                <Copy className="size-4 text-[#8a95ff]" />
+                Payment Gateway
+                <span className="rounded-full bg-[#00e59e]/20 px-1.5 py-px text-[10px] font-semibold uppercase leading-[14px] tracking-[0.475px] text-[#047857]">
+                  coming Soon
+                </span>
               </button>
             </div>
 
-            {/* <div>
-              <p className="text-xs text-[#c8cacf]">Do you have GST number?</p>
-              <RadioGroup
-                value={hasGst}
-                onValueChange={(value) => setHasGst(value as 'yes' | 'no')}
-                className="mt-3 flex flex-wrap gap-6"
-              >
-                {[
-                  { label: 'Yes', value: 'yes' },
-                  { label: 'No', value: 'no' },
-                ].map((option) => (
-                  <div key={option.value} className="flex items-center gap-2 text-xs text-[#9296a0]">
-                    <RadioGroupItem
-                      value={option.value}
-                      className="border-[#c8cacf] text-[#8a95ff] focus-visible:ring-[#8a95ff]"
-                    />
-                    <span>{option.label}</span>
+            <div className="mt-6 grid gap-6 xl:grid-cols-2">
+              <div className="flex min-w-0 flex-col gap-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="grid size-9 place-items-center rounded-[14px] bg-[#0019ff]/[0.07]">
+                      <img src={bankAccountIcon} alt="" className="size-4" />
+                    </div>
+                    <div>
+                      <p className="text-[14px] font-semibold leading-[20.25px] text-[#171717]">Bank account</p>
+                      <p className="text-[12px] leading-[18px] text-[#737373]">Transfer to the account below</p>
+                    </div>
                   </div>
-                ))}
-              </RadioGroup>
-            </div>
-
-            <div className="flex flex-col gap-2 text-xs text-[#9296a0]">
-              <div className="flex items-center justify-between">
-                <span>GST Number</span>
-              </div>
-              <Input
-                value={gstNumber}
-                onChange={(event) => setGstNumber(event.target.value)}
-                placeholder="Enter GST Number"
-                className="h-10 rounded-lg border-[#e7e8ea] text-xs text-[#131b31]"
-                disabled={hasGst === 'no'}
-              />
-            </div>
-
-            <div className="flex flex-col gap-2 text-xs text-[#9296a0]">
-              <div>
-                <span>Company Name</span>
-              </div>
-              <Input
-                value={companyName}
-                onChange={(event) => setCompanyName(event.target.value)}
-                placeholder="Enter company name"
-                className="h-10 rounded-lg border-[#e7e8ea] text-xs text-[#131b31]"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2 text-xs text-[#9296a0]">
-              <div>
-                <span>State</span>
-              </div>
-              <Input
-                value={stateName}
-                onChange={(event) => setStateName(event.target.value)}
-                placeholder="Select state"
-                className="h-10 rounded-lg border-[#e7e8ea] text-xs text-[#131b31]"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2 text-xs text-[#9296a0]">
-              <div>
-                <span>Address</span>
-              </div>
-              <Textarea
-                value={businessAddress}
-                onChange={(event) => setBusinessAddress(event.target.value)}
-                className="rounded-lg border-[#e7e8ea] text-xs text-[#131b31]"
-                placeholder="Enter billing address"
-              />
-            </div> */}
-
-            <div className="flex flex-col gap-2 text-xs text-[#9296a0]">
-              <div>
-                <span>Name</span>
-              </div>
-              <Input
-                value={BANK_DETAILS.accountHolder}
-                readOnly
-                className="h-10 rounded-lg border-[#e7e8ea] text-xs text-[#131b31] bg-[#f7f7f8]"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2 text-xs text-[#9296a0]">
-              <div>
-                <span>Account Number</span>
-              </div>
-              <Input
-                value={BANK_DETAILS.accountNumber}
-                readOnly
-                className="h-10 rounded-lg border-[#e7e8ea] text-xs text-[#131b31] bg-[#f7f7f8]"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2 text-xs text-[#9296a0]">
-              <div>
-                <span>IFSC Code</span>
-              </div>
-              <Input
-                value={BANK_DETAILS.ifsc}
-                readOnly
-                className="h-10 rounded-lg border-[#e7e8ea] text-xs text-[#131b31] bg-[#f7f7f8]"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2 text-xs text-[#9296a0]">
-              <div>
-                <span>Acc Type</span>
-              </div>
-              <Input
-                value={BANK_DETAILS.accountType}
-                readOnly
-                className="h-10 rounded-lg border-[#e7e8ea] text-xs text-[#131b31] bg-[#f7f7f8]"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 justify-between">
-            {/* <div className='flex flex-col gap-4 h-full'>
-              <p className="text-xs text-[#9296a0]">Order Summary</p>
-              <div className="flex flex-col gap-4 rounded-lg bg-[#f7f7f8] p-4 text-xs text-[#9296a0] justify-between h-full">
-                <div className='flex flex-col gap-2'>
-                  <SummaryRow label="Credits" value={parsedAmount ? `${parsedAmount} Credits` : '-'} />
-                  <SummaryRow label="Desired Amount" value={formatCurrency(parsedAmount)} />
-                  <SummaryRow label="SGST @ 9%" value={formatCurrency(taxes.sgst)} />
-                  <SummaryRow label="CGST @ 9%" value={formatCurrency(taxes.cgst)} />
-                </div>
-                <div className="border-t border-[#c8cacf] pt-3 text-sm font-semibold text-[#131b31]">
-                  <SummaryRow label="Final Amount" value={formatCurrency(taxes.finalAmount)} bold />
-                </div>
-              </div>
-            </div> */}
-            <div className='flex flex-col gap-4 h-full'>
-              <p className="text-xs text-[#9296a0]">Select Payment Method</p>
-              <RadioGroup
-                value={paymentMethod}
-                onValueChange={(value) => setPaymentMethod(value as 'razorpay' | 'bank')}
-                className="flex flex-col gap-4"
-              >
-                <div className="flex flex-wrap gap-6">
                   <button
                     type="button"
-                    onClick={() => toast.info('Coming soon!')}
-                    className="flex items-center gap-2 text-xs text-[#9296a0]"
+                    onClick={() => handleCopy(copyableBankDetails, 'Bank details')}
+                    className="flex shrink-0 items-center gap-1.5 pt-0.5 text-[12px] font-medium leading-4 text-[#737373] hover:text-[#171717]"
                   >
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full border border-[#c8cacf]">
-                      <span className="h-2.5 w-2.5 rounded-full" />
-                    </span>
-                    Razorpay PG
+                    <img src={copyIcon} alt="" className="size-3.5" />
+                    Copy all
                   </button>
-                  <label className="flex items-center gap-2 text-xs text-[#9296a0]">
-                    <RadioGroupItem
-                      value="bank"
-                      className="border-[#c8cacf] text-[#8a95ff] focus-visible:ring-[#8a95ff]"
+                </div>
+
+                <div className="overflow-hidden rounded-[18px] border border-[#e5e5e5] bg-white">
+                  {bankDetails.map((detail) => (
+                    <BankDetailRow key={detail.label} detail={detail} onCopy={handleCopy} />
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex min-w-0 flex-col gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="grid size-9 place-items-center rounded-[14px] bg-[#00e59e]/15">
+                    <img src={confirmTransferIcon} alt="" className="size-4" />
+                  </div>
+                  <div>
+                    <p className="text-[14px] font-semibold leading-[20.25px] text-[#171717]">
+                      Confirm your transfer
+                    </p>
+                    <p className="text-[12px] leading-[18px] text-[#737373]">
+                      Upload your payment screenshot so we can credit it instantly.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="flex flex-col gap-[5.5px] pt-[5.5px] text-[12px] font-medium uppercase leading-[16.5px] tracking-[0.55px] text-[#a1a1a1]">
+                    Amount (₹)
+                    <Input
+                      value={transferAmount}
+                      onChange={(event) => setTransferAmount(event.target.value)}
+                      className="h-10 rounded-[14px] border-[#e5e5e5] bg-white text-[14px] font-normal text-[#62748e] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
                     />
-                    Bank Transfer
+                  </label>
+                  <label className="flex flex-col gap-[5.5px] pt-[5.5px] text-[12px] font-medium uppercase leading-[16.5px] tracking-[0.55px] text-[#a1a1a1]">
+                    UTR / Reference
+                    <Input
+                      value={transferReference}
+                      onChange={(event) => setTransferReference(event.target.value)}
+                      placeholder="e.g. AXISN12345678"
+                      className="h-10 rounded-[14px] border-[#e5e5e5] bg-white text-[14px] font-normal text-[#62748e] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] placeholder:text-[#62748e]"
+                    />
                   </label>
                 </div>
-                {/* {paymentMethod === 'bank' && <BankTransferDetails desiredAmount={taxes.finalAmount} />} */}
-              </RadioGroup>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,application/pdf"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex min-h-[143px] flex-col items-center justify-center gap-[7px] rounded-[18px] border border-dashed border-[#d4d4d4] bg-[#fafafa]/60 px-[17px] pb-[25px] pt-[26px] text-center transition hover:border-[#0019ff]/40 hover:bg-[#fafafa]"
+                >
+                  <span className="grid size-10 place-items-center rounded-[14px] bg-[#0019ff]/[0.06]">
+                    <img src={uploadPaymentIcon} alt="" className="size-[18px]" />
+                  </span>
+                  <span className="text-[12px] font-medium leading-[19.5px] text-[#171717]">
+                    {uploadedFileName || 'Upload payment screenshot'}
+                  </span>
+                  <span className="text-[10px] leading-[17.25px] text-[#737373]">
+                    PNG, JPG or PDF · up to 5 MB
+                  </span>
+                </button>
+
+                <Button
+                  type="button"
+                  onClick={handleSubmitTransfer}
+                  className="h-[45px] rounded-[14px] bg-[#195cdf] text-[14px] font-semibold text-white shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] hover:bg-[#164fbe]"
+                >
+                  Submit for verification
+                </Button>
+
+                <p className="text-center text-[12px] leading-[17.25px] text-[#737373]">
+                  Credits are added within 15 minutes of verification on business days.
+                </p>
+              </div>
             </div>
-            <Button
-              onClick={handleProceedToPayment}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#e7e8ea] bg-[#e7e8ea] text-xs font-medium text-[#9296a0] disabled:bg-[#e7e8ea]"
-            >
-              <>
-                Proceed to Pay
-                <IndianRupee className="size-4" />
-              </>
-            </Button>
+          </section>
+
+          <div className="grid min-w-0 gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
+            <ConfiguredApisCard
+              selectedApiName={selectedReportApiName}
+              allApisValue={REPORTS_ALL_APIS_VALUE}
+              onSelectApiName={setSelectedReportApiName}
+            />
+            <ReportsTable
+              selectedApiName={selectedReportApiName}
+              onSelectedApiNameChange={setSelectedReportApiName}
+              className="min-w-0"
+            />
           </div>
-        </div>
-          </>
-        )}
-      </section>
 
-      {/* Preserved for rollback: this was the balance/usage summary section replaced by reports. */}
-      {/* <div className='flex gap-4'>
-        <CurrentBalanceCard/>
-        <ApiUsageTable/>
-      </div> */}
-      <div className="flex w-full min-w-0 shrink-0 flex-col gap-4 lg:flex-row lg:items-stretch">
-        <ConfiguredApisCard
-          selectedApiName={selectedReportApiName}
-          allApisValue={REPORTS_ALL_APIS_VALUE}
-          onSelectApiName={setSelectedReportApiName}
-        />
-        <ReportsTable
-          selectedApiName={selectedReportApiName}
-          onSelectedApiNameChange={setSelectedReportApiName}
-          className="min-w-0 lg:flex-1 lg:w-0"
-        />
-      </div>
+          <RecentInvoicesTable />
+        </>
+      )}
 
-      <div className="flex flex-col gap-6">
-        <RecentInvoicesTable />
-      </div>
-      <Dialog open={showBankDetailsModal} onOpenChange={setShowBankDetailsModal}>
-        <DialogContent className="max-w-md rounded-2xl border border-[#e7e8ea] p-6">
-          <DialogHeader className="text-left">
-            <DialogTitle className="text-lg font-semibold text-[#131b31]">Bank Transfer Details</DialogTitle>
-            {/* <DialogDescription className="text-sm text-[#616675]">
-              Transfer {taxes.finalAmount ? formatCurrency(taxes.finalAmount) : '-'} via RTGS/NEFT/IMPS using the account
-              details below.
-            </DialogDescription> */}
-            <DialogDescription className="text-sm text-[#616675]">
-              Transfer via RTGS/NEFT/IMPS using the account details below.
-            </DialogDescription>
-          </DialogHeader>
-          {/* <BankTransferDetails desiredAmount={taxes.finalAmount} /> */}
-          <BankTransferDetails />
-          <div className="mt-4 rounded-lg border border-[#e7e8ea] bg-[#fff4e6] p-3">
-            <p className="text-xs text-[#616675]">
-              <span className="font-semibold text-[#131b31]">Note:</span> After depositing the money, please send an email to{' '}
-              <a href="mailto:info@idto.ai" className="text-[#0019ff] underline">
-                info@idto.ai
-              </a>{' '}
-              to get priority credit.
-            </p>
-          </div>
-          <DialogFooter className="mt-4 flex w-full justify-end">
-            <Button onClick={() => setShowBankDetailsModal(false)} className="rounded-lg bg-[#0019ff] text-white">
-              Okay, Got It
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Switch to Production Modal */}
       <SwitchToProductionModal
         isOpen={isSwitchToProductionModalOpen}
         onClose={() => setIsSwitchToProductionModalOpen(false)}
         onConfirm={async () => {
-          // Refresh onboarding status to check if user is now in production
           try {
             const updatedStatus = await fetchOnboardingStatus()
-            if (updatedStatus?.is_onboarded) {
-              setIsSwitchToProductionModalOpen(false)
-            }
+            if (updatedStatus?.is_onboarded) setIsSwitchToProductionModalOpen(false)
           } catch {
-            // If refresh fails, still close the modal
             setIsSwitchToProductionModalOpen(false)
           }
         }}
@@ -463,78 +286,54 @@ const BillingPage = () => {
   )
 }
 
-// type SummaryRowProps = {
-//   label: string
-//   value: string
-//   bold?: boolean
-// }
-
-// const SummaryRow = ({ label, value, bold }: SummaryRowProps) => {
-//   return (
-//     <div className="flex items-center justify-between text-xs">
-//       <span className="text-[#9296a0]">{label}</span>
-//       <span className={bold ? 'text-base font-semibold text-[#131b31]' : 'text-[#c8cacf]'}>{value}</span>
-//     </div>
-//   )
-// }
-
-type CreditStatProps = {
-  label: string
-  value: string
-}
-
-const CreditStat = ({ label, value }: CreditStatProps) => (
-  <div className="flex items-center gap-3 rounded-xl border border-[#e7e8ea] bg-white px-4 py-2 text-sm text-[#616675] shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
-    <p className="text-xs leading-[1.4] text-[#616675]">
-      {label} : <span className="text-base font-[500] text-[#131b31]">{value}</span>
-    </p>
-    <Plus className="size-4 text-[#616675]" />
-  </div>
-)
-
-const BANK_DETAILS = {
-  bankName: 'AXIS BANK',
-  accountHolder: 'PAYVRIZ TECHNOLOGIES PRIVATE LIMITED',
-  accountNumber: '924020027102018',
-  ifsc: 'UTIB0001527',
-  accountType: 'Current Account',
-}
-
-// type BankTransferDetailsProps = {
-//   desiredAmount: number
-// }
-
-const BankTransferDetails = () => (
-  <div className="flex flex-col gap-4 rounded-xl border border-[#e7e8ea] bg-[#f7f7f8] p-4">
+const LiveModeBanner = ({ onViewTutorial }: { onViewTutorial: () => void }) => (
+  <section className="flex flex-col gap-4 rounded-[18px] border border-[#0019ff]/10 bg-gradient-to-r from-[#0019ff]/[0.03] to-[#00e59e]/[0.06] px-[21px] py-[17px] sm:flex-row sm:items-center sm:justify-between">
     <div className="flex items-center gap-3">
-      <div className="flex size-10 items-center justify-center rounded-full bg-[#e6e8ff]">
-        <Building className="size-5 text-[#0019ff]" />
+      <div className="grid size-9 place-items-center rounded-[14px] bg-[#0019ff]">
+        <img src={liveModeIcon} alt="" className="size-4" />
       </div>
       <div>
-        <p className="text-xs font-semibold text-[#131b31]">Bank Transfer Details</p>
-        <p className="text-[11px] text-[#9296a0]">Transfer via RTGS/NEFT/IMPS using the details below.</p>
+        <p className="text-[14px] font-semibold leading-[21px] text-[#171717]">You're in Live Mode</p>
+        <p className="text-[12px] leading-[18.75px] text-[#525252]">
+          Follow the setup guide to start populating your dashboard with real data.
+        </p>
       </div>
     </div>
-    <div className="space-y-3 text-xs text-[#131b31]">
-      <BankDetailRow label="Bank Name" value={BANK_DETAILS.bankName} />
-      <BankDetailRow label="Account Holder" value={BANK_DETAILS.accountHolder} />
-      <BankDetailRow label="Account Number" value={BANK_DETAILS.accountNumber} />
-      <BankDetailRow label="IFSC Code" value={BANK_DETAILS.ifsc} />
-      <BankDetailRow label="Account Type" value={BANK_DETAILS.accountType} />
-      {/* <BankDetailRow label="Amount to Transfer" value={formatCurrency(desiredAmount)} /> */}
-    </div>
-  </div>
+    <Button
+      type="button"
+      onClick={onViewTutorial}
+      className="h-8 w-fit rounded-full bg-[#0019ff] px-4 text-[12px] font-medium text-white shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] hover:bg-[#0015d6]"
+    >
+      <img src={tutorialPlayIcon} alt="" className="size-4" />
+      View Tutorial
+    </Button>
+  </section>
 )
 
-type BankDetailRowProps = {
-  label: string
-  value: string
-}
-
-const BankDetailRow = ({ label, value }: BankDetailRowProps) => (
-  <div className="flex items-center justify-between gap-3">
-    <span className="text-[#9296a0]">{label}</span>
-    <span className="font-medium text-[#131b31]">{value}</span>
+const BankDetailRow = ({
+  detail,
+  onCopy,
+}: {
+  detail: BankDetail
+  onCopy: (value: string, label?: string) => void
+}) => (
+  <div className="flex min-h-16 items-center justify-between gap-4 border-b border-[#f5f5f5] px-4 py-3 last:border-b-0">
+    <div className="min-w-0">
+      <p className="text-[12px] font-medium uppercase leading-[16.5px] tracking-[0.55px] text-[#a1a1a1]">
+        {detail.label}
+      </p>
+      <p className="mt-0.5 truncate text-[14px] font-medium leading-[20.25px] text-[#171717]" title={detail.value}>
+        {detail.value}
+      </p>
+    </div>
+    <button
+      type="button"
+      onClick={() => onCopy(detail.value, detail.label)}
+      className="flex shrink-0 items-center gap-1.5 text-[12px] font-medium leading-4 text-[#737373] hover:text-[#171717]"
+    >
+      <img src={copyIcon} alt="" className="size-3.5" />
+      Copy
+    </button>
   </div>
 )
 

@@ -8,6 +8,8 @@ import { useTransactionDetail } from '@/hooks/useTransactionDetail'
 import { useMemo } from 'react'
 import { downloadCsv } from '@/lib/downloadCsv'
 import { useDownloadTransactionReport } from '@/hooks/useDownloadTransactionReport'
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
+import { jsPDF } from 'jspdf'
 
 
 const TransactionDetailPage = () => {
@@ -15,6 +17,8 @@ const TransactionDetailPage = () => {
   const { id } = useParams<{ id: string }>()
   const { data: transaction, loading, error } = useTransactionDetail(id)
   const { downloadReport, loading: reportLoading } = useDownloadTransactionReport()
+  const { data: onboardingStatus } = useOnboardingStatus()
+  const isProduction = Boolean(onboardingStatus?.is_onboarded)
 
   // Format transaction data for components
   const formattedData = useMemo(() => {
@@ -103,7 +107,64 @@ const TransactionDetailPage = () => {
   }
 
   const handleDownloadReport = () => {
-    if (!formattedData) return
+    if (!formattedData || !transaction) return
+
+    if (!isProduction) {
+      const doc = new jsPDF()
+      const marginX = 16
+      let y = 18
+
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(16)
+      doc.text('Sandbox Transaction Report', marginX, y)
+
+      y += 10
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(10)
+
+      const summaryRows = [
+        ['Transaction ID', formattedData.id],
+        ['API', formattedData.api],
+        ['Timestamp', transaction.timestamp],
+        ['Status', formattedData.status],
+        ['Turn Around Time', transaction.turn_around_time || 'N/A'],
+      ]
+
+      summaryRows.forEach(([label, value]) => {
+        doc.setFont('helvetica', 'bold')
+        doc.text(`${label}:`, marginX, y)
+        doc.setFont('helvetica', 'normal')
+        doc.text(String(value), marginX + 38, y)
+        y += 7
+      })
+
+      const addSection = (title: string, value: unknown) => {
+        y += 5
+        doc.setFont('helvetica', 'bold')
+        doc.text(title, marginX, y)
+        y += 6
+        doc.setFont('courier', 'normal')
+        doc.setFontSize(8)
+
+        const text = JSON.stringify(value ?? {}, null, 2)
+        const lines = doc.splitTextToSize(text, 178)
+        lines.forEach((line: string) => {
+          if (y > 280) {
+            doc.addPage()
+            y = 18
+          }
+          doc.text(line, marginX, y)
+          y += 4
+        })
+        doc.setFontSize(10)
+      }
+
+      addSection('Request Payload', transaction.request_details)
+      addSection('Response Payload', transaction.response_details)
+
+      doc.save(`Transaction_Report_${formattedData.id}.pdf`)
+      return
+    }
 
     downloadReport({
       transaction_id: formattedData.id,

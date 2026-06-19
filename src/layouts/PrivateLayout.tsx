@@ -7,9 +7,11 @@ import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 import { useUsageCredits } from '@/hooks/useUsageCredits'
 import { getAccessToken } from '@/lib/auth'
 import { motion } from 'framer-motion'
-import { Menu, Plus, Zap, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import figmaLiveCreditsIcon from '@/assets/figma/transactions/page/live-credits.svg'
+import figmaTopUpPlusIcon from '@/assets/figma/transactions/page/top-up-plus.svg'
 
 const PrivateLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false) // Mobile drawer state; desktop sidebar stays visible.
@@ -35,6 +37,19 @@ const PrivateLayout = () => {
   const handleConfirmSwitch = () => {
     setIsSwitchModalOpen(false)
   }
+
+  useEffect(() => {
+    const handleOpenSwitchModal = () => {
+      closeModal()
+      setIsSwitchModalOpen(true)
+    }
+
+    window.addEventListener('idto:open-switch-to-production', handleOpenSwitchModal)
+
+    return () => {
+      window.removeEventListener('idto:open-switch-to-production', handleOpenSwitchModal)
+    }
+  }, [closeModal])
 
   // Redirect mobile non-production users from dashboard to post-signup-info
   useEffect(() => {
@@ -79,7 +94,7 @@ const PrivateLayout = () => {
         </div>
 
         <div className="flex-1 min-w-0 flex flex-col bg-[#f7f7f8] overflow-hidden">
-          <header className="h-[71px] shrink-0 border-b border-[#e7e8ea] bg-white/95 backdrop-blur flex items-center justify-between px-6 lg:px-10">
+          <header className="h-[71px] shrink-0 border-b border-[#e7e8ea] bg-white/80 backdrop-blur flex items-center justify-between px-6 lg:px-10">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -87,13 +102,32 @@ const PrivateLayout = () => {
               >
                 {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
-              <h1 className="text-[28px] font-semibold leading-none tracking-normal text-[#131b31]">
-                idto.ai
-              </h1>
+              <div>
+                <div className="flex items-center gap-2 text-[12px] font-semibold uppercase leading-[17px] tracking-[1.76px] text-[#a1a1a1]">
+                  <span className="size-1.5 rounded-full bg-[#00e59e]" />
+                  Live Data
+                </div>
+                <h1 className="text-[26px] font-semibold leading-[39px] tracking-[-0.65px] text-[#171717]">
+                  idto<span className="text-[#0019ff]">.</span>ai
+                </h1>
+              </div>
             </div>
-            <div className="hidden sm:flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-[#9aa0ab]">
-              <span className="size-1.5 rounded-full bg-[#00d395]" />
-              Sample Data
+            <div className="hidden h-[42px] items-center gap-3 rounded-full border border-[#e5e5e5] bg-white px-[17px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] sm:flex">
+              <div className="flex items-center gap-1.5 text-[12px] font-medium uppercase leading-[17px] tracking-[0.55px] text-[#737373]">
+                <img src={figmaLiveCreditsIcon} alt="" className="size-3.5" />
+                Live Credits
+              </div>
+              <span className="text-[16px] font-semibold leading-[22.5px] text-[#171717]">
+                {liveCredits}
+              </span>
+              <button
+                type="button"
+                onClick={() => navigate('/billing')}
+                className="grid size-6 place-items-center rounded-full bg-[#0019ff] text-white"
+                aria-label="Top up credits"
+              >
+                <img src={figmaTopUpPlusIcon} alt="" className="size-3.5" />
+              </button>
             </div>
           </header>
 
@@ -152,7 +186,7 @@ const PrivateLayout = () => {
 
       {/* Main Content */}
       <div className="flex-1 min-w-0 flex flex-col bg-[#f7f7f8] overflow-hidden">
-        <header className="h-[71px] shrink-0 border-b border-[#e7e8ea] bg-white/95 backdrop-blur flex items-center justify-between px-6 lg:px-10">
+        <header className="h-[71px] shrink-0 border-b border-[#e5e5e5] bg-white/95 backdrop-blur flex items-center justify-between px-6 lg:px-10">
           <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -161,30 +195,30 @@ const PrivateLayout = () => {
               {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
             <div>
-              <div className="flex items-center gap-2 text-[12px] font-semibold uppercase leading-[17px] tracking-[1.98px] text-[#5b6472]">
-                <span className="size-1.5 rounded-full bg-[#00d395]" />
+              <div className="flex items-center gap-2 text-[12px] font-semibold uppercase leading-[17px] tracking-[1.76px] text-[#a1a1a1]">
+                <span className="size-1.5 rounded-full bg-[#00e59e]" />
                 Live Data
               </div>
-              <h1 className="text-[36px] font-bold leading-[39px] tracking-[-1.08px] text-[#0a121f]">
-                idto.ai
+              <h1 className="text-[26px] font-semibold leading-[39px] tracking-[-0.65px] text-[#171717]">
+                idto<span className="text-[#0019ff]">.</span>ai
               </h1>
             </div>
           </div>
-          <div className="hidden h-[42px] items-center gap-3 rounded-full border border-[#e0e5eb] bg-white/90 px-[17px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] sm:flex">
-            <div className="flex items-center gap-1.5 text-[12px] font-bold uppercase leading-[17px] tracking-[0.6px] text-[#5b6472]">
-              <Zap className="size-3.5 text-[#0019ff]" />
+          <div className="hidden h-[42px] items-center gap-3 rounded-full border border-[#e5e5e5] bg-white px-[17px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] sm:flex">
+            <div className="flex items-center gap-1.5 text-[12px] font-medium uppercase leading-[17px] tracking-[0.55px] text-[#737373]">
+              <img src={figmaLiveCreditsIcon} alt="" className="size-3.5" />
               Live Credits
             </div>
-            <span className="text-[18px] font-bold leading-[22.5px] tracking-[-0.36px] text-[#0a121f]">
+            <span className="text-[16px] font-semibold leading-[22.5px] text-[#171717]">
               {liveCredits}
             </span>
             <button
               type="button"
               onClick={() => navigate('/billing')}
-              className="grid size-6 place-items-center rounded-full bg-[#eef2ff] text-[#0019ff]"
+              className="grid size-6 place-items-center rounded-full bg-[#0019ff] text-white"
               aria-label="Top up credits"
             >
-              <Plus className="size-3.5" />
+              <img src={figmaTopUpPlusIcon} alt="" className="size-3.5" />
             </button>
           </div>
         </header>

@@ -1,6 +1,7 @@
 import { Play } from 'lucide-react'
 import SimulationModeBanner from '@/components/dashboard/SimulationModeBanner'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
+import idtoMark from '@/assets/figma/transactions/idto-mark.png'
 
 type EnvironmentStatusProps = {
   variant?: 'banner' | 'header'
@@ -9,11 +10,7 @@ type EnvironmentStatusProps = {
 const SandboxHeader = () => (
   <div className="flex h-20 w-full items-center gap-3 px-5">
     <div className="relative size-9 shrink-0 rounded-lg bg-white shadow-[0_10px_30px_rgba(19,27,49,0.08)] grid place-items-center">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="24" viewBox="0 0 16 24" fill="none" aria-hidden="true">
-        <path d="M3 3h5v5H3V3Z" fill="#0019FF" />
-        <path d="M8 8h5v5H8V8Z" fill="#00C7A6" />
-        <path d="M3 13h5v5H3v-5Z" fill="#0019FF" />
-      </svg>
+      <img src={idtoMark} alt="" className="h-5 w-3 object-contain" />
       <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-[#00d395]" />
     </div>
     <div className="flex items-center gap-2">

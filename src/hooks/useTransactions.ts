@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import http from "@/api/axiosInstance";
 import { useOnboardingStatus } from "./useOnboardingStatus";
+import { sandboxTransactions } from "@/mocks/sandboxTransactions";
 
 export type Transaction = {
   trax_id: string;
@@ -16,9 +17,6 @@ export type Transaction = {
 type TransactionApiResponse = Omit<Transaction, "trax_id"> & {
   trax_id: string | number;
 };
-
-// Example good mock data
-const MOCK_TRANSACTIONS: Transaction[] = [];
 
 export function useTransactions(search?: string) {
   const { data: onboardingStatus } = useOnboardingStatus();
@@ -36,9 +34,23 @@ export function useTransactions(search?: string) {
         setError(null);
 
         if (!isProduction) {
-          // Use mock data if not onboarded
+          const normalizedSearch = search?.trim().toLowerCase();
+          const filteredTransactions = normalizedSearch
+            ? sandboxTransactions.filter((transaction) =>
+                [
+                  transaction.trax_id,
+                  transaction.api_name,
+                  transaction.response_message,
+                  transaction.status,
+                ]
+                  .join(" ")
+                  .toLowerCase()
+                  .includes(normalizedSearch)
+              )
+            : sandboxTransactions;
+
           if (!cancelled) {
-            setData(MOCK_TRANSACTIONS);
+            setData(filteredTransactions);
             setLoading(false);
           }
           return;

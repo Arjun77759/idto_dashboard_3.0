@@ -142,7 +142,7 @@ const RecentInvoicesTable = () => {
       key: 'amount',
       header: 'Amount',
       width: '208px',
-      render: (row) => (row.amount ? `₹${Math.round(parseFloat(row.amount))}` : '₹0')
+      render: (row) => (row.amount ? `Rs. ${Math.round(parseFloat(row.amount))}` : 'Rs. 0')
     },
     {
       key: 'action',
@@ -176,59 +176,50 @@ const RecentInvoicesTable = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.4 }}
-      className="bg-white border border-[#e7e8ea] border-solid grow min-h-0 min-w-px relative rounded-2xl shrink-0 w-full"
+      className="relative w-full shrink-0 grow rounded-[22px] border border-[#e5e5e5]/80 bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)]"
     >
-      <div className="flex flex-col gap-4 sm:gap-6 items-start overflow-hidden p-4 sm:p-6 relative rounded-[inherit] w-full">
-        <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] tracking-[-0.12px] w-full">
-          Recent Invoices
-        </p>
-
-        {/* Search and Action Bar */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-0 relative rounded shrink-0 w-full">
-          <div className="flex flex-row items-center self-stretch w-full sm:w-auto">
-            <div className="bg-white border border-[#e7e8ea] border-solid flex h-full items-center justify-between pl-3 pr-2 py-2 relative rounded-lg shrink-0 w-full sm:w-[500px]">
-              <div className="flex gap-2 items-center relative shrink-0 w-full">
-                <Search className="size-4 text-[#9296a0]" />
-                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by invoice id" className="h-7 border-0 focus-visible:ring-0 text-[12px] px-0" />
-              </div>
-            </div>
+      <div className="relative flex w-full flex-col items-start gap-3 overflow-hidden rounded-[inherit] p-[25px]">
+        <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[14px] font-semibold leading-[21px] text-[#171717]">Recent invoices</p>
+            <p className="text-[12px] leading-[17.25px] text-[#737373]">
+              Download and search your billing history
+            </p>
           </div>
-          <div className="flex flex-wrap gap-2 sm:gap-3 items-center relative shrink-0 w-full sm:w-auto">
-            <Button
-              onClick={handleExportCSV}
-              className="flex justify-center items-center gap-2 border-0"
-              style={{
-                padding: "14px 8px",
-                borderRadius: "8px",
-                background: "var(--Primary-0, #E6E8FF)",
-              }}
-            >
-              <p className="font-medium leading-[1.4] text-[12px] text-nowrap tracking-[-0.12px] whitespace-pre text-[#0019ff]">
-                Export CSV
-              </p>
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="15" viewBox="0 0 14 15" fill="none">
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M13.667 11.862L11.1956 14.3334L10.2528 13.3906L11.1147 12.5287L7.39085 12.5287L7.39085 11.1954L11.1147 11.1954L10.2528 10.3334L11.1956 9.39062L13.667 11.862Z" fill="#0019FF" />
-                <path d="M12.3333 0.651515C12.3333 0.291693 12.0427 0 11.6842 0H4.92411L0 4.94226V13.6818C0 14.0416 0.290623 14.3333 0.649123 14.3333H5.84204V13.0303H1.29818V5.86367H5.84204L5.84204 1.30306H11.035V7.83336H12.3333V0.651515Z" fill="#0019FF" />
-              </svg>
-            </Button>
-          </div>
+          <Button
+            onClick={handleExportCSV}
+            variant="outline"
+            className="h-9 rounded-[10px] border-[#e2e8f0] bg-white px-3 text-[12px] font-medium text-[#171717] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
+          >
+            <Download className="size-4" />
+            Export CSV
+          </Button>
         </div>
 
-        {/* Filter Bar */}
-        <div className="flex flex-wrap gap-2 h-auto sm:h-10 items-center justify-between relative shrink-0 w-full">
-          <div className="flex flex-wrap gap-2 h-full items-center min-h-0 min-w-px relative shrink-0">
-            <div className="bg-white h-10 relative rounded-lg shrink-0">
-              <div className="flex gap-2 h-full items-center justify-center overflow-hidden pr-2 py-2 relative rounded-[inherit]">
-                {/* <Calendar className="size-4 text-[#9296a0]" /> */}
-                <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-7 w-[140px] text-[12px]" />
-                <span className="text-[#9296a0] text-[12px]">-</span>
-                <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-7 w-[140px] text-[12px]" />
+        {/* Search and Action Bar */}
+        <div className="flex w-full flex-col gap-2 rounded p-0 sm:flex-row sm:items-center">
+          <div className="flex min-w-[220px] flex-1 flex-row items-center self-stretch">
+            <div className="relative flex h-9 w-full shrink-0 items-center justify-between rounded-[10px] border border-[#e5e5e5] bg-white py-2 pl-3 pr-2 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]">
+              <div className="flex gap-2 items-center relative shrink-0 w-full">
+                <Search className="size-4 text-[#9296a0]" />
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by invoice ID" className="h-7 border-0 px-0 text-[12px] focus-visible:ring-0" />
               </div>
             </div>
-            <div className="bg-white h-10 relative rounded-lg shrink-0">
-              <div className="flex gap-2 h-full items-center justify-center overflow-hidden px-2 py-2 relative rounded-[inherit] w-[180px]">
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative h-9 shrink-0 rounded-[10px] bg-white">
+              <div className="flex gap-2 h-full items-center justify-center overflow-hidden pr-2 py-2 relative rounded-[inherit]">
+                {/* <Calendar className="size-4 text-[#9296a0]" /> */}
+                <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-9 w-[140px] rounded-[10px] border-[#e5e5e5] text-[12px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]" />
+                <span className="text-[#9296a0] text-[12px]">-</span>
+                <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-9 w-[140px] rounded-[10px] border-[#e5e5e5] text-[12px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]" />
+              </div>
+            </div>
+            <div className="relative h-9 shrink-0 rounded-[10px] bg-white">
+              <div className="relative flex h-full w-[60px] items-center justify-center overflow-hidden rounded-[inherit]">
                 <Select value={status} onValueChange={(v) => setStatus(v as any)}>
-                  <SelectTrigger className="h-7 text-[12px]">
+                  <SelectTrigger className="h-9 rounded-[10px] border-[#e5e5e5] text-[12px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -240,23 +231,16 @@ const RecentInvoicesTable = () => {
                 </Select>
               </div>
             </div>
-            <div className="bg-white h-10 relative rounded-lg shrink-0">
-              <div className="flex gap-2 h-full items-center justify-center overflow-hidden px-2 py-2 relative rounded-[inherit]">
-                <span className="text-[12px] text-[#9296a0]">Amount</span>
-                <Input placeholder="Min" value={amountMin} onChange={(e) => setAmountMin(e.target.value)} className="h-7 w-20 text-[12px]" />
-                <Input placeholder="Max" value={amountMax} onChange={(e) => setAmountMax(e.target.value)} className="h-7 w-20 text-[12px]" />
+            <div className="relative h-9 shrink-0 rounded-[10px] bg-white">
+              <div className="relative flex h-full items-center justify-center gap-2 overflow-hidden rounded-[inherit]">
+                <Input placeholder="Min" value={amountMin} onChange={(e) => setAmountMin(e.target.value)} className="h-9 w-[60px] rounded-[10px] border-[#e5e5e5] text-center text-[12px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]" />
+                <Input placeholder="Max" value={amountMax} onChange={(e) => setAmountMax(e.target.value)} className="h-9 w-[60px] rounded-[10px] border-[#e5e5e5] text-center text-[12px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]" />
               </div>
             </div>
-          </div>
-          <div className="border border-[#e7e8ea] border-solid h-10 relative rounded-lg shrink-0">
-            <div className="flex gap-1 h-full items-center justify-center overflow-hidden px-2 py-3.5 relative rounded-[inherit]">
-              <button onClick={resetFilters} className="flex items-center gap-1">
-                <p className="font-medium leading-[1.4] relative shrink-0 text-[12px] text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
-                  Reset
-                </p>
-                <RotateCcw className="size-4 text-[#9296a0]" />
-              </button>
-            </div>
+            <button onClick={resetFilters} className="flex h-9 items-center gap-1 rounded-[10px] px-3 text-[12px] font-medium text-[#737373] hover:bg-[#f7f7f8]">
+              <RotateCcw className="size-4" />
+              Reset
+            </button>
           </div>
         </div>
 
@@ -275,3 +259,4 @@ const RecentInvoicesTable = () => {
 }
 
 export default RecentInvoicesTable
+

@@ -1,10 +1,12 @@
 import EnvironmentStatus from '@/components/dashboard/EnvironmentStatus'
-import sidebarAnalyticsIcon from '@/assets/sidebar/Analytics.svg'
-import sidebarBillingIcon from '@/assets/sidebar/Billing.svg'
-import sidebarBrandingIcon from '@/assets/sidebar/Branding.svg'
-import sidebarDocIcon from '@/assets/sidebar/Doc.svg'
-import sidebarHomeIcon from '@/assets/sidebar/Home.svg'
-import sidebarTransactionsIcon from '@/assets/sidebar/Transactions.svg'
+import figmaGuidedSetupIcon from '@/assets/figma/transactions/page/guided-setup.svg'
+import figmaNavAnalyticsIcon from '@/assets/figma/transactions/page/nav-analytics.svg'
+import figmaNavApiDocIcon from '@/assets/figma/transactions/page/nav-api-doc.svg'
+import figmaNavBillingIcon from '@/assets/figma/transactions/page/nav-billing.svg'
+import figmaNavBrandingIcon from '@/assets/figma/transactions/page/nav-branding.svg'
+import figmaNavHomeIcon from '@/assets/figma/transactions/page/nav-home.svg'
+import figmaNavSettingsIcon from '@/assets/figma/transactions/page/nav-settings.svg'
+import figmaNavTransactionsIcon from '@/assets/figma/transactions/page/nav-transactions.svg'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -388,26 +390,26 @@ const Sidebar = () => {
     {
       name: 'Workspace',
       items: [
-        { name: 'Home', href: '/dashboard', icon: BarChart3, iconSrc: sidebarHomeIcon, isActive: location.pathname === '/dashboard' },
-        { name: 'Analytics', href: '/analytics', icon: BarChart3, iconSrc: sidebarAnalyticsIcon, isActive: location.pathname === '/analytics' },
-        { name: 'Transactions', href: '/transactions', icon: Receipt, iconSrc: sidebarTransactionsIcon, isActive: location.pathname === '/transactions' },
-        { name: 'Billing', href: '/billing', icon: CreditCard, iconSrc: sidebarBillingIcon, isActive: location.pathname === '/billing' },
+        { name: 'Home', href: '/dashboard', icon: BarChart3, iconSrc: figmaNavHomeIcon, isActive: location.pathname === '/dashboard' },
+        { name: 'Analytics', href: '/analytics', icon: BarChart3, iconSrc: figmaNavAnalyticsIcon, isActive: location.pathname === '/analytics' },
+        { name: 'Transactions', href: '/transactions', icon: Receipt, iconSrc: figmaNavTransactionsIcon, isActive: location.pathname === '/transactions' },
+        { name: 'Billing', href: '/billing', icon: CreditCard, iconSrc: figmaNavBillingIcon, isActive: location.pathname === '/billing' },
         { name: 'API Testing', href: '/api-testing', icon: FlaskConical, isActive: location.pathname === '/api-testing' },
         {
           name: 'Documentation',
           href: 'https://idtoai.readme.io/reference/idtoai-verification-apis',
           icon: BookOpen,
-          iconSrc: sidebarDocIcon,
+          iconSrc: figmaNavApiDocIcon,
           isExternal: true,
         },
         {
           name: 'Branding',
           href: 'https://idto.ai/demo',
           icon: Key,
-          iconSrc: sidebarBrandingIcon,
+          iconSrc: figmaNavBrandingIcon,
           isExternal: true,
         },
-        { name: 'Settings', href: '/settings', icon: Settings, isActive: location.pathname === '/settings', isDisabled: true },
+        { name: 'Settings', href: '/settings', icon: Settings, iconSrc: figmaNavSettingsIcon, isActive: location.pathname === '/settings', isDisabled: true },
       ],
     },
   ]
@@ -572,9 +574,7 @@ const Sidebar = () => {
       {useFigmaSidebar && (
         <div className="mx-3 mb-3 flex w-[214px] flex-col gap-3">
           <div className="flex flex-col items-start gap-1 rounded-[18px] bg-[linear-gradient(144.44deg,#dff0ff_0%,#adf3f7_100%)] p-4">
-            <div className="relative size-4 shrink-0 text-[#0019ff]">
-              <Settings className="size-4" />
-            </div>
+            <img src={figmaGuidedSetupIcon} alt="" className="size-4 shrink-0" />
             <p className="pt-[3px] text-[14px] font-bold leading-[17.5px] text-[#070d1a]">
               Need a guided setup?
             </p>

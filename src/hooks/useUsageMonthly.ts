@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getMonthlyUsage, type UsageMonthlyFilters } from "@/api/usageApi";
 import { useOnboardingStatus } from "@/hooks/useOnboardingStatus";
+import { getSandboxUsageMonthly } from "@/mocks/sandboxTransactions";
 
 // Type for each monthly usage entry
 export type UsageMonthlyItem = {
@@ -9,11 +10,6 @@ export type UsageMonthlyItem = {
   unit_price: number;
   total_cost: number;
 };
-
-// Generate good mock monthly usage data
-function getMockUsageMonthly(): UsageMonthlyItem[] {
-  return [];
-}
 
 export function useUsageMonthly(filters?: UsageMonthlyFilters) {
   const { data: onboardingStatus } = useOnboardingStatus();
@@ -30,9 +26,8 @@ export function useUsageMonthly(filters?: UsageMonthlyFilters) {
       setError(null);
       try {
         if (!isProduction) {
-          // Provide good mock monthly usage data if not in production
           if (!cancelled) {
-            setData(getMockUsageMonthly());
+            setData(getSandboxUsageMonthly());
             setLoading(false);
             setError(null);
           }
