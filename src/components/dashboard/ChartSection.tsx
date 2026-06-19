@@ -37,7 +37,7 @@ const ChartSection = () => {
       tooltip: {
         trigger: 'axis',
         backgroundColor: '#fff',
-        borderColor: '#e7e8ea',
+        borderColor: '#e0e5eb',
         borderWidth: 1,
         textStyle: {
           color: '#616675',
@@ -155,7 +155,7 @@ const ChartSection = () => {
       transition={{ duration: 0.3, delay: 0.4 }}
       className="min-w-[300px] w-[411px] h-full max-w-full"
     >
-      <Card className="h-full rounded-2xl border-[#e7e8ea]">
+      <Card className="h-full rounded-2xl border-[#e0e5eb]">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 px-6 pt-6">
           <div className="space-y-1">
             <h3 className="text-xs font-medium text-[#616675] tracking-[-0.12px]">

@@ -93,12 +93,12 @@ const PrivateLayout = () => {
           <Sidebar />
         </div>
 
-        <div className="flex-1 min-w-0 flex flex-col bg-[#f7f7f8] overflow-hidden">
-          <header className="h-[71px] shrink-0 border-b border-[#e7e8ea] bg-white/80 backdrop-blur flex items-center justify-between px-6 lg:px-10">
+        <div className="flex-1 min-w-0 flex flex-col bg-[#fafafb] overflow-hidden">
+          <header className="h-[71px] shrink-0 border-b border-[#e5e5e5]/70 bg-white/80 backdrop-blur flex items-center justify-between px-6 lg:px-10">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-2 rounded-md text-[#616675] hover:text-[#131b31] hover:bg-[#f7f7f8] block lg:hidden"
+                className="p-2 rounded-md text-[#5b6472] hover:text-[#091123] hover:bg-[#fafafb] block lg:hidden"
               >
                 {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
@@ -185,12 +185,12 @@ const PrivateLayout = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 min-w-0 flex flex-col bg-[#f7f7f8] overflow-hidden">
-        <header className="h-[71px] shrink-0 border-b border-[#e5e5e5] bg-white/95 backdrop-blur flex items-center justify-between px-6 lg:px-10">
+      <div className="flex-1 min-w-0 flex flex-col bg-[#fafafb] overflow-hidden">
+        <header className="h-[71px] shrink-0 border-b border-[#e5e5e5] bg-white/80 backdrop-blur flex items-center justify-between px-6 lg:px-10">
           <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-md text-[#616675] hover:text-[#131b31] hover:bg-[#f7f7f8] block lg:hidden"
+              className="p-2 rounded-md text-[#5b6472] hover:text-[#091123] hover:bg-[#fafafb] block lg:hidden"
               >
               {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>

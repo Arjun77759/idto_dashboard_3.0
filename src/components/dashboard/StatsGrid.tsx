@@ -13,24 +13,28 @@ const sandboxStats = [
     value: '1,248',
     change: '+12.4%',
     icon: ShieldCheck,
+    iconClass: 'bg-[#cbffec] text-[#0a8f6b]',
   },
   {
     title: 'Success rate',
     value: '98.7%',
     change: '+0.3%',
     icon: TrendingUp,
+    iconClass: 'bg-[#e0eeff] text-[#231eec]',
   },
   {
     title: 'Avg. latency',
     value: '412 ms',
     change: '-18 ms',
     icon: Timer,
+    iconClass: 'bg-[#e0eeff] text-[#231eec]',
   },
   {
     title: 'Active APIs',
     value: '6 / 14',
     change: '5 unused',
     icon: Activity,
+    iconClass: 'bg-[#cbffec] text-[#0a8f6b]',
   },
 ]
 
@@ -48,7 +52,7 @@ const StatsGrid = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.2 }}
-        className="w-full overflow-hidden rounded-[21.483px] border-[0.895px] border-[#e1e5ea] bg-white p-[20.895px] shadow-[0_0.895px_1.79px_rgba(17,22,31,0.04),0_0.895px_2.685px_rgba(17,22,31,0.06)]"
+        className="w-full overflow-hidden rounded-[21.483px] border-[0.895px] border-[#e0e5eb] bg-white p-[20.895px] shadow-[0_0.895px_1.79px_rgba(17,22,31,0.04),0_0.895px_2.685px_rgba(17,22,31,0.06)]"
       >
         <div className="mb-4">
           <p className="text-[10px] font-bold uppercase leading-[15px] tracking-[1.6px] text-[#5e6a7a]">
@@ -71,7 +75,7 @@ const StatsGrid = () => {
                 className="h-[148px] rounded-[22px] border border-[#e0e5eb] bg-white p-[21px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
               >
                 <div className="flex items-start justify-between">
-                  <div className="grid size-9 place-items-center rounded-[14px] bg-[#fff2d0] text-[#f09c17]">
+                  <div className={`grid size-9 place-items-center rounded-[14px] ${stat.iconClass}`}>
                     <Icon className="size-4" />
                   </div>
                   <span className="text-[12px] font-normal leading-4 text-[#5b6472]">
@@ -148,7 +152,7 @@ const StatsGrid = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.2 }}
-      className="w-full overflow-hidden rounded-[21.483px] border-[0.895px] border-[#e1e5ea] bg-white p-[20.895px] shadow-[0_0.895px_1.79px_rgba(17,22,31,0.04),0_0.895px_2.685px_rgba(17,22,31,0.06)]"
+      className="w-full overflow-hidden rounded-[21.483px] border-[0.895px] border-[#e0e5eb] bg-white p-[20.895px] shadow-[0_0.895px_1.79px_rgba(17,22,31,0.04),0_0.895px_2.685px_rgba(17,22,31,0.06)]"
     >
       <div className="mb-4">
         <p className="text-[10px] font-bold uppercase leading-[15px] tracking-[1.6px] text-[#5e6a7a]">

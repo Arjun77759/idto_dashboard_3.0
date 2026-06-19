@@ -110,7 +110,7 @@ const InvoicesTable = () => {
                   <td className="px-6 leading-5 text-[#5b6472]">{invoice.date}</td>
                   <td className="px-6 text-right leading-5 text-[#0a121f]">{invoice.amount}</td>
                   <td className="px-6 text-center">
-                    <span className={`rounded-full px-2 pb-[1.78px] pt-[1.5px] text-[12px] font-normal uppercase leading-[14.29px] tracking-[0.5px] ${isProduction ? 'bg-[#e1faec] text-[#008f5a]' : 'bg-[#fff2d0] text-[#f09c17]'}`}>
+                    <span className={`rounded-full px-2 pb-[1.78px] pt-[1.5px] text-[12px] font-normal uppercase leading-[14.29px] tracking-[0.5px] ${isProduction ? 'bg-[#ddfcef] text-[#007a55]' : 'bg-[#fff2d0] text-[#f09c17]'}`}>
                       {invoice.status}
                     </span>
                   </td>

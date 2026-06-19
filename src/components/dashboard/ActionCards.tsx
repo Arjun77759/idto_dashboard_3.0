@@ -48,7 +48,7 @@ const ActionCards = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.2 }}
-                className="w-full rounded-[22px] border border-[#e4e7ec] bg-white p-5 shadow-[0_2px_5px_rgba(19,27,49,0.04)]"
+                className="w-full rounded-[22px] border border-[#e0e5eb] bg-white p-5 shadow-[0_2px_5px_rgba(19,27,49,0.04)]"
             >
                 <div className="mb-4">
                     <p className="text-[10px] font-bold uppercase leading-[15px] tracking-[1.6px] text-[#5e6a7a]">
@@ -75,11 +75,11 @@ const ActionCards = () => {
                             Add credits to your wallet
                         </h3>
                         <div className="flex flex-col gap-[21px]">
-                          <div className="rounded-[14.065px] bg-[#fff2d0] px-[14.065px] pb-[14.065px] pt-[13.185px]">
+                          <div className="rounded-[14.065px] bg-[#0019ff]/10 px-[14.065px] pb-[14.065px] pt-[13.185px]">
                             <p className="text-[9.669px] font-bold uppercase leading-[14.504px] tracking-[0.4835px] text-[#5e6a7a]">
                                 Current Balance
                             </p>
-                            <p className="pt-[1.758px] text-[26.371px] font-bold leading-[31.645px] tracking-[-0.6593px] text-[#f09c17]">
+                            <p className="pt-[1.758px] text-[26.371px] font-bold leading-[31.645px] tracking-[-0.6593px] text-[#091123]">
                                 {'\u20b9'}739.22
                             </p>
                             <p className="text-[10.548px] font-normal leading-[14.065px] text-[#5e6a7a]">
@@ -88,12 +88,12 @@ const ActionCards = () => {
                           </div>
                           <div className="grid h-[33.403px] grid-cols-3 gap-[7.032px]">
                             <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}1,000</button>
-                            <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#f09c17] bg-[#fff2d0] text-[12.306px] font-normal leading-[17.581px] text-[#f09c17]">{'\u20b9'}5,000</button>
+                            <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#0019ff] bg-[#0019ff]/10 text-[12.306px] font-normal leading-[17.581px] text-[#0019ff]">{'\u20b9'}5,000</button>
                             <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}10,000</button>
                           </div>
                           <button
                               onClick={handleRecharge}
-                              className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] bg-[#f09c17] py-[8.79px] text-[12.306px] font-normal leading-[17.581px] text-[#fcfcfc]"
+                              className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] bg-[#0019ff] py-[8.79px] text-[12.306px] font-normal leading-[17.581px] text-[#fcfcfc]"
                           >
                               Recharge now
                               <Plus className="size-[12.306px]" />
@@ -116,7 +116,7 @@ const ActionCards = () => {
                             {barHeights.map((height, index) => (
                                 <div
                                     key={height + index}
-                                    className={`min-w-px flex-1 rounded-t-[8.79px] ${index === barHeights.length - 1 ? 'bg-[#f09c17]' : 'bg-[#fff2d0]'}`}
+                                    className={`min-w-px flex-1 rounded-t-[8.79px] ${index === barHeights.length - 1 ? 'bg-[#0019ff]' : 'bg-[#0019ff]/10'}`}
                                     style={{ height }}
                                 />
                             ))}
@@ -181,14 +181,14 @@ const ActionCards = () => {
                           <div className="rounded-[14.065px] border-[0.879px] border-[#dfe5ed] p-[14.944px]">
                             <div className="flex items-center justify-between">
                                 <span className="text-[12.306px] font-normal leading-[17.581px] text-[#091123]">INV-00012</span>
-                                <span className="rounded-full bg-[#fff0c5] px-[7.032px] py-[1.758px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[0.2198px] text-[#bb4d00]">Sandbox</span>
+                                <span className="rounded-full bg-[#fff2d0] px-[7.032px] py-[1.758px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[0.2198px] text-[#f09c17]">Sandbox</span>
                             </div>
                             <p className="pt-[5.274px] text-[21.097px] font-bold leading-[28.129px] tracking-[-0.5274px] text-[#091123]">{'\u20b9'}0.00</p>
                             <p className="text-[10.548px] font-normal leading-[14.065px] text-[#5e6a7a]">Due Jun 12, 2026</p>
                           </div>
                           <div className="flex items-center justify-between">
                               <span className="text-[10.548px] font-normal leading-[14.065px] text-[#5e6a7a]">3 invoices this quarter</span>
-                              <button className="inline-flex items-center gap-[3.516px] text-[10.548px] font-normal leading-[14.065px] text-[#f09c17]">
+                              <button className="inline-flex items-center gap-[3.516px] text-[10.548px] font-normal leading-[14.065px] text-[#0019ff]">
                                 View all
                                 <ArrowUpRight className="size-[10.548px]" />
                               </button>
@@ -215,7 +215,7 @@ const ActionCards = () => {
                           </div>
                           <button
                               onClick={handleStartTesting}
-                              className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] border-[0.879px] border-[#f09c17] bg-[#fff2d0] px-[0.879px] py-[7.911px] text-[12.306px] font-normal leading-[17.581px] text-[#f09c17]"
+                              className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] border-[0.879px] border-[#0019ff] bg-[#0019ff]/10 px-[0.879px] py-[7.911px] text-[12.306px] font-normal leading-[17.581px] text-[#0019ff]"
                           >
                               <FlaskConical className="size-[12.306px]" />
                               Open API console
@@ -235,15 +235,15 @@ const ActionCards = () => {
                             Bring your brand to life
                         </h3>
                         <div className="flex flex-col gap-[10.548px]">
-                          <div className="overflow-hidden rounded-[14.065px] bg-[#fff2d0] p-[14.065px]">
+                          <div className="overflow-hidden rounded-[14.065px] bg-[#0019ff]/10 p-[14.065px]">
                             <div className="flex items-center gap-[7.032px] pb-[6.153px]">
-                                <div className="grid size-[24.613px] place-items-center rounded-[8.79px] bg-[rgba(240,156,23,0.2)]">
-                                    <span className="text-[10.548px] font-bold leading-[14.065px] text-[#f09c17]">A</span>
+                                <div className="grid size-[24.613px] place-items-center rounded-[8.79px] bg-[rgba(0,25,255,0.12)]">
+                                    <span className="text-[10.548px] font-bold leading-[14.065px] text-[#0019ff]">A</span>
                                 </div>
                                 <span className="text-[12.306px] font-bold leading-[17.581px] text-black">Brand Logo</span>
                             </div>
-                            <div className="h-[5.274px] overflow-hidden rounded-full bg-[rgba(240,156,23,0.2)]">
-                                <div className="h-full w-[60%] rounded-full bg-[#f09c17]" />
+                            <div className="h-[5.274px] overflow-hidden rounded-full bg-[rgba(0,25,255,0.12)]">
+                                <div className="h-full w-[60%] rounded-full bg-[#0019ff]" />
                             </div>
                             <p className="mt-[4.395px] text-[9.669px] font-normal leading-[14.504px] text-black/80">60% customized</p>
                           </div>
@@ -307,7 +307,7 @@ const ActionCards = () => {
                         Add credits to your wallet
                     </h3>
                     <div className="flex flex-col gap-[21px]">
-                        <div className="rounded-[14.065px] bg-[#e8f3ff] px-[14.065px] pb-[14.065px] pt-[13.185px]">
+                        <div className="rounded-[14.065px] bg-[#0019ff]/10 px-[14.065px] pb-[14.065px] pt-[13.185px]">
                             <p className="text-[9.669px] font-bold uppercase leading-[14.504px] tracking-[0.4835px] text-[#5e6a7a]">
                                 Current Balance
                             </p>
@@ -326,7 +326,7 @@ const ActionCards = () => {
                         </div>
                         <div className="grid h-[33.403px] grid-cols-3 gap-[7.032px]">
                             <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}1,000</button>
-                            <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#0019ff] bg-[#e8f3ff] text-[12.306px] font-normal leading-[17.581px] text-[#0019ff]">{'\u20b9'}5,000</button>
+                            <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#0019ff] bg-[#0019ff]/10 text-[12.306px] font-normal leading-[17.581px] text-[#0019ff]">{'\u20b9'}5,000</button>
                             <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}10,000</button>
                         </div>
                         <button
@@ -354,7 +354,7 @@ const ActionCards = () => {
                         {chartValues.slice(-12).map((value, index) => (
                             <div
                                 key={`${value}-${index}`}
-                                className={`min-w-px flex-1 rounded-t-[8.79px] ${index === chartValues.slice(-12).length - 1 ? 'bg-[#0019ff]' : 'bg-[#dce8ff]'}`}
+                                className={`min-w-px flex-1 rounded-t-[8.79px] ${index === chartValues.slice(-12).length - 1 ? 'bg-[#0019ff]' : 'bg-[#0019ff]/10'}`}
                                 style={{ height: Math.max(10, (value / maxChartValue) * 150) }}
                             />
                         ))}
@@ -425,7 +425,7 @@ const ActionCards = () => {
                         <div className="rounded-[14.065px] border-[0.879px] border-[#dfe5ed] p-[14.944px]">
                             <div className="flex items-center justify-between">
                                 <span className="text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{latestInvoice?.id || '-'}</span>
-                                <span className="rounded-full bg-[#e1faec] px-[7.032px] py-[1.758px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[0.2198px] text-[#008f5a]">{latestInvoice?.status || 'Live'}</span>
+                                <span className="rounded-full bg-[#ddfcef] px-[7.032px] py-[1.758px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[0.2198px] text-[#007a55]">{latestInvoice?.status || 'Live'}</span>
                             </div>
                             <p className="pt-[5.274px] text-[21.097px] font-bold leading-[28.129px] tracking-[-0.5274px] text-[#091123]">{formatCurrency(latestInvoice?.amount)}</p>
                             <p className="text-[10.548px] font-normal leading-[14.065px] text-[#5e6a7a]">{latestInvoice?.date_time || 'No invoice date'}</p>
@@ -459,7 +459,7 @@ const ActionCards = () => {
                         </div>
                         <button
                             onClick={handleStartTesting}
-                            className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] border-[0.879px] border-[#0019ff] bg-[#e8f3ff] px-[0.879px] py-[7.911px] text-[12.306px] font-normal leading-[17.581px] text-[#0019ff]"
+                            className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] border-[0.879px] border-[#0019ff] bg-[#0019ff]/10 px-[0.879px] py-[7.911px] text-[12.306px] font-normal leading-[17.581px] text-[#0019ff]"
                         >
                             <FlaskConical className="size-[12.306px]" />
                             Open API console
@@ -479,7 +479,7 @@ const ActionCards = () => {
                         Bring your brand to life
                     </h3>
                     <div className="flex flex-col gap-[10.548px]">
-                        <div className="overflow-hidden rounded-[14.065px] bg-[#e8f3ff] p-[14.065px]">
+                        <div className="overflow-hidden rounded-[14.065px] bg-[#0019ff]/10 p-[14.065px]">
                             <div className="flex items-center gap-[7.032px] pb-[6.153px]">
                                 <div className="grid size-[24.613px] place-items-center rounded-[8.79px] bg-[rgba(0,25,255,0.12)]">
                                     <span className="text-[10.548px] font-bold leading-[14.065px] text-[#0019ff]">A</span>

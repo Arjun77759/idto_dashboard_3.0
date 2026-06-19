@@ -11,14 +11,14 @@ const SandboxHeader = () => (
   <div className="flex h-20 w-full items-center gap-3 px-5">
     <div className="relative size-9 shrink-0 rounded-lg bg-white shadow-[0_10px_30px_rgba(19,27,49,0.08)] grid place-items-center">
       <img src={idtoMark} alt="" className="h-5 w-3 object-contain" />
-      <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-[#00d395]" />
+      <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-[#00d492]" />
     </div>
     <div className="flex items-center gap-2">
       <p className="text-[18px] font-semibold leading-none text-[#131b31]">
         idto.ai
       </p>
-      <span className="inline-flex h-[19px] items-center gap-1 rounded-full bg-[#fff3cf] px-2 text-[10px] font-bold uppercase tracking-normal text-[#d58d00]">
-        <span className="size-1.5 rounded-full bg-[#f6a400]" />
+      <span className="inline-flex h-[19px] items-center gap-1 rounded-full bg-[#e8f3ff] px-2 text-[10px] font-bold uppercase tracking-normal text-[#2031c2]">
+        <span className="size-1.5 rounded-full bg-[#00e59e]" />
         Sandbox
       </span>
     </div>
@@ -49,8 +49,8 @@ const ProductionHeader = () => (
 )
 
 const ProductionBanner = () => (
-  <div className="bg-[#f7f7f8] border border-[#e7e8ea] flex items-center justify-between gap-6 rounded-[50px] px-4 py-2 min-h-[56px]">
-    <p className="text-[12px] leading-[1.4] text-[#616675] tracking-[-0.12px]">
+  <div className="bg-[#fafafb] border border-[#e0e5eb] flex items-center justify-between gap-6 rounded-[50px] px-4 py-2 min-h-[56px]">
+    <p className="text-[12px] leading-[1.4] text-[#5b6472] tracking-[-0.12px]">
       <span>You are in </span>
       <span className="font-semibold text-[#0019ff]">Live Mode</span>
       <span> — Follow the setup guide below to start populating your dashboard with real data.</span>
@@ -60,7 +60,7 @@ const ProductionBanner = () => (
         window.open('https://drive.google.com/file/d/1vV3UIcOSrKOvh0_L_qFAPzMoKwroDMsI/view?usp=sharing', '_blank')
       }}
       type="button"
-      className="bg-[#e6e8ff] border border-[#e7e8ea] flex items-center gap-2 h-10 px-4 rounded-[35px] text-[#0019ff] text-[12px] font-bold tracking-[-0.12px] whitespace-nowrap"
+      className="bg-[#e8f3ff] border border-[#e0e5eb] flex items-center gap-2 h-10 px-4 rounded-[35px] text-[#0019ff] text-[12px] font-bold tracking-[-0.12px] whitespace-nowrap"
     >
       View Tutorial
       <Play className="size-4 text-[#0019ff]" fill="currentColor" />
