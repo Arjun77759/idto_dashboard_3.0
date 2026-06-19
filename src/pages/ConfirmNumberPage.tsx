@@ -1,11 +1,10 @@
 import { ArrowRight, Phone, Sparkles } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { requestMobileOtp, verifyMobileOtp } from '../api/authApi'
 import idtoLogo from '../assets/idto-logo.svg'
 import { useToast } from '../hooks/use-toast'
-import { auth } from '../lib/firebase'
-import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth'
-import type { ConfirmationResult } from 'firebase/auth'
+import { updateSignupDraft } from '../lib/signupDraft'
 
 const CODE_LENGTH = 6
 
@@ -17,24 +16,13 @@ const ConfirmNumberPage = () => {
   const [codeError, setCodeError] = useState('')
   const [sent, setSent] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null)
+  const [otpSessionId, setOtpSessionId] = useState('')
   const inputsRef = useRef<Array<HTMLInputElement | null>>([])
-  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null)
 
   const formattedMobile = mobile.replace(/(\d{5})(\d{5})/, '$1 $2')
 
   const handleMobileChange = (value: string) => {
     setMobile(value.replace(/\D/g, '').slice(0, 10))
-  }
-
-  const getRecaptchaVerifier = () => {
-    if (!recaptchaVerifierRef.current) {
-      recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'mobile-otp-recaptcha', {
-        size: 'invisible',
-      })
-    }
-
-    return recaptchaVerifierRef.current
   }
 
   const handleSendCode = async () => {
@@ -47,9 +35,9 @@ const ConfirmNumberPage = () => {
       setSubmitting(true)
       setCodeError('')
 
-      const result = await signInWithPhoneNumber(auth, `+91${mobile}`, getRecaptchaVerifier())
+      const result = await requestMobileOtp({ mobile })
 
-      setConfirmationResult(result)
+      setOtpSessionId(result.session_id || '')
       setSent(true)
       setCode(Array(CODE_LENGTH).fill(''))
       toast({
@@ -65,8 +53,6 @@ const ConfirmNumberPage = () => {
         description: message,
         variant: 'destructive',
       })
-      recaptchaVerifierRef.current?.clear()
-      recaptchaVerifierRef.current = null
     } finally {
       setSubmitting(false)
     }
@@ -112,7 +98,7 @@ const ConfirmNumberPage = () => {
       return
     }
 
-    if (!confirmationResult) {
+    if (!sent || !otpSessionId) {
       setCodeError('Please send the code first.')
       return
     }
@@ -121,7 +107,8 @@ const ConfirmNumberPage = () => {
       setSubmitting(true)
       setCodeError('')
 
-      await confirmationResult.confirm(enteredCode)
+      await verifyMobileOtp({ mobile, otp: enteredCode, session_id: otpSessionId })
+      updateSignupDraft({ mobile, mobileVerified: true })
 
       toast({
         title: 'Number confirmed',
@@ -144,7 +131,7 @@ const ConfirmNumberPage = () => {
 
   const resetNumber = () => {
     setSent(false)
-    setConfirmationResult(null)
+    setOtpSessionId('')
     setCode(Array(CODE_LENGTH).fill(''))
     setCodeError('')
   }
@@ -273,7 +260,6 @@ const ConfirmNumberPage = () => {
               >
                 {sent ? submitting ? 'Confirming...' : 'Confirm code' : 'Use a different number'}
               </button>
-              <div id="mobile-otp-recaptcha" />
             </div>
           </div>
         </div>

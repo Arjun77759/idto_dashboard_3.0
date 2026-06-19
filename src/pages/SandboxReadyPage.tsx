@@ -51,12 +51,23 @@ const SandboxReadyPage = () => {
       return
     }
 
+    if (!draft.mobile || !draft.mobileVerified) {
+      toast({
+        title: 'Mobile verification required',
+        description: 'Please verify your mobile number before finishing signup.',
+        variant: 'destructive',
+      })
+      navigate('/confirm-number')
+      return
+    }
+
     try {
       setSubmitting(true)
       const response = await completeSignup({
         email: draft.email,
         password: draft.password,
         verification_token: draft.emailVerificationToken,
+        mobile: draft.mobile,
       })
       clearSignupDraft()
 

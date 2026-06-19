@@ -43,7 +43,8 @@ const PublicLayout = () => {
   const isBusinessProfilePage = location.pathname === '/business-profile'
   const isSandboxReadyPage = location.pathname === '/sandbox-ready'
   const isBusinessTypePage = location.pathname === '/business-type'
-  const isStandaloneAuthPage = isLoginPage || isRegisterPage || location.pathname === '/check-inbox' || location.pathname === '/create-password' || isGoogleConnectingPage || isConfirmNumberPage || isWorkspaceProfilePage || isBusinessProfilePage || isBusinessTypePage || isSandboxReadyPage
+  const isWorkspaceSetupPage = location.pathname === '/workspace-setup'
+  const isStandaloneAuthPage = isLoginPage || isRegisterPage || location.pathname === '/check-inbox' || location.pathname === '/create-password' || isGoogleConnectingPage || isConfirmNumberPage || isWorkspaceProfilePage || isBusinessProfilePage || isBusinessTypePage || isSandboxReadyPage || isWorkspaceSetupPage
 
   // Signup images array
   const signupImages = [
@@ -86,7 +87,7 @@ const PublicLayout = () => {
   const isKYCCallback = location.pathname.includes('/kyc-callback')
 
   // Redirect if authenticated - but skip redirect for KYC callback page
-  if (token && !isKYCCallback && !isGoogleConnectingPage && !isConfirmNumberPage && !isWorkspaceProfilePage && !isBusinessProfilePage && !isBusinessTypePage && !isSandboxReadyPage) {
+  if (token && !isKYCCallback && !isGoogleConnectingPage && !isConfirmNumberPage && !isWorkspaceProfilePage && !isBusinessProfilePage && !isBusinessTypePage && !isSandboxReadyPage && !isWorkspaceSetupPage) {
     return <Navigate to="/dashboard" replace />
   }
 

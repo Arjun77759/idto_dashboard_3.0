@@ -25,7 +25,7 @@ const BusinessTypePage = () => {
 
   const handleSubmit = () => {
     updateSignupDraft({ businessType: selectedType })
-    navigate('/sandbox-ready')
+    navigate('/workspace-setup')
   }
 
   return (

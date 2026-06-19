@@ -32,7 +32,7 @@ const BusinessProfilePage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    navigate(operationType === 'business' ? '/business-type' : '/sandbox-ready')
+    navigate(operationType === 'business' ? '/business-type' : '/workspace-setup')
   }
 
   return (

@@ -29,6 +29,7 @@ import TransactionDetailPage from '../pages/TransactionDetailPage'
 import TransactionsPage from '../pages/TransactionsPage'
 import UsersPage from '../pages/UsersPage'
 import WorkspaceProfilePage from '../pages/WorkspaceProfilePage'
+import WorkspaceSetupPage from '../pages/WorkspaceSetupPage'
 
 const publicRoutes = [
   {
@@ -82,6 +83,10 @@ const publicRoutes = [
   {
     path: 'sandbox-ready',
     element: <SandboxReadyPage />
+  },
+  {
+    path: 'workspace-setup',
+    element: <WorkspaceSetupPage />
   },
   {
     path: 'kyc-callback',

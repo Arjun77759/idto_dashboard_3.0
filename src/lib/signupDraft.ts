@@ -5,6 +5,8 @@ export type SignupDraft = {
   password?: string
   emailVerified?: boolean
   emailVerificationToken?: string
+  mobile?: string
+  mobileVerified?: boolean
   businessType?: string
 }
 

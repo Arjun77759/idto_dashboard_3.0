@@ -41,12 +41,13 @@ export type RequestSignupOtpResponse = {
 }
 
 const requestSignupOtpEndpoints = [
+  '/auth/request-email-otp',
+  '/auth/send-email-otp',
+  '/auth/request-signup-otp',
   '/onboard/request-email-otp',
   '/onboard/send-email-otp',
   '/onboard/send-signup-otp',
   '/onboard/request-otp',
-  '/auth/request-email-otp',
-  '/auth/send-email-otp',
 ]
 
 export async function requestSignupOtp(payload: RequestSignupOtpPayload): Promise<RequestSignupOtpResponse> {
@@ -136,6 +137,8 @@ export type VerifySignupOtpResponse = {
 }
 
 const signupOtpEndpoints = [
+  '/auth/verify-email-otp',
+  '/auth/verify-signup-otp',
   '/onboard/verify-email-otp',
   '/onboard/verify-otp',
   '/onboard/verify-email',
@@ -171,6 +174,7 @@ export type CompleteSignupPayload = {
   email: string
   password: string
   verification_token?: string
+  mobile?: string
 }
 
 export type CompleteSignupResponse = {
@@ -181,6 +185,7 @@ export type CompleteSignupResponse = {
 }
 
 const completeSignupEndpoints = [
+  '/auth/complete-signup',
   '/onboard/complete-signup',
   '/onboard/signup/complete',
   '/onboard/register',
@@ -206,6 +211,38 @@ export async function completeSignup(payload: CompleteSignupPayload): Promise<Co
   const error = new Error('Final signup completion is not available on the backend yet.')
   ;(error as any).cause = lastError
   throw error
+}
+
+export type RequestMobileOtpPayload = {
+  mobile: string
+}
+
+export type RequestMobileOtpResponse = {
+  status?: string
+  message?: string
+  otp_sent?: boolean
+  session_id?: string
+}
+
+export async function requestMobileOtp(payload: RequestMobileOtpPayload): Promise<RequestMobileOtpResponse> {
+  const { data } = await http.post<RequestMobileOtpResponse>('/auth/request-mobile-otp', payload)
+  return data
+}
+
+export type VerifyMobileOtpPayload = {
+  mobile: string
+  otp: string
+  session_id?: string
+}
+
+export type VerifyMobileOtpResponse = {
+  status?: string
+  message?: string
+}
+
+export async function verifyMobileOtp(payload: VerifyMobileOtpPayload): Promise<VerifyMobileOtpResponse> {
+  const { data } = await http.post<VerifyMobileOtpResponse>('/auth/verify-mobile-otp', payload)
+  return data
 }
 
 export type RequestPasswordResetPayload = {
