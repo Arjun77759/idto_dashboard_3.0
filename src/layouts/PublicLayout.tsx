@@ -35,7 +35,16 @@ const PublicLayout = () => {
   //@ts-ignore
   const signupIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  const isRegisterPage = location.pathname === '/register'
+  const isRegisterPage = location.pathname === '/register' || location.pathname === '/signup'
+  const isLoginPage = location.pathname === '/login'
+  const isGoogleConnectingPage = location.pathname === '/google-connecting'
+  const isConfirmNumberPage = location.pathname === '/confirm-number'
+  const isWorkspaceProfilePage = location.pathname === '/workspace-profile'
+  const isBusinessProfilePage = location.pathname === '/business-profile'
+  const isSandboxReadyPage = location.pathname === '/sandbox-ready'
+  const isBusinessTypePage = location.pathname === '/business-type'
+  const isWorkspaceSetupPage = location.pathname === '/workspace-setup'
+  const isStandaloneAuthPage = isLoginPage || isRegisterPage || location.pathname === '/check-inbox' || location.pathname === '/create-password' || isGoogleConnectingPage || isConfirmNumberPage || isWorkspaceProfilePage || isBusinessProfilePage || isBusinessTypePage || isSandboxReadyPage || isWorkspaceSetupPage
 
   // Signup images array
   const signupImages = [
@@ -48,7 +57,7 @@ const PublicLayout = () => {
 
   // Automatically rotate slide every 2s (2000ms) - only for non-register pages
   useEffect(() => {
-    if (!isRegisterPage) {
+    if (!isStandaloneAuthPage) {
       intervalRef.current = setInterval(() => {
         setCurrentSlide(prev => (prev === 2 ? 0 : prev + 1))
       }, 2000)
@@ -58,11 +67,11 @@ const PublicLayout = () => {
         }
       }
     }
-  }, [isRegisterPage])
+  }, [isStandaloneAuthPage])
 
-  // Automatically rotate signup images every 2s (2000ms) - only for register page
+  // Automatically rotate signup images every 2s (2000ms) - only when the legacy public panel is shown.
   useEffect(() => {
-    if (isRegisterPage) {
+    if (isRegisterPage && !isStandaloneAuthPage) {
       signupIntervalRef.current = setInterval(() => {
         setCurrentSignupImage(prev => (prev === 4 ? 0 : prev + 1))
       }, 2000)
@@ -72,13 +81,13 @@ const PublicLayout = () => {
         }
       }
     }
-  }, [isRegisterPage])
+  }, [isRegisterPage, isStandaloneAuthPage])
 
   // Don't redirect if we're on the KYC callback page - it needs to process the callback even if authenticated
   const isKYCCallback = location.pathname.includes('/kyc-callback')
 
   // Redirect if authenticated - but skip redirect for KYC callback page
-  if (token && !isKYCCallback) {
+  if (token && !isKYCCallback && !isGoogleConnectingPage && !isConfirmNumberPage && !isWorkspaceProfilePage && !isBusinessProfilePage && !isBusinessTypePage && !isSandboxReadyPage && !isWorkspaceSetupPage) {
     return <Navigate to="/dashboard" replace />
   }
 
@@ -86,6 +95,14 @@ const PublicLayout = () => {
   if (isKYCCallback) {
     return (
       <div className="min-h-screen w-screen bg-gray-50">
+        <Outlet />
+      </div>
+    )
+  }
+
+  if (isStandaloneAuthPage) {
+    return (
+      <div className="min-h-screen w-full overflow-x-hidden bg-white">
         <Outlet />
       </div>
     )
