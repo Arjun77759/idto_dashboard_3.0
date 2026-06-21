@@ -6,12 +6,53 @@ import { useOnboardingStatus } from '../../../hooks/useOnboardingStatus'
 import { useOnboardingSteps } from '../../../hooks/useOnboardingSteps'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { ModalHeader, StepperProgress, StepForm } from './components'
-import DirectorKYCForm from './components/DirectorKYCForm'
-// try to use the store helpers first; fall back to direct axios call if needed
-import { fetchOnboardingStatus, resetOnboardingStore } from '@/store/onboardingStore'
+import BasicDetailsForm from './components/BasicDetailsForm'
+import PANAndGSTForm from './components/PANAndGSTForm'
+import SignatoryChoiceForm from './components/SignatoryChoiceForm'
+import BankAccountForm from './components/BankAccountForm'
 import { useUserProfileStore } from '@/store/userProfileStore'
-import axiosInstance from '@/api/axiosInstance'
-import { Info, Building2, Building, CreditCard, Lock, ArrowRight, Monitor, Smartphone } from 'lucide-react'
+import { ArrowRight, BadgeCheck, Building, Building2, Check, Clock3, Landmark, Lock, Monitor, RotateCcw, ShieldCheck, Smartphone, Sparkles, UserRoundCheck, Info } from 'lucide-react'
+
+const productionHighlights = [
+  {
+    icon: ShieldCheck,
+    title: 'End-to-end encrypted',
+    description: 'Documents never leave our compliance vault.'
+  },
+  {
+    icon: Clock3,
+    title: '24h TAT',
+    description: 'Approved within one business day, typically faster.'
+  },
+  {
+    icon: RotateCcw,
+    title: 'Resume anytime',
+    description: 'Drop off, come back, pick up where you left.'
+  }
+]
+
+const productionRequirements = [
+  {
+    icon: Building2,
+    title: 'Company basics',
+    description: 'Brand name, legal name, registered address'
+  },
+  {
+    icon: BadgeCheck,
+    title: 'Business PAN & GSTIN',
+    description: 'Auto-verified via NSDL & GST portal'
+  },
+  {
+    icon: UserRoundCheck,
+    title: 'Authorized signatory',
+    description: 'DigiLocker pull + board resolution'
+  },
+  {
+    icon: Landmark,
+    title: 'Bank account',
+    description: 'Verified via penny-drop'
+  }
+]
 
 interface SwitchToProductionModalProps {
   isOpen: boolean
@@ -30,41 +71,42 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
   const userProfile = useUserProfileStore((state) => state.data)
   const isProprietorship = userProfile?.entity_type === 'proprietorship'
 
-  // Determine the first incomplete step
   useEffect(() => {
-    if (!stepsStatus.loading && isOpen) {
-      const stepOrder = ['basic-details', 'business-info', 'pan-gst', 'director-kyc']
+    if (currentStep === 'director-kyc') {
+      setCurrentStep('signatory-choice')
+    }
+  }, [currentStep])
 
-      // Find the first incomplete step
+  useEffect(() => {
+    if (!isOpen) {
+      setIsInStepperMode(false)
+      return
+    }
+
+    if (isInStepperMode) {
+      return
+    }
+
+    if (!stepsStatus.loading && isOpen) {
       let firstIncompleteStep = 'basic-details'
 
       if (!stepsStatus.basicDetails) {
         firstIncompleteStep = 'basic-details'
-      } else if (!stepsStatus.businessInfo) {
-        firstIncompleteStep = 'business-info'
       } else if (!stepsStatus.businessPAN || (!isProprietorship && !stepsStatus.gstin)) {
         // Combined step: PAN is required; GST is optional for sole proprietorship.
         firstIncompleteStep = 'pan-gst'
       } else {
-        firstIncompleteStep = 'director-kyc'
+        firstIncompleteStep = 'signatory-choice'
       }
 
       setCurrentStep(firstIncompleteStep)
-
-      // If at least one step is completed, go directly to stepper mode
-      if (stepsStatus.basicDetails || stepsStatus.businessInfo || stepsStatus.businessPAN || stepsStatus.gstin) {
-        setIsInStepperMode(true)
-      }
     }
-  }, [stepsStatus, isOpen, isProprietorship])
+  }, [stepsStatus, isOpen, isProprietorship, isInStepperMode])
 
-  const stepOrder = ['basic-details', 'business-info', 'pan-gst', 'director-kyc']
+  const stepOrder = ['basic-details', 'pan-gst', 'signatory-choice', 'bank-account']
 
   const handleStartVerification = async () => {
-    setIsLoading(true)
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setIsLoading(false)
+    setCurrentStep('basic-details')
     setIsInStepperMode(true)
   }
 
@@ -80,15 +122,14 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
 
     if (nextIndex < stepOrder.length) {
       setCurrentStep(stepOrder[nextIndex])
+    } else if (currentStep === 'bank-account') {
+      onConfirm()
+      onClose()
+    } else if (onboardingData.data?.is_onboarded) {
+      onConfirm()
+      onClose()
     } else {
-      // All steps completed - check if director KYC is done
-      if (onboardingData.data?.is_onboarded) {
-        onConfirm()
-        onClose()
-      } else {
-        // Director KYC is the last step
-        setCurrentStep('director-kyc')
-      }
+      setCurrentStep('signatory-choice')
     }
   }
 
@@ -104,6 +145,11 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
   }
 
   const currentStepIndex = stepOrder.indexOf(currentStep)
+  const isFigmaStepOne = isInStepperMode && currentStep === 'basic-details'
+  const isFigmaStepTwo = isInStepperMode && currentStep === 'pan-gst'
+  const isFigmaStepThree = isInStepperMode && currentStep === 'signatory-choice'
+  const isFigmaStepFour = isInStepperMode && currentStep === 'bank-account'
+  const isFigmaStepperCard = isFigmaStepOne || isFigmaStepTwo || isFigmaStepThree || isFigmaStepFour
 
   const stepperSteps = [
     {
@@ -117,41 +163,29 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
       id: 'business-info',
       title: 'Tell us about your Business',
       icon: Building2,
-      isActive: currentStep === 'business-info',
-      isCompleted: currentStepIndex > 1
+      isActive: false,
+      isCompleted: currentStepIndex > 0
     },
     {
       id: 'pan-gst',
       title: 'Provide your Business PAN & GST',
       icon: Building,
       isActive: currentStep === 'pan-gst',
+      isCompleted: currentStepIndex > 1
+    },
+    {
+      id: 'signatory-choice',
+      title: 'Authorized signatory',
+      icon: Lock,
+      isActive: currentStep === 'signatory-choice',
       isCompleted: currentStepIndex > 2
     },
     {
-      id: 'director-kyc',
-      title: 'KYC with Digilocker',
-      icon: Lock,
-      isActive: currentStep === 'director-kyc',
+      id: 'bank-account',
+      title: 'Bank & review',
+      icon: Landmark,
+      isActive: currentStep === 'bank-account',
       isCompleted: currentStepIndex > 3
-    }
-  ]
-
-  const verificationSteps = [
-    {
-      icon: Info,
-      title: 'Provide your basic details'
-    },
-    {
-      icon: Building2,
-      title: 'Tell us about your Business'
-    },
-    {
-      icon: Building,
-      title: 'Provide your Business PAN & GST'
-    },
-    {
-      icon: Lock,
-      title: 'Verify Aadhaar via Digilocker'
     }
   ]
 
@@ -208,14 +242,44 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
     </div>
   )
 
-  // Desktop content - Original modal
   const DesktopContent = () => (
-    <div className="bg-[#f7f7f8] flex flex-col gap-4 items-start p-4 relative rounded-2xl shadow-[0px_4px_131px_0px_rgba(19,27,49,0.25)] w-full h-full overflow-hidden">
-      {/* Header */}
+    isFigmaStepperCard ? (
+      isFigmaStepOne ? (
+      <BasicDetailsForm
+        onNext={handleStepNext}
+        onPrevious={handleStepPrevious}
+        showPrevious={true}
+        isLoading={isLoading}
+        initialData={onboardingData.data}
+        stepsStatus={stepsStatus}
+      />
+      ) : isFigmaStepThree ? (
+      <SignatoryChoiceForm
+        onNext={handleStepNext}
+        onPrevious={handleStepPrevious}
+        isLoading={isLoading}
+      />
+      ) : isFigmaStepFour ? (
+      <BankAccountForm
+        onNext={handleStepNext}
+        onPrevious={handleStepPrevious}
+        isLoading={isLoading}
+      />
+      ) : (
+      <PANAndGSTForm
+        onNext={handleStepNext}
+        onPrevious={handleStepPrevious}
+        showPrevious={true}
+        isLoading={isLoading}
+        initialData={onboardingData.data}
+        stepsStatus={stepsStatus}
+      />
+      )
+    ) : (
+    <div className="bg-[#f7f7f8] flex flex-col gap-4 items-start p-5 relative rounded-[12px] shadow-[0px_4px_131px_0px_rgba(19,27,49,0.25)] w-full overflow-hidden">
       <ModalHeader />
 
-      {/* Main Content - Scrollable */}
-      <div className="flex-1 min-h-0 overflow-auto w-full">
+      <div className="w-full overflow-auto">
         {isInStepperMode ? (
           // Stepper Mode
           <div className="flex gap-4 items-start relative w-full">
@@ -223,126 +287,112 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
             <StepperProgress steps={stepperSteps} />
 
             {/* Right Panel - Step Form */}
-            {currentStep === 'director-kyc' ? (
-              <DirectorKYCForm
-                onNext={handleStepNext}
-                onPrevious={handleStepPrevious}
-                showPrevious={true}
-                isLoading={isLoading}
-                initialData={onboardingData.data}
-                stepsStatus={stepsStatus}
-                onSkip={async () => {
-                  // Ensure we re-run the /onboard/check API so the store updates to production
-                  try {
-                    // clear cached state if store exposes a reset/invalidate helper
-                    if (typeof resetOnboardingStore === 'function') {
-                      resetOnboardingStore()
-                    }
-                    // call the store fetch (preferred)
-                    await fetchOnboardingStatus()
-                  } catch (err) {
-                    // fallback: call the endpoint directly to guarantee network request
-                    try {
-                      await axiosInstance.get('/onboard/check')
-                    } catch (err2) {
-                      console.error('Failed to refresh onboarding status', err2)
-                    }
-                  } finally {
-                    // proceed to confirm + close modal regardless of fetch result
-                    onConfirm()
-                    onClose()
-                  }
-                }}
-              />
-            ) : (
-              <StepForm
-                currentStep={currentStep}
-                onNext={handleStepNext}
-                onPrevious={handleStepPrevious}
-                showPrevious={true}
-                isLoading={isLoading}
-                initialData={onboardingData.data}
-                stepsStatus={stepsStatus}
-              />
-            )}
+            <StepForm
+              currentStep={currentStep === 'director-kyc' ? 'signatory-choice' : currentStep}
+              onNext={handleStepNext}
+              onPrevious={handleStepPrevious}
+              showPrevious={true}
+              isLoading={isLoading}
+              initialData={onboardingData.data}
+              stepsStatus={stepsStatus}
+            />
           </div>
         ) : (
           // Initial Welcome Mode
-          <div className="border border-[#e7e8ea] border-solid flex items-start justify-between relative rounded w-full">
-            {/* Left Panel */}
-            <div className="bg-white flex-1 flex flex-col gap-4 items-start p-6 relative rounded shrink-0">
-              <div className="flex flex-col items-start relative shrink-0 w-full">
-                <p className="font-bold leading-8 relative shrink-0 text-2xl text-[#616675] tracking-[-0.24px] w-full">
-                  Hi, Welcome!
+          <div className="grid h-[506px] w-full grid-cols-2 overflow-hidden rounded-[20px] border border-[#e0e5eb] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.08)]">
+            <div className="flex h-full flex-col items-start px-10 pb-[106px] pt-[41px] text-white bg-[linear-gradient(120deg,#1740cc_0%,#0766ee_45%,#0088e0_62%,#00d9a7_100%)]">
+              <div className="inline-flex h-[21px] items-center gap-1.5 rounded-full bg-[#e5f2ff] px-2.5 text-[11px] leading-[17px] text-[#1034b1]">
+                <Sparkles className="size-3" />
+                AI-native identity
+              </div>
+
+              <div className="mt-3 flex w-full flex-col items-start">
+                <h2 className="w-full text-[34px] font-bold leading-[42.5px] text-white">
+                  Verify smarter.
+                  <br />
+                  Decide faster.
+                </h2>
+                <p className="mt-3 max-w-[384px] text-[13px] leading-[19.5px] text-white/90">
+                  DigiLocker-first KYC. No paper. No follow-ups. Your team is approved in 24 business hours.
                 </p>
-                <div className="flex gap-2 items-center px-0 py-2 relative shrink-0">
-                  <p className="font-normal text-wrap leading-[1.4] text-xs text-[#9296a0] tracking-[-0.12px]">
-                    Finish these steps to verify your business and get dashboard access. Details are required for compliance.
-                  </p>
+              </div>
+
+              <div className="mt-7 flex flex-col gap-3">
+                {productionHighlights.map((item) => (
+                  <div key={item.title} className="flex items-start gap-3">
+                    <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-white/15">
+                      <item.icon className="size-3" />
+                    </span>
+                    <span>
+                      <span className="block text-[13px] leading-5">{item.title}</span>
+                      <span className="block text-[11.5px] leading-[17px] text-white/80">{item.description}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex h-full flex-col items-start bg-white p-10">
+              <div className="w-full">
+                <h3 className="text-[20px] font-bold leading-[30px] tracking-[-0.5px] text-[#0c121a]">
+                  Here's what we'll need
+                </h3>
+                <p className="mt-1 text-[13px] leading-5 text-[#6a727d]">
+                  Keep these ready. Most are auto-pulled from government sources.
+                </p>
+              </div>
+
+              <div className="flex w-full flex-col gap-2.5 pt-[18px]">
+                {productionRequirements.map((item) => (
+                  <div key={item.title} className="flex h-16 w-full items-start gap-3 rounded-2xl border border-[#e0e5eb] p-[13px]">
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[#f0f4f9] text-[#131b31]">
+                      <item.icon className="size-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13px] leading-5 text-[#0c121a]">{item.title}</span>
+                      <span className="block text-[11.5px] leading-[17px] text-[#6a727d]">{item.description}</span>
+                    </span>
+                    <Check className="mt-1 size-4 text-[#00a575]" />
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-auto flex h-[58px] w-full items-end justify-between gap-4">
+                <div className="flex max-w-[212px] items-center gap-1.5 pb-[11px] text-[0px] leading-[18px] text-[#6a727d]">
+                  <Lock className="size-3.5" />
+                  <span className="text-[12px] leading-[18px]">~20 minutes · auto-saves as you go</span>
+                  ~20 minutes · auto-saves as you go
                 </div>
-              </div>
-
-              {/* Step-by-step guide */}
-              <div className="border border-[#e7e8ea] border-solid flex flex-col gap-4 items-start p-4 relative rounded shrink-0 w-full">
-                <p className="font-bold leading-6 min-w-full relative shrink-0 text-base text-[#131b31] tracking-[-0.16px] w-[min-content]">
-                  Step-by-step guide
-                </p>
-                <div className="flex flex-col gap-2 items-start relative shrink-0 w-full">
-                  {verificationSteps.map((step, index) => (
-                    <div key={index} className="flex gap-2 items-center px-3 py-1.5 relative rounded shrink-0 w-full">
-                      <step.icon className="size-4 text-[#9296a0]" />
-                      <p className="font-medium leading-[1.4] not-italic relative shrink-0 text-xs text-[#9296a0] text-nowrap tracking-[-0.12px] whitespace-pre">
-                        {step.title}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Info section */}
-              <div className="flex gap-2 items-start px-0 py-2 relative shrink-0 w-full">
-                <Info className="size-6 text-[#9296a0]" />
-                <p className="font-normal leading-[1.4] text-xs text-[#9296a0] tracking-[-0.12px]">
-                  Finish these steps to verify your business and get dashboard access. Details are required for compliance.
-                </p>
-              </div>
-
-              {/* Action Button */}
-              <div className="flex gap-10 items-center justify-end relative shrink-0 w-full">
-                <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid relative rounded-lg shrink-0">
+                <div className="h-10 w-[156px] shrink-0 rounded-lg border border-[#0019ff] bg-[#0019ff] shadow-[0_8px_18px_rgba(0,25,255,0.18)]">
                   <button
                     onClick={handleStartVerification}
                     disabled={isLoading}
-                    className="flex gap-2 items-center justify-center px-8 py-3.5 relative rounded-[inherit] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex size-full items-center justify-center gap-2 rounded-[inherit] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-[#0019ff] border-t-transparent rounded-full animate-spin" />
-                        <p className="font-bold leading-4 relative text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <p className="text-nowrap text-xs font-bold leading-4 tracking-[-0.12px] text-white">
                           Starting...
                         </p>
                       </div>
                     ) : (
                       <>
-                        <p className="font-bold leading-4 relative text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
+                        <p className="text-nowrap text-xs font-bold leading-4 tracking-[-0.12px] text-white">
                           Start Verification
                         </p>
-                        <ArrowRight className="size-4 text-[#0019ff]" />
+                        <ArrowRight className="size-4 text-white" />
                       </>
                     )}
                   </button>
                 </div>
               </div>
             </div>
-
-            {/* Right Panel - Dashboard Preview */}
-            <div className="bg-white flex-1 flex flex-col gap-4 items-start p-6 relative rounded shrink-0">
-              <img alt="Production Switch" className="block w-full h-auto object-contain" src={'https://idto-sdk-usage-demo-bucket.s3.ap-south-1.amazonaws.com/production_switch.png'} />
-            </div>
           </div>
         )}
       </div>
     </div>
+    )
   )
 
   return (
@@ -355,7 +405,7 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
         </Sheet>
       ) : (
         <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className="max-w-6xl w-[856px] max-h-[90vh] overflow-hidden p-0 flex flex-col">
+          <DialogContent className={`w-[min(1216px,calc(100vw-80px))] max-w-none overflow-hidden p-0 flex flex-col ${isFigmaStepperCard ? `${isFigmaStepOne ? 'h-[min(759px,calc(100vh-80px))]' : isFigmaStepFour ? 'h-[min(738px,calc(100vh-80px))]' : 'h-[min(602px,calc(100vh-80px))]'} border-0 bg-transparent shadow-none [&>button:last-child]:hidden` : 'max-h-[90vh]'}`}>
             <DesktopContent />
           </DialogContent>
         </Dialog>

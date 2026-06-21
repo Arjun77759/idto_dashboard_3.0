@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ArrowRight, AlertCircle } from "lucide-react"
+import { ArrowLeft, ArrowRight, AlertCircle, Building2, CheckCircle2, Clock3, HelpCircle, LockKeyhole, Mail, MapPin, Phone, Save, ShieldCheck, Sparkles, Timer, Globe2 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { OnboardingStatus } from "@/hooks/useOnboardingStatus"
 import type { OnboardingStepsStatus } from "@/hooks/useOnboardingSteps"
@@ -7,6 +7,8 @@ import { updateBasicDetails } from "@/api/onboardingApi"
 import { invalidateOnboardingSteps } from "@/store/onboardingStepsStore"
 import { fetchUserProfile, invalidateUserProfile } from "@/store/userProfileStore"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useUserProfile } from "@/hooks/useUserProfile"
+import idtoLogo from "@/assets/idto-logo.svg"
 
 interface BasicDetailsFormProps {
   onNext: () => void
@@ -19,13 +21,16 @@ interface BasicDetailsFormProps {
 
 const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPrevious = false, isLoading: externalLoading = false, initialData: _initialData, stepsStatus: _stepsStatus }: BasicDetailsFormProps) => {
   const isMobile = useIsMobile()
+  const { data: userProfile } = useUserProfile()
   const [formData, setFormData] = useState({
-    brand_name: '',
+    brand_name: userProfile?.brand_name || '',
     website_url: '',
-    entity_type: ''
+    entity_type: userProfile?.entity_type || '',
+    pin_code: '560001'
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [hasSubmitted, setHasSubmitted] = useState(false)
   const [websiteError, setWebsiteError] = useState('')
 
   // Note: initialData no longer contains brand_name or industry
@@ -74,9 +79,18 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
   }
 
   const handleSubmit = async () => {
+    setHasSubmitted(true)
+
     // Validate required fields
+    if (!formData.brand_name.trim()) {
+      return
+    }
+
     if (!formData.entity_type) {
-      setError('Please select an Entity Type before continuing')
+      return
+    }
+
+    if (!/^\d{6}$/.test(formData.pin_code.trim())) {
       return
     }
 
@@ -110,7 +124,9 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
     }
   }
 
-  const isFormValid = formData.entity_type !== ''
+  const brandNameError = hasSubmitted && !formData.brand_name.trim() ? 'Brand name is required' : ''
+  const entityTypeError = hasSubmitted && !formData.entity_type ? 'Select an entity type' : ''
+  const pinCodeError = hasSubmitted && !/^\d{6}$/.test(formData.pin_code.trim()) ? 'Enter a valid 6-digit PIN' : ''
   
   // Mobile layout matching Figma
   if (isMobile) {
@@ -144,7 +160,7 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
             <label className="text-[12px] font-medium leading-[1.4] text-[#616675] tracking-[-0.12px]">
               Brand Name of the Business
             </label>
-            <div className="bg-[#f7f7f8] border border-[#e7e8ea] flex h-12 items-center px-3 py-2 rounded-[6px] w-full">
+            <div className={`bg-[#f7f7f8] border ${brandNameError ? 'border-[#ef4444] shadow-[0_0_0_3px_rgba(239,68,68,0.10)]' : 'border-[#e7e8ea]'} flex h-12 items-center px-3 py-2 rounded-[6px] w-full`}>
               <input
                 type="text"
                 value={formData.brand_name}
@@ -152,7 +168,14 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
                 placeholder="e.g., Zomato, Razorpay"
                 className="font-medium text-[16px] leading-[1.5] text-[#1c252e] tracking-[-0.16px] bg-transparent border-none outline-none w-full placeholder:text-[#9296a0]"
               />
+              {brandNameError && <AlertCircle className="size-4 shrink-0 text-[#ef4444]" />}
             </div>
+            {brandNameError && (
+              <p className="mt-1 inline-flex items-center gap-1 text-xs text-[#d92d20]">
+                <AlertCircle className="size-3" />
+                {brandNameError}
+              </p>
+            )}
           </div>
 
           {/* Website URL Field */}
@@ -182,7 +205,7 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
               <span className="text-[#b43e28]">*</span>
             </label>
             <Select value={formData.entity_type} onValueChange={(value) => handleInputChange('entity_type', value)}>
-              <SelectTrigger className="bg-[#f7f7f8] border border-[#e7e8ea] h-12 w-full rounded-[6px] text-[16px]">
+              <SelectTrigger className={`bg-[#f7f7f8] border ${entityTypeError ? 'border-[#ef4444] shadow-[0_0_0_3px_rgba(239,68,68,0.10)]' : 'border-[#e7e8ea]'} h-12 w-full rounded-[6px] text-[16px]`}>
                 <SelectValue placeholder="Select Entity Type" className="text-[#9296a0]" />
               </SelectTrigger>
               <SelectContent>
@@ -197,6 +220,12 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
                 <SelectItem value="ngo">NGO</SelectItem>
               </SelectContent>
             </Select>
+            {entityTypeError && (
+              <p className="mt-1 inline-flex items-center gap-1 text-xs text-[#d92d20]">
+                <AlertCircle className="size-3" />
+                {entityTypeError}
+              </p>
+            )}
           </div>
         </div>
 
@@ -204,7 +233,7 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
         <div className="flex flex-col items-center justify-end w-full mt-auto">
           <button
             onClick={handleSubmit}
-            disabled={isLoading || externalLoading || !isFormValid}
+            disabled={isLoading || externalLoading}
             className="flex h-12 w-full max-w-[353px] items-center justify-center gap-2 rounded-[8px] border border-[#e7e8ea] bg-[#E6E8FF] text-[12px] font-bold leading-[16px] text-[#0019FF] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 tracking-[-0.12px]"
           >
             {(isLoading || externalLoading) ? (
@@ -224,132 +253,274 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
     )
   }
 
-  // Desktop layout (existing)
+  const fieldClass = "h-10 w-full rounded-md border border-[#e0e5eb] bg-white px-3 text-[13px] leading-5 text-[#0c121a] outline-none transition focus:border-[#3061ef] focus:ring-2 focus:ring-[#3061ef]/10 placeholder:text-[#9aa3af]"
+  const readOnlyFieldClass = "flex h-10 w-full items-center gap-2 rounded-md border border-[#e0e5eb] bg-white px-3 text-[13px] leading-5 text-[#0c121a]"
+  const labelClass = "mb-1.5 flex h-[18px] items-center justify-between text-[12px] leading-[18px] text-[#0c121a]"
+  const helperClass = "text-[11px] leading-[17px] text-[#6a727d]"
+  const errorTextClass = "mt-1.5 inline-flex items-center gap-1 text-[11px] leading-[17px] text-[#d92d20]"
+  const inputClass = (hasError: boolean) => `${fieldClass} ${hasError ? 'border-[#ef4444] pr-9 shadow-[0_0_0_3px_rgba(239,68,68,0.10)] focus:border-[#ef4444] focus:ring-[#ef4444]/10' : ''}`
+  const fieldShellClass = (hasError: boolean) => `flex h-10 items-center rounded-md border ${hasError ? 'border-[#ef4444] shadow-[0_0_0_3px_rgba(239,68,68,0.10)]' : 'border-[#e0e5eb]'} bg-white px-3`
+
   return (
-    <div className="bg-white border border-[#e7e8ea] border-solid grow h-full min-h-0 relative rounded shrink-0 flex flex-col overflow-hidden">
-      <div className="flex flex-col gap-4 items-start p-6 relative rounded-[inherit] w-full h-full overflow-hidden">
-        {/* Header */}
-        <div className="flex flex-col items-start relative shrink-0 w-full">
-          <p className="font-bold leading-7 relative shrink-0 text-lg text-[#616675] tracking-[-0.18px] w-full">
-            Provide your basic details
-          </p>
-          <div className="flex gap-2 items-center px-0 py-2 relative shrink-0 w-full">
-            <p className="font-normal leading-[1.4] grow min-h-px min-w-px relative shrink-0 text-xs text-[#9296a0] tracking-[-0.12px]">
-              Enter your brand details and primary contact information to get started.
+    <div className="h-full w-full overflow-hidden rounded-[20px] border border-[#e0e5eb] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.08)]">
+      <div className="grid h-full grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="flex h-full flex-col gap-6 border-r border-[#e0e5eb] bg-[#f8fafd] px-5 py-5">
+          <div className="flex h-10 items-center justify-between">
+            <img src={idtoLogo} alt="idto" className="h-10 w-[70px]" />
+            <div className="inline-flex h-[21px] items-center gap-1.5 rounded-full bg-[#e5f2ff] px-2.5 text-[11px] leading-[17px] text-[#1034b1]">
+              <span className="size-1.5 rounded-full bg-[#3061ef]" />
+              GO LIVE
+            </div>
+          </div>
+
+          <div className="w-full">
+            <div className="mb-1.5 flex items-center justify-between text-[11px] leading-[17px] text-[#6a727d]">
+              <span>Production setup</span>
+              <span>5%</span>
+            </div>
+            <div className="h-1 overflow-hidden rounded-full bg-[#f0f4f9]">
+              <div className="h-full w-[5%] rounded-full bg-[linear-gradient(120deg,#1740cc_0%,#0766ee_45%,#0088e0_62%,#00d9a7_100%)]" />
+            </div>
+          </div>
+
+          <ol className="flex flex-col gap-1">
+            {[
+              ['1', 'Company basics', true],
+              ['2', 'PAN & GST', false],
+              ['3', 'Authorized signatory', false],
+              ['4', 'Bank & review', false],
+            ].map(([number, title, active]) => (
+              <li key={String(number)} className={`flex h-[51px] items-center gap-3 rounded-xl px-2.5 py-2 ${active ? 'bg-[#e1f0ff]' : ''}`}>
+                <span className={`flex size-6 items-center justify-center rounded-full text-[10px] font-bold leading-[15px] ${active ? 'bg-[#0c121a] text-white' : 'border border-[#e0e5eb] bg-white text-[#6a727d]'}`}>
+                  {number}
+                </span>
+                <span className="min-w-0">
+                  <span className={`block text-[12.5px] leading-[19px] ${active ? 'font-bold text-[#0c121a]' : 'text-[#6a727d]'}`}>{title}</span>
+                  <span className="block text-[10.5px] leading-4 text-[#6a727d]">~ under 5 min</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+
+          <div className="rounded-2xl border border-[#e0e5eb] bg-white px-3 py-5">
+            <div className="flex items-center gap-1.5 text-[11px] leading-[17px] text-[#0c121a]">
+              <ShieldCheck className="size-3 text-[#3061ef]" />
+              Bank-grade encryption
+            </div>
+            <p className="mt-2 text-[10.5px] leading-4 text-[#6a727d]">
+              Your documents are encrypted at rest and only seen by our onboarding team.
             </p>
           </div>
-        </div>
+        </aside>
 
-        {/* Error Message */}
-        {error && (
-          <div className="flex gap-3 items-start p-4 bg-red-50 border border-red-200 rounded-lg w-full">
-            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-red-900 mb-1">Error</p>
-              <p className="text-sm text-red-700">{error}</p>
+        <main className="flex min-h-0 flex-col bg-white">
+          <header className="flex h-12 shrink-0 items-center justify-between border-b border-[#e0e5eb] px-6">
+            <button type="button" className="inline-flex items-center gap-2 text-[12px] leading-[18px] text-[#6a727d]">
+              <ArrowLeft className="size-3.5" />
+              Save & exit
+            </button>
+            <div className="flex items-center gap-3 text-[11px] leading-[17px] text-[#6a727d]">
+              <span className="inline-flex items-center gap-1">
+                <Save className="size-3" />
+                auto-saved 4s ago
+              </span>
+              <span aria-hidden="true">.</span>
+              <button type="button" className="inline-flex items-center gap-1">
+                <HelpCircle className="size-3" />
+                Help
+              </button>
             </div>
-          </div>
-        )}
+          </header>
 
-        {/* Form Fields - Scrollable */}
-        <div className="flex-1 min-h-0 flex flex-col gap-4 items-start relative shrink-0 w-full overflow-y-auto pr-2">
-          {/* Brand Name Field */}
-          <div className="flex flex-col gap-1 items-start relative shrink-0 w-full">
-            <label className="flex gap-2.5 items-center relative shrink-0 w-full">
-              <p className="font-medium leading-[1.4] relative shrink-0 text-xs text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
-                Brand Name of the Business
-              </p>
-            </label>
-            <div className="bg-[#f7f7f8] border border-[#e7e8ea] border-solid flex gap-1 h-12 items-center px-3 py-2 relative rounded-md shrink-0 w-full">
-              <input
-                type="text"
-                value={formData.brand_name}
-                onChange={(e) => handleInputChange('brand_name', e.target.value)}
-                placeholder="e.g., Zomato, Razorpay"
-                className="font-medium grow leading-6 relative shrink-0 text-base text-[#1c252e] tracking-[-0.16px] bg-transparent border-none outline-none w-full placeholder:text-[#9296a0]"
-              />
-            </div>
-          </div>
-
-          {/* Website URL Field */}
-          <div className="flex flex-col gap-1 items-start relative shrink-0 w-full">
-            <label className="flex gap-2.5 items-center relative shrink-0 w-full">
-              <p className="font-medium leading-[1.4] relative shrink-0 text-xs text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
-                Website URL
-              </p>
-            </label>
-            <div className={`bg-[#f7f7f8] border ${websiteError ? 'border-red-500' : 'border-[#e7e8ea]'} border-solid flex gap-1 h-12 items-center px-3 py-2 relative rounded-md shrink-0 w-full`}>
-              <input
-                type="text"
-                value={formData.website_url}
-                onChange={(e) => handleInputChange('website_url', e.target.value)}
-                onBlur={handleWebsiteBlur}
-                placeholder="Company website or landing page (if any)"
-                className="font-medium grow leading-6 relative shrink-0 text-base text-[#1c252e] tracking-[-0.16px] bg-transparent border-none outline-none w-full placeholder:text-[#9296a0]"
-              />
-            </div>
-            {websiteError && (
-              <p className="text-xs text-red-600 mt-1">{websiteError}</p>
-            )}
-          </div>
-
-          {/* Entity Type Field */}
-          <div className="flex gap-5 items-start relative shrink-0 w-full">
-            <div className="grow flex flex-col gap-1 items-start min-h-px min-w-px relative shrink-0">
-              <label className="flex gap-2.5 items-center relative shrink-0 w-full">
-                <p className="font-medium leading-[1.4] relative shrink-0 text-xs text-[#616675] text-nowrap tracking-[-0.12px] whitespace-pre">
-                  <span>Entity Type </span>
-                  <span className="text-[#b43e28]">*</span>
+          <div className="flex-1 overflow-hidden px-10 pb-8 pt-[31px]">
+            <div className="max-w-[854px]">
+              <div className="mb-7">
+                <p className="text-[11px] leading-[17px] text-[#6a727d]">Step 1 of 4</p>
+                <h2 className="mt-1.5 text-[26px] font-bold leading-[39px] tracking-[-0.35px] text-[#0c121a]">
+                  Tell us about your company
+                </h2>
+                <p className="mt-1.5 text-[14px] leading-[21px] text-[#6a727d]">
+                  We've pre-filled what we captured at signup. Edit anything that's off.
                 </p>
-              </label>
-              <Select value={formData.entity_type} onValueChange={(value) => handleInputChange('entity_type', value)}>
-                <SelectTrigger className="bg-[#f7f7f8] border border-[#e7e8ea] h-12 w-full rounded-md text-base">
-                  <SelectValue placeholder="Select Entity Type" className="text-[#9296a0]" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="private_limited">Private Limited Company</SelectItem>
-                  <SelectItem value="public_limited">Public Limited Company</SelectItem>
-                  <SelectItem value="llp">Limited Liability Partnership (LLP)</SelectItem>
-                  <SelectItem value="partnership">Partnership Firm</SelectItem>
-                  <SelectItem value="proprietorship">Sole Proprietorship</SelectItem>
-                  <SelectItem value="opc">One Person Company (OPC)</SelectItem>
-                  <SelectItem value="trust">Trust</SelectItem>
-                  <SelectItem value="society">Society</SelectItem>
-                  <SelectItem value="ngo">NGO</SelectItem>
-                </SelectContent>
-              </Select>
+                <div className="mt-1.5 inline-flex items-center gap-1.5 text-[12px] leading-[18px] text-[#6a727d]">
+                  <Timer className="size-3" />
+                  Takes about 2 minutes
+                </div>
+              </div>
+
+              {error && (
+                <div className="mb-5 flex gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+                  <AlertCircle className="mt-0.5 size-5 shrink-0 text-red-600" />
+                  <div>
+                    <p className="text-sm font-medium text-red-900">Error</p>
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+                <div className="relative">
+                  <label className={labelClass}>
+                    <span>Brand name</span>
+                    <span className={helperClass}>e.g. Zomato, Razorpay</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.brand_name}
+                    onChange={(e) => handleInputChange('brand_name', e.target.value)}
+                    placeholder="Acme Pay"
+                    className={inputClass(Boolean(brandNameError))}
+                  />
+                  {brandNameError && <AlertCircle className="pointer-events-none absolute right-3 top-[33px] size-3.5 text-[#ef4444]" />}
+                  {brandNameError && (
+                    <p className={errorTextClass}>
+                      <AlertCircle className="size-3" />
+                      {brandNameError}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    <span>Legal business name</span>
+                    <span className={helperClass}>As per incorporation docs</span>
+                  </label>
+                  <div className={readOnlyFieldClass}>{userProfile?.registered_name || 'Acme Payments Pvt Ltd'}</div>
+                </div>
+
+                <div>
+                  <label className={labelClass}>Entity type</label>
+                  <Select value={formData.entity_type} onValueChange={(value) => handleInputChange('entity_type', value)}>
+                    <SelectTrigger className={`h-10 w-full rounded-md bg-white text-[13px] text-[#0c121a] ${entityTypeError ? 'border-[#ef4444] shadow-[0_0_0_3px_rgba(239,68,68,0.10)] focus:ring-[#ef4444]/10' : 'border-[#e0e5eb]'}`}>
+                      <SelectValue placeholder="Private Limited Company" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="private_limited">Private Limited Company</SelectItem>
+                      <SelectItem value="public_limited">Public Limited Company</SelectItem>
+                      <SelectItem value="llp">Limited Liability Partnership (LLP)</SelectItem>
+                      <SelectItem value="partnership">Partnership Firm</SelectItem>
+                      <SelectItem value="proprietorship">Sole Proprietorship</SelectItem>
+                      <SelectItem value="opc">One Person Company (OPC)</SelectItem>
+                      <SelectItem value="trust">Trust</SelectItem>
+                      <SelectItem value="society">Society</SelectItem>
+                      <SelectItem value="ngo">NGO</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {entityTypeError && (
+                    <p className={errorTextClass}>
+                      <AlertCircle className="size-3" />
+                      {entityTypeError}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className={labelClass}>Industry</label>
+                  <div className={`${readOnlyFieldClass} justify-between text-[#6a727d]`}>
+                    <span>{userProfile?.industry || 'Select industry'}</span>
+                    <ArrowRight className="size-3.5 rotate-90" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    <span>Website URL <span className={helperClass}>(optional)</span></span>
+                  </label>
+                  <div className={fieldShellClass(Boolean(websiteError))}>
+                    <Globe2 className="mr-2 size-3.5 shrink-0 text-[#6a727d]" />
+                    <input
+                      type="text"
+                      value={formData.website_url}
+                      onChange={(e) => handleInputChange('website_url', e.target.value)}
+                      onBlur={handleWebsiteBlur}
+                      placeholder="acmepay.com"
+                      className="min-w-0 flex-1 bg-transparent text-[13px] leading-5 text-[#0c121a] outline-none placeholder:text-[#9aa3af]"
+                    />
+                    {websiteError && <AlertCircle className="ml-2 size-3.5 shrink-0 text-[#ef4444]" />}
+                  </div>
+                  {websiteError && (
+                    <p className={errorTextClass}>
+                      <AlertCircle className="size-3" />
+                      {websiteError}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className={labelClass}>PIN code</label>
+                  <div className={fieldShellClass(Boolean(pinCodeError))}>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={formData.pin_code}
+                      onChange={(e) => handleInputChange('pin_code', e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="560001"
+                      className="min-w-0 flex-1 bg-transparent text-[13px] leading-5 text-[#0c121a] outline-none placeholder:text-[#9aa3af]"
+                    />
+                    {pinCodeError ? (
+                      <AlertCircle className="ml-2 size-3.5 shrink-0 text-[#ef4444]" />
+                    ) : (
+                      formData.pin_code.length === 6 && <CheckCircle2 className="ml-2 size-3.5 shrink-0 text-[#00a575]" />
+                    )}
+                  </div>
+                  {pinCodeError && (
+                    <p className={errorTextClass}>
+                      <AlertCircle className="size-3" />
+                      {pinCodeError}
+                    </p>
+                  )}
+                </div>
+
+                <div className="col-span-2">
+                  <label className={labelClass}>Registered office address</label>
+                  <div className={readOnlyFieldClass}>
+                    <MapPin className="size-3.5 text-[#6a727d]" />
+                    {userProfile?.business_address || '42, Brigade Road, Bengaluru, Karnataka - 560001'}
+                  </div>
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    <span>Primary contact email</span>
+                    <span className={helperClass}>from signup</span>
+                  </label>
+                  <div className={readOnlyFieldClass}>
+                    <Mail className="size-3.5 text-[#6a727d]" />
+                    {userProfile?.email || 'riya@acmepay.com'}
+                  </div>
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    <span>Mobile</span>
+                    <span className={helperClass}>Used for refunds & reconciliation</span>
+                  </label>
+                  <div className={readOnlyFieldClass}>
+                    <Phone className="size-3.5 text-[#6a727d]" />
+                    {userProfile?.mobile || '+91 98765 43210'}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 items-center justify-end relative shrink-0 w-full">
-          {/* Continue Button */}
-          <div className="bg-[#e6e8ff] border border-[#e7e8ea] border-solid relative rounded-lg shrink-0">
+          <footer className="mx-10 flex h-[65px] shrink-0 items-center justify-end border-t border-[#e0e5eb]">
             <button
               onClick={handleSubmit}
-              disabled={isLoading || externalLoading || !isFormValid}
-              className="flex gap-2 items-center justify-center px-8 py-3.5 relative rounded-[inherit] disabled:opacity-50 disabled:cursor-not-allowed">
+              disabled={isLoading || externalLoading}
+              className="flex h-10 w-[110px] items-center justify-center gap-2 rounded-lg bg-[#0019ff] text-[13px] font-bold leading-5 text-white shadow-[0_8px_18px_rgba(0,25,255,0.18)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
               {(isLoading || externalLoading) ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-[#0019ff] border-t-transparent rounded-full animate-spin" />
-                  <p className="font-bold leading-4 relative text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
-                    Processing...
-                  </p>
-                </div>
+                <div className="size-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
               ) : (
                 <>
-                  <p className="font-bold leading-4 relative text-xs text-[#0019ff] text-nowrap tracking-[-0.12px] whitespace-pre">
-                    Continue
-                  </p>
-                  <div className="relative shrink-0 size-4 flex items-center justify-center">
-                    <ArrowRight className="w-4 h-4 text-[#0019ff]" />
-                  </div>
+                  Continue
+                  <ArrowRight className="size-3.5" />
                 </>
               )}
             </button>
-          </div>
-        </div>
+          </footer>
+        </main>
       </div>
     </div>
   )
