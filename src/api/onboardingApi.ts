@@ -122,6 +122,7 @@ export async function updateGST(payload: GSTPayload): Promise<GSTResponse> {
 export type DirectorKYCPayload = {
   code: string
   code_verifier: string
+  redirect_uri?: string
 }
 
 export type DirectorKYCResponse = {

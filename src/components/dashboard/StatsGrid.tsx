@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Activity, ShieldCheck, Timer, TrendingUp } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { useUsageOverview } from '@/hooks/useUsageOverview'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
@@ -38,6 +39,62 @@ const sandboxStats = [
   },
 ]
 
+const cardMotion = {
+  initial: { opacity: 0, y: 10 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: '-40px' },
+}
+
+const AnimatedStatValue = ({ value }: { value: string }) => {
+  const parsed = useMemo(() => {
+    if (value.includes('/')) return null
+    const match = value.match(/-?[\d,]+(?:\.\d+)?/)
+    if (!match) return null
+
+    const numeric = Number.parseFloat(match[0].replace(/,/g, ''))
+    if (!Number.isFinite(numeric)) return null
+
+    return {
+      numeric,
+      decimals: match[0].includes('.') ? match[0].split('.')[1]?.length ?? 0 : 0,
+      prefix: value.slice(0, match.index),
+      suffix: value.slice((match.index ?? 0) + match[0].length),
+    }
+  }, [value])
+
+  const [displayValue, setDisplayValue] = useState(parsed ? 0 : null)
+
+  useEffect(() => {
+    if (!parsed) return
+
+    let frameId = 0
+    const startedAt = performance.now()
+    const duration = 700
+
+    const tick = (now: number) => {
+      const progress = Math.min((now - startedAt) / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setDisplayValue(parsed.numeric * eased)
+
+      if (progress < 1) {
+        frameId = requestAnimationFrame(tick)
+      }
+    }
+
+    frameId = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frameId)
+  }, [parsed])
+
+  if (!parsed || displayValue === null) return <>{value}</>
+
+  const formatted = displayValue.toLocaleString('en-IN', {
+    minimumFractionDigits: parsed.decimals,
+    maximumFractionDigits: parsed.decimals,
+  })
+
+  return <>{parsed.prefix}{formatted}{parsed.suffix}</>
+}
+
 const StatsGrid = () => {
   const { data: onboardingStatus } = useOnboardingStatus()
   const isProduction = Boolean(onboardingStatus?.is_onboarded)
@@ -67,28 +124,31 @@ const StatsGrid = () => {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {sandboxStats.map((stat) => {
+          {sandboxStats.map((stat, index) => {
             const Icon = stat.icon
             return (
-              <article
+              <motion.article
+                {...cardMotion}
                 key={stat.title}
+                transition={{ duration: 0.26, delay: index * 0.05 }}
+                whileHover={{ y: -3 }}
                 className="h-[148px] rounded-[22px] border border-[#e0e5eb] bg-white p-[21px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
               >
                 <div className="flex items-start justify-between">
-                  <div className={`grid size-9 place-items-center rounded-[14px] ${stat.iconClass}`}>
+                  <motion.div whileHover={{ scale: 1.06 }} className={`grid size-9 place-items-center rounded-[14px] ${stat.iconClass}`}>
                     <Icon className="size-4" />
-                  </div>
+                  </motion.div>
                   <span className="text-[12px] font-normal leading-4 text-[#5b6472]">
                     {stat.change}
                   </span>
                 </div>
                 <p className="pt-3.5 text-[30px] font-medium leading-8 tracking-[-0.6px] text-[#0a121f]">
-                  {stat.value}
+                  <AnimatedStatValue value={stat.value} />
                 </p>
                 <p className="text-[14px] font-normal leading-5 text-[#5b6472]">
                   {stat.title}
                 </p>
-              </article>
+              </motion.article>
             )
           })}
         </div>
@@ -181,28 +241,31 @@ const StatsGrid = () => {
             {typeof error === 'string' ? error : 'An error occurred while loading statistics'}
           </div>
         ) : (
-          stats.map((stat) => {
+          stats.map((stat, index) => {
             const Icon = stat.icon
             return (
-              <article
+              <motion.article
+                {...cardMotion}
                 key={stat.title}
+                transition={{ duration: 0.26, delay: index * 0.05 }}
+                whileHover={{ y: -3 }}
                 className="h-[148px] rounded-[22px] border border-[#e0e5eb] bg-white p-[21px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
               >
                 <div className="flex items-start justify-between">
-                  <div className="grid size-9 place-items-center rounded-[14px] bg-[#e8f3ff] text-[#0019ff]">
+                  <motion.div whileHover={{ scale: 1.06 }} className="grid size-9 place-items-center rounded-[14px] bg-[#e8f3ff] text-[#0019ff]">
                     <Icon className="size-4" />
-                  </div>
+                  </motion.div>
                   <span className="text-[12px] font-normal leading-4 text-[#5b6472]">
                     {stat.change}
                   </span>
                 </div>
                 <p className="pt-3.5 text-[30px] font-medium leading-8 tracking-[-0.6px] text-[#0a121f]">
-                  {stat.value}
+                  <AnimatedStatValue value={stat.value} />
                 </p>
                 <p className="text-[14px] font-normal leading-5 text-[#5b6472]">
                   {stat.title}
                 </p>
-              </article>
+              </motion.article>
             )
           })
         )}

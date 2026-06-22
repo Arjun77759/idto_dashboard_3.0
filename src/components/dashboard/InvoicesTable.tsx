@@ -1,8 +1,11 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { useInvoiceDownload } from '@/hooks/useInvoiceDownload'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 import { useRecentInvoices } from '@/hooks/useRecentInvoices'
+import type { InvoiceItem } from '@/hooks/useRecentInvoices'
 import { motion } from 'framer-motion'
 import { Download } from 'lucide-react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const sandboxInvoices = [
@@ -16,6 +19,8 @@ const InvoicesTable = () => {
   const { data: onboardingStatus } = useOnboardingStatus()
   const isProduction = Boolean(onboardingStatus?.is_onboarded)
   const { data: invoices, loading, error } = useRecentInvoices(4)
+  const { downloadInvoice } = useInvoiceDownload()
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<string | null>(null)
 
   const handleSeeAll = () => {
     navigate('/billing')
@@ -44,14 +49,41 @@ const InvoicesTable = () => {
     return `\u20b9${numAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   }
 
+  const extractYearMonth = (dateTime: string | undefined): { year: number; month: number } | null => {
+    if (!dateTime) return null
+    try {
+      const [date] = dateTime.split(' ')
+      const [year, month] = date.split('-')
+      if (year && month) {
+        return { year: Number.parseInt(year, 10), month: Number.parseInt(month, 10) }
+      }
+    } catch (error) {
+      console.error('Error parsing invoice date:', error)
+    }
+    return null
+  }
+
+  const handleDownloadInvoice = async (invoice: InvoiceItem) => {
+    const yearMonth = extractYearMonth(invoice.date_time)
+    if (!yearMonth) return
+
+    setDownloadingInvoiceId(invoice.id)
+    try {
+      await downloadInvoice(yearMonth.year, yearMonth.month)
+    } finally {
+      setDownloadingInvoiceId(null)
+    }
+  }
+
   const rows = isProduction
     ? invoices.slice(0, 3).map((invoice) => ({
+        source: invoice,
         id: invoice.id,
         date: formatDateTime(invoice.date_time),
         amount: formatAmount(invoice.amount),
         status: invoice.status,
       }))
-    : sandboxInvoices
+    : sandboxInvoices.map((invoice) => ({ ...invoice, source: null }))
 
   return (
     <motion.section
@@ -115,9 +147,15 @@ const InvoicesTable = () => {
                     </span>
                   </td>
                   <td className="px-6 text-right">
-                    <button className="inline-flex items-center gap-1 text-[12px] font-normal leading-4 text-[#5b6472]">
+                    <button
+                      type="button"
+                      onClick={() => invoice.source && handleDownloadInvoice(invoice.source)}
+                      disabled={!invoice.source || downloadingInvoiceId === invoice.id}
+                      className="inline-flex items-center gap-1 text-[12px] font-normal leading-4 text-[#5b6472] transition-colors hover:text-[#0019ff] disabled:cursor-not-allowed disabled:opacity-50"
+                      title={invoice.source ? 'Download invoice PDF' : 'PDF available in production'}
+                    >
                       <Download className="size-3.5" />
-                      PDF
+                      {downloadingInvoiceId === invoice.id ? '...' : 'PDF'}
                     </button>
                   </td>
                 </tr>

@@ -1,16 +1,20 @@
 import { motion } from 'framer-motion'
 import {
     ArrowUpRight,
+    Download,
     FlaskConical,
     Palette,
     Plus,
 } from 'lucide-react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Skeleton } from '@/components/ui/skeleton'
+import { useInvoiceDownload } from '@/hooks/useInvoiceDownload'
 import { useOpenApiEndpoints } from '@/hooks/useOpenApiEndpoints'
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 import { useRecentInvoices } from '@/hooks/useRecentInvoices'
+import type { InvoiceItem } from '@/hooks/useRecentInvoices'
 import { useTransactions } from '@/hooks/useTransactions'
 import { useUsageCredits } from '@/hooks/useUsageCredits'
 import { useUsageOverview } from '@/hooks/useUsageOverview'
@@ -24,6 +28,11 @@ const quickActivity = [
 ]
 
 const barHeights = [60, 82, 70, 108, 87, 114, 133, 95, 124, 143, 130, 150]
+const quickCardMotion = {
+    initial: { opacity: 0, y: 12 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: '-40px' },
+}
 
 const ActionCards = () => {
     const navigate = useNavigate()
@@ -35,12 +44,38 @@ const ActionCards = () => {
     const { data: transactions } = useTransactions()
     const { data: invoices } = useRecentInvoices(3)
     const { data: apiEndpoints } = useOpenApiEndpoints()
+    const { downloadInvoice } = useInvoiceDownload()
+    const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<string | null>(null)
     const handleRecharge = () => {
         navigate('/billing')
     }
     const handleStartTesting = () => navigate('/api-testing')
     const handleStartCustomizing = () =>
         window.open('https://idto.ai/demo', '_blank', 'noopener,noreferrer')
+    const extractYearMonth = (dateTime: string | undefined): { year: number; month: number } | null => {
+        if (!dateTime) return null
+        try {
+            const [date] = dateTime.split(' ')
+            const [year, month] = date.split('-')
+            if (year && month) {
+                return { year: Number.parseInt(year, 10), month: Number.parseInt(month, 10) }
+            }
+        } catch (error) {
+            console.error('Error parsing invoice date:', error)
+        }
+        return null
+    }
+    const handleDownloadInvoice = async (invoice: InvoiceItem | undefined) => {
+        const yearMonth = extractYearMonth(invoice?.date_time)
+        if (!invoice || !yearMonth) return
+
+        setDownloadingInvoiceId(invoice.id)
+        try {
+            await downloadInvoice(yearMonth.year, yearMonth.month)
+        } finally {
+            setDownloadingInvoiceId(null)
+        }
+    }
 
     if (!isProduction) {
         return (
@@ -63,7 +98,7 @@ const ActionCards = () => {
                 </div>
 
                 <div className="grid gap-4 xl:grid-cols-3">
-                    <article className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
+                    <motion.article {...quickCardMotion} transition={{ duration: 0.28 }} whileHover={{ y: -4 }} className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
                         <div className="flex w-full items-center justify-between pb-[14.065px]">
                             <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
                                 <span className="size-[5.274px] rounded-full bg-[#00e59e]" />
@@ -87,21 +122,22 @@ const ActionCards = () => {
                             </p>
                           </div>
                           <div className="grid h-[33.403px] grid-cols-3 gap-[7.032px]">
-                            <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}1,000</button>
-                            <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#0019ff] bg-[#0019ff]/10 text-[12.306px] font-normal leading-[17.581px] text-[#0019ff]">{'\u20b9'}5,000</button>
-                            <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}10,000</button>
+                            <motion.button whileTap={{ scale: 0.97 }} className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}1,000</motion.button>
+                            <motion.button whileTap={{ scale: 0.97 }} className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#0019ff] bg-[#0019ff]/10 text-[12.306px] font-normal leading-[17.581px] text-[#0019ff]">{'\u20b9'}5,000</motion.button>
+                            <motion.button whileTap={{ scale: 0.97 }} className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}10,000</motion.button>
                           </div>
-                          <button
+                          <motion.button
+                              whileTap={{ scale: 0.98 }}
                               onClick={handleRecharge}
                               className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] bg-[#0019ff] py-[8.79px] text-[12.306px] font-normal leading-[17.581px] text-[#fcfcfc]"
                           >
                               Recharge now
                               <Plus className="size-[12.306px]" />
-                          </button>
+                          </motion.button>
                         </div>
-                    </article>
+                    </motion.article>
 
-                    <article className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
+                    <motion.article {...quickCardMotion} transition={{ duration: 0.28, delay: 0.04 }} whileHover={{ y: -4 }} className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
                         <div className="flex w-full items-center justify-between pb-[14.065px]">
                             <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
                                 <span className="size-[5.274px] rounded-full bg-[#0019ff]" />
@@ -114,10 +150,13 @@ const ActionCards = () => {
                         </h3>
                         <div className="flex h-[150px] items-end justify-center gap-[5.274px]">
                             {barHeights.map((height, index) => (
-                                <div
+                                <motion.div
                                     key={height + index}
                                     className={`min-w-px flex-1 rounded-t-[8.79px] ${index === barHeights.length - 1 ? 'bg-[#0019ff]' : 'bg-[#0019ff]/10'}`}
-                                    style={{ height }}
+                                    initial={{ height: 0, opacity: 0.55 }}
+                                    whileInView={{ height, opacity: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.45, delay: index * 0.035, ease: 'easeOut' }}
                                 />
                             ))}
                         </div>
@@ -139,9 +178,9 @@ const ActionCards = () => {
                                 </p>
                             </div>
                         </div>
-                    </article>
+                    </motion.article>
 
-                    <article className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
+                    <motion.article {...quickCardMotion} transition={{ duration: 0.28, delay: 0.08 }} whileHover={{ y: -4 }} className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
                         <div className="flex w-full items-center justify-between pb-[14.065px]">
                             <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
                                 <span className="size-[5.274px] rounded-full bg-[#00e59e]" />
@@ -153,8 +192,15 @@ const ActionCards = () => {
                             Recent activity
                         </h3>
                         <div className="flex flex-col gap-[7.032px]">
-                            {quickActivity.map(([name, txn, status, amount]) => (
-                                <div key={txn} className="grid h-[47.065px] grid-cols-[1fr_auto_auto] items-center gap-[10.548px]">
+                            {quickActivity.map(([name, txn, status, amount], index) => (
+                                <motion.div
+                                    key={txn}
+                                    initial={{ opacity: 0, x: -8 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.22, delay: index * 0.04 }}
+                                    className="grid h-[47.065px] grid-cols-[1fr_auto_auto] items-center gap-[10.548px]"
+                                >
                                     <div>
                                         <p className="text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{name}</p>
                                         <p className="text-[9.669px] font-normal leading-[14.504px] text-[#5e6a7a]">{txn}</p>
@@ -163,10 +209,10 @@ const ActionCards = () => {
                                         {status}
                                     </span>
                                     <span className="text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{amount}</span>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
-                    </article>
+                    </motion.article>
 
                     <article className="h-[230.831px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
                         <div className="flex w-full items-center justify-between pb-[14.065px]">
@@ -213,13 +259,14 @@ const ActionCards = () => {
                               <p className="h-[15.717px] text-[9.669px] font-normal leading-[15.717px] text-black/70">/v1/verify/pan</p>
                               <p className="pb-[0.774px] pt-[4.395px] text-[9.669px] font-normal leading-[15.717px] text-black/40">{'{ "pan": "ABCDE1234F" }'}</p>
                           </div>
-                          <button
+                          <motion.button
+                              whileTap={{ scale: 0.98 }}
                               onClick={handleStartTesting}
                               className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] border-[0.879px] border-[#0019ff] bg-[#0019ff]/10 px-[0.879px] py-[7.911px] text-[12.306px] font-normal leading-[17.581px] text-[#0019ff]"
                           >
                               <FlaskConical className="size-[12.306px]" />
                               Open API console
-                          </button>
+                          </motion.button>
                         </div>
                     </article>
 
@@ -243,17 +290,18 @@ const ActionCards = () => {
                                 <span className="text-[12.306px] font-bold leading-[17.581px] text-black">Brand Logo</span>
                             </div>
                             <div className="h-[5.274px] overflow-hidden rounded-full bg-[rgba(0,25,255,0.12)]">
-                                <div className="h-full w-[60%] rounded-full bg-[#0019ff]" />
+                                <motion.div initial={{ width: 0 }} whileInView={{ width: '60%' }} viewport={{ once: true }} transition={{ duration: 0.55, ease: 'easeOut' }} className="h-full rounded-full bg-[#0019ff]" />
                             </div>
                             <p className="mt-[4.395px] text-[9.669px] font-normal leading-[14.504px] text-black/80">60% customized</p>
                           </div>
-                          <button
+                          <motion.button
+                              whileTap={{ scale: 0.98 }}
                               onClick={handleStartCustomizing}
                               className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] border-[0.879px] border-[#dfe5ed] px-[0.879px] py-[7.911px] text-[12.306px] font-normal leading-[17.581px] text-[#091123]"
                           >
                               <Palette className="size-[12.306px]" />
                               Customize SDK
-                          </button>
+                          </motion.button>
                         </div>
                     </article>
                 </div>
@@ -295,7 +343,7 @@ const ActionCards = () => {
             </div>
 
             <div className="grid gap-4 xl:grid-cols-3">
-                <article className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
+                <motion.article {...quickCardMotion} transition={{ duration: 0.28 }} whileHover={{ y: -4 }} className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
                     <div className="flex w-full items-center justify-between pb-[14.065px]">
                         <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
                             <span className="size-[5.274px] rounded-full bg-[#00e59e]" />
@@ -325,21 +373,22 @@ const ActionCards = () => {
                             </p>
                         </div>
                         <div className="grid h-[33.403px] grid-cols-3 gap-[7.032px]">
-                            <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}1,000</button>
-                            <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#0019ff] bg-[#0019ff]/10 text-[12.306px] font-normal leading-[17.581px] text-[#0019ff]">{'\u20b9'}5,000</button>
-                            <button className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}10,000</button>
+                            <motion.button whileTap={{ scale: 0.97 }} className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}1,000</motion.button>
+                            <motion.button whileTap={{ scale: 0.97 }} className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#0019ff] bg-[#0019ff]/10 text-[12.306px] font-normal leading-[17.581px] text-[#0019ff]">{'\u20b9'}5,000</motion.button>
+                            <motion.button whileTap={{ scale: 0.97 }} className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}10,000</motion.button>
                         </div>
-                        <button
+                        <motion.button
+                            whileTap={{ scale: 0.98 }}
                             onClick={handleRecharge}
                             className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] bg-[#0019ff] py-[8.79px] text-[12.306px] font-normal leading-[17.581px] text-[#fcfcfc]"
                         >
                             Recharge now
                             <Plus className="size-[12.306px]" />
-                        </button>
+                        </motion.button>
                     </div>
-                </article>
+                </motion.article>
 
-                <article className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
+                <motion.article {...quickCardMotion} transition={{ duration: 0.28, delay: 0.04 }} whileHover={{ y: -4 }} className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
                     <div className="flex w-full items-center justify-between pb-[14.065px]">
                         <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
                             <span className="size-[5.274px] rounded-full bg-[#0019ff]" />
@@ -351,13 +400,19 @@ const ActionCards = () => {
                         {'Verification volume - last 12 months'}
                     </h3>
                     <div className="flex h-[150px] items-end justify-center gap-[5.274px]">
-                        {chartValues.slice(-12).map((value, index) => (
-                            <div
-                                key={`${value}-${index}`}
-                                className={`min-w-px flex-1 rounded-t-[8.79px] ${index === chartValues.slice(-12).length - 1 ? 'bg-[#0019ff]' : 'bg-[#0019ff]/10'}`}
-                                style={{ height: Math.max(10, (value / maxChartValue) * 150) }}
-                            />
-                        ))}
+                        {chartValues.slice(-12).map((value, index) => {
+                            const barHeight = Math.max(10, (value / maxChartValue) * 150)
+                            return (
+                                <motion.div
+                                    key={`${value}-${index}`}
+                                    className={`min-w-px flex-1 rounded-t-[8.79px] ${index === chartValues.slice(-12).length - 1 ? 'bg-[#0019ff]' : 'bg-[#0019ff]/10'}`}
+                                    initial={{ height: 0, opacity: 0.55 }}
+                                    whileInView={{ height: barHeight, opacity: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.45, delay: index * 0.035, ease: 'easeOut' }}
+                                />
+                            )
+                        })}
                     </div>
                     <div className="mt-4 flex items-center justify-between">
                         <div>
@@ -377,9 +432,9 @@ const ActionCards = () => {
                             </p>
                         </div>
                     </div>
-                </article>
+                </motion.article>
 
-                <article className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
+                <motion.article {...quickCardMotion} transition={{ duration: 0.28, delay: 0.08 }} whileHover={{ y: -4 }} className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
                     <div className="flex w-full items-center justify-between pb-[14.065px]">
                         <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
                             <span className="size-[5.274px] rounded-full bg-[#00e59e]" />
@@ -391,8 +446,15 @@ const ActionCards = () => {
                         Recent activity
                     </h3>
                     <div className="flex flex-col gap-[7.032px]">
-                        {(liveActivity.length ? liveActivity : []).map((transaction) => (
-                            <div key={transaction.trax_id} className="grid h-[47.065px] grid-cols-[1fr_auto] items-center gap-[10.548px]">
+                        {(liveActivity.length ? liveActivity : []).map((transaction, index) => (
+                            <motion.div
+                                key={transaction.trax_id}
+                                initial={{ opacity: 0, x: -8 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.22, delay: index * 0.04 }}
+                                className="grid h-[47.065px] grid-cols-[1fr_auto] items-center gap-[10.548px]"
+                            >
                                 <div className="min-w-0">
                                     <p className="truncate text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{transaction.api_name || 'API call'}</p>
                                     <p className="truncate text-[9.669px] font-normal leading-[14.504px] text-[#5e6a7a]">{transaction.trax_id}</p>
@@ -400,7 +462,7 @@ const ActionCards = () => {
                                 <span className={`rounded-full px-[7.032px] py-[1.758px] text-[8.79px] font-bold uppercase leading-[13.185px] ${transaction.status?.toLowerCase() === 'success' ? 'bg-[#ddfcef] text-[#007a55]' : 'bg-[#fef2f2] text-[#e7000b]'}`}>
                                     {transaction.status || 'Unknown'}
                                 </span>
-                            </div>
+                            </motion.div>
                         ))}
                         {!liveActivity.length && (
                             <p className="rounded-[12px] bg-[#f7f9fc] px-3 py-8 text-center text-[12px] text-[#5e6a7a]">
@@ -408,7 +470,7 @@ const ActionCards = () => {
                             </p>
                         )}
                     </div>
-                </article>
+                </motion.article>
 
                 <article className="h-[230.831px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
                     <div className="flex w-full items-center justify-between pb-[14.065px]">
@@ -432,10 +494,21 @@ const ActionCards = () => {
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-[10.548px] font-normal leading-[14.065px] text-[#5e6a7a]">{invoices.length} recent invoices</span>
-                            <button onClick={handleRecharge} className="inline-flex items-center gap-[3.516px] text-[10.548px] font-normal leading-[14.065px] text-[#0019ff]">
-                                View all
-                                <ArrowUpRight className="size-[10.548px]" />
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => handleDownloadInvoice(latestInvoice)}
+                                    disabled={!latestInvoice || downloadingInvoiceId === latestInvoice.id}
+                                    className="inline-flex items-center gap-[3.516px] text-[10.548px] font-normal leading-[14.065px] text-[#0019ff] disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <Download className="size-[10.548px]" />
+                                    {downloadingInvoiceId === latestInvoice?.id ? '...' : 'PDF'}
+                                </button>
+                                <button onClick={handleRecharge} className="inline-flex items-center gap-[3.516px] text-[10.548px] font-normal leading-[14.065px] text-[#0019ff]">
+                                    View all
+                                    <ArrowUpRight className="size-[10.548px]" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </article>
@@ -457,13 +530,14 @@ const ActionCards = () => {
                             <p className="h-[15.717px] truncate text-[9.669px] font-normal leading-[15.717px] text-black/70">{latestApi?.endpoint || '/verify'}</p>
                             <p className="pb-[0.774px] pt-[4.395px] text-[9.669px] font-normal leading-[15.717px] text-black/40">Backend schema ready</p>
                         </div>
-                        <button
+                        <motion.button
+                            whileTap={{ scale: 0.98 }}
                             onClick={handleStartTesting}
                             className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] border-[0.879px] border-[#0019ff] bg-[#0019ff]/10 px-[0.879px] py-[7.911px] text-[12.306px] font-normal leading-[17.581px] text-[#0019ff]"
                         >
                             <FlaskConical className="size-[12.306px]" />
                             Open API console
-                        </button>
+                        </motion.button>
                     </div>
                 </article>
 
@@ -487,17 +561,18 @@ const ActionCards = () => {
                                 <span className="text-[12.306px] font-bold leading-[17.581px] text-black">Brand Logo</span>
                             </div>
                             <div className="h-[5.274px] overflow-hidden rounded-full bg-[rgba(0,25,255,0.12)]">
-                                <div className="h-full w-[60%] rounded-full bg-[#0019ff]" />
+                                <motion.div initial={{ width: 0 }} whileInView={{ width: '60%' }} viewport={{ once: true }} transition={{ duration: 0.55, ease: 'easeOut' }} className="h-full rounded-full bg-[#0019ff]" />
                             </div>
                             <p className="mt-[4.395px] text-[9.669px] font-normal leading-[14.504px] text-black/80">60% customized</p>
                         </div>
-                        <button
+                        <motion.button
+                            whileTap={{ scale: 0.98 }}
                             onClick={handleStartCustomizing}
                             className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] border-[0.879px] border-[#dfe5ed] px-[0.879px] py-[7.911px] text-[12.306px] font-normal leading-[17.581px] text-[#091123]"
                         >
                             <Palette className="size-[12.306px]" />
                             Customize SDK
-                        </button>
+                        </motion.button>
                     </div>
                 </article>
             </div>

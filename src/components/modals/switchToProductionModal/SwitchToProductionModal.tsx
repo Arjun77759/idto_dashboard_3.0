@@ -8,7 +8,7 @@ import { useUserProfile } from '@/hooks/useUserProfile'
 import { ModalHeader, StepperProgress, StepForm } from './components'
 import BasicDetailsForm from './components/BasicDetailsForm'
 import PANAndGSTForm from './components/PANAndGSTForm'
-import SignatoryChoiceForm from './components/SignatoryChoiceForm'
+import DirectorKYCForm from './components/DirectorKYCForm'
 import BankAccountForm from './components/BankAccountForm'
 import { useUserProfileStore } from '@/store/userProfileStore'
 import { ArrowRight, BadgeCheck, Building, Building2, Check, Clock3, Landmark, Lock, Monitor, RotateCcw, ShieldCheck, Smartphone, Sparkles, UserRoundCheck, Info } from 'lucide-react'
@@ -72,12 +72,6 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
   const isProprietorship = userProfile?.entity_type === 'proprietorship'
 
   useEffect(() => {
-    if (currentStep === 'director-kyc') {
-      setCurrentStep('signatory-choice')
-    }
-  }, [currentStep])
-
-  useEffect(() => {
     if (!isOpen) {
       setIsInStepperMode(false)
       return
@@ -96,14 +90,14 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
         // Combined step: PAN is required; GST is optional for sole proprietorship.
         firstIncompleteStep = 'pan-gst'
       } else {
-        firstIncompleteStep = 'signatory-choice'
+        firstIncompleteStep = 'director-kyc'
       }
 
       setCurrentStep(firstIncompleteStep)
     }
   }, [stepsStatus, isOpen, isProprietorship, isInStepperMode])
 
-  const stepOrder = ['basic-details', 'pan-gst', 'signatory-choice', 'bank-account']
+  const stepOrder = ['basic-details', 'pan-gst', 'director-kyc', 'bank-account']
 
   const handleStartVerification = async () => {
     setCurrentStep('basic-details')
@@ -129,7 +123,7 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
       onConfirm()
       onClose()
     } else {
-      setCurrentStep('signatory-choice')
+      setCurrentStep('director-kyc')
     }
   }
 
@@ -147,7 +141,7 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
   const currentStepIndex = stepOrder.indexOf(currentStep)
   const isFigmaStepOne = isInStepperMode && currentStep === 'basic-details'
   const isFigmaStepTwo = isInStepperMode && currentStep === 'pan-gst'
-  const isFigmaStepThree = isInStepperMode && currentStep === 'signatory-choice'
+  const isFigmaStepThree = isInStepperMode && currentStep === 'director-kyc'
   const isFigmaStepFour = isInStepperMode && currentStep === 'bank-account'
   const isFigmaStepperCard = isFigmaStepOne || isFigmaStepTwo || isFigmaStepThree || isFigmaStepFour
 
@@ -174,10 +168,10 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
       isCompleted: currentStepIndex > 1
     },
     {
-      id: 'signatory-choice',
+      id: 'director-kyc',
       title: 'Authorized signatory',
       icon: Lock,
-      isActive: currentStep === 'signatory-choice',
+      isActive: currentStep === 'director-kyc',
       isCompleted: currentStepIndex > 2
     },
     {
@@ -254,10 +248,13 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
         stepsStatus={stepsStatus}
       />
       ) : isFigmaStepThree ? (
-      <SignatoryChoiceForm
+      <DirectorKYCForm
         onNext={handleStepNext}
         onPrevious={handleStepPrevious}
+        showPrevious={true}
         isLoading={isLoading}
+        initialData={onboardingData.data}
+        stepsStatus={stepsStatus}
       />
       ) : isFigmaStepFour ? (
       <BankAccountForm
@@ -288,7 +285,7 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
 
             {/* Right Panel - Step Form */}
             <StepForm
-              currentStep={currentStep === 'director-kyc' ? 'signatory-choice' : currentStep}
+              currentStep={currentStep}
               onNext={handleStepNext}
               onPrevious={handleStepPrevious}
               showPrevious={true}

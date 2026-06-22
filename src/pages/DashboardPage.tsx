@@ -275,41 +275,47 @@ const FeatureHero = ({ isProduction }: { isProduction: boolean }) => {
             {hero.description}
           </p>
           <div className="flex flex-wrap items-center gap-3 pt-3">
-            <button
+            <motion.button
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.98 }}
               type="button"
               onClick={() => navigate(hero.primaryPath)}
               className={`inline-flex h-10 items-center gap-2 rounded-full px-5 text-[14px] font-bold leading-5 ${hero.primaryClass}`}
             >
               {hero.primaryLabel}
               <ArrowRight className="size-4" />
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.98 }}
               type="button"
               onClick={() => window.open('https://drive.google.com/file/d/1vV3UIcOSrKOvh0_L_qFAPzMoKwroDMsI/view?usp=sharing', '_blank')}
               className={`inline-flex h-[42px] items-center gap-2 rounded-full border px-[17px] text-[14px] font-normal leading-5 ${hero.secondaryClass}`}
             >
               <CirclePlay className="size-4" />
               Watch demo
-            </button>
+            </motion.button>
           </div>
           </motion.div>
         </AnimatePresence>
 
         <div className="hidden items-end gap-2 self-end pb-5 lg:flex">
-          <button type="button" onClick={goToPreviousHero} className={`grid size-9 place-items-center rounded-full ${hero.previousClass}`}>
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.94 }} type="button" onClick={goToPreviousHero} className={`grid size-9 place-items-center rounded-full ${hero.previousClass}`}>
             <ChevronLeft className="size-4" />
-          </button>
-          <button type="button" onClick={goToNextHero} className={`grid size-9 place-items-center rounded-full ${hero.nextClass}`}>
+          </motion.button>
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.94 }} type="button" onClick={goToNextHero} className={`grid size-9 place-items-center rounded-full ${hero.nextClass}`}>
             <ChevronRight className="size-4" />
-          </button>
+          </motion.button>
         </div>
       </div>
       <div className="absolute bottom-4 left-[40px] flex items-center gap-1.5">
         {heroSlides.map((slide, index) => (
-          <button
+          <motion.button
             key={slide.badge}
             type="button"
             onClick={() => goToHero(index, index > activeHeroIndex ? 1 : -1)}
+            whileHover={{ scaleX: 1.12 }}
+            whileTap={{ scale: 0.92 }}
             className={`h-1 rounded-full transition-all ${index === activeHeroIndex ? `w-8 ${hero.dotClass}` : `w-3 ${hero.mutedDotClass}`}`}
             aria-label={`Show ${slide.badge}`}
           />
@@ -399,11 +405,16 @@ const YourApisSection = ({ isProduction }: { isProduction: boolean }) => {
         </p>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {apis.slice(0, 6).map((api) => {
+          {apis.slice(0, 6).map((api, index) => {
             const Icon = api.icon
             const [callCount, ...callLabel] = api.calls.split(' ')
             return (
-              <article
+              <motion.article
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ duration: 0.26, delay: index * 0.05 }}
+                whileHover={{ y: -3 }}
                 key={api.title}
                 className="flex min-h-[191px] flex-col gap-1 overflow-hidden rounded-[22px] border border-[#e0e5eb] bg-white p-[21px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
               >
@@ -427,7 +438,7 @@ const YourApisSection = ({ isProduction }: { isProduction: boolean }) => {
                     <span className="text-[#5b6472]"> {callLabel.join(' ')}</span>
                   </span>
                 </div>
-              </article>
+              </motion.article>
             )
           })}
         </div>
@@ -490,7 +501,12 @@ const RecommendedSection = ({ isProduction }: { isProduction: boolean }) => {
             const Icon = item.icon
             const iconClass = index === 1 ? 'bg-[#cbffec] text-[#0a8f6b]' : 'bg-[#e0eeff] text-[#231eec]'
             return (
-              <article
+              <motion.article
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ duration: 0.26, delay: index * 0.05 }}
+                whileHover={{ y: -3 }}
                 key={`${item.title}-${index}`}
                 className="h-[222.5px] rounded-[18px] border border-[#e0e5eb] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
               >
@@ -514,7 +530,7 @@ const RecommendedSection = ({ isProduction }: { isProduction: boolean }) => {
                   {isProduction ? 'View API' : 'Try in sandbox'}
                   <ArrowUpRight className="size-3.5" />
                 </button>
-              </article>
+              </motion.article>
             )
           })}
         </div>

@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowUpRight,
   Check,
@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom'
 
 import ApiConfiguration from '@/components/api-testing/ApiConfiguration'
 import ApiResponse from '@/components/api-testing/ApiResponse'
+import { fetchRequestedApis, submitApiAccessRequest } from '@/api/apiAccessRequestsApi'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import type { ApiEndpoint } from '@/config/apiEndpoints'
@@ -118,6 +119,12 @@ const ApiTestingPage = () => {
   const [apiResponse, setApiResponse] = useState<any>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [showSampleResponse, setShowSampleResponse] = useState(false)
+  const [recentlyPinnedApi, setRecentlyPinnedApi] = useState<string | null>(null)
+  const [requestingApiId, setRequestingApiId] = useState<string | null>(null)
+  const [requestedApiIds, setRequestedApiIds] = useState<string[]>([])
+  const [requestedApisLoading, setRequestedApisLoading] = useState(false)
+  const [requestedApisError, setRequestedApisError] = useState<string | null>(null)
+  const [requestStatusMessage, setRequestStatusMessage] = useState('')
 
   const subscribedApiIds = useMemo(() => {
     if (!subscribedApis || !apiEndpoints || subscribedApis.length === 0) return new Set<string>()
@@ -147,6 +154,38 @@ const ApiTestingPage = () => {
     if (typeof window === 'undefined') return
     window.localStorage.setItem('idto-saved-api-testing', JSON.stringify(savedApis))
   }, [savedApis])
+
+  useEffect(() => {
+    if (!isProduction) {
+      setRequestedApiIds([])
+      setRequestedApisError(null)
+      return
+    }
+
+    let cancelled = false
+    const loadRequestedApis = async () => {
+      setRequestedApisLoading(true)
+      try {
+        const requestedApis = await fetchRequestedApis()
+        if (!cancelled) {
+          setRequestedApiIds(requestedApis.filter((api) => api.status === 'requested').map((api) => api.api_id))
+          setRequestedApisError(null)
+        }
+      } catch (error: any) {
+        if (!cancelled) {
+          setRequestedApisError(error?.response?.data?.detail || error?.message || 'Failed to load requested APIs')
+        }
+      } finally {
+        if (!cancelled) setRequestedApisLoading(false)
+      }
+    }
+
+    void loadRequestedApis()
+
+    return () => {
+      cancelled = true
+    }
+  }, [isProduction])
 
   const enabledApis = useMemo(
     () => (apiEndpoints || []).filter((api) => subscribedApiIds.has(api.id)),
@@ -201,7 +240,38 @@ const ApiTestingPage = () => {
     setApiResponse(response)
   }
 
+  const handleRequestApiAccess = async (api: ApiEndpoint) => {
+    setRequestingApiId(api.id)
+    setRequestStatusMessage('')
+
+    try {
+      await submitApiAccessRequest({
+        api_name: api.name,
+        api_id: api.id,
+      })
+      setRequestedApiIds((current) => (current.includes(api.id) ? current : [...current, api.id]))
+      setRequestStatusMessage(`Access request sent for ${api.name}.`)
+    } catch (error) {
+      console.error('API access request failed', error)
+      setRequestStatusMessage('Could not send the access request. Please try again.')
+    } finally {
+      setRequestingApiId(null)
+    }
+  }
+
   const handleSelectApi = (apiId: string) => {
+    const api = apiEndpoints?.find((item) => item.id === apiId)
+    const isLockedProductionApi = Boolean(isProduction && api && !subscribedApiIds.has(api.id))
+
+    if (api && isLockedProductionApi) {
+      if (requestedApiIds.includes(api.id)) {
+        setRequestStatusMessage(`Access request already sent for ${api.name}.`)
+        return
+      }
+      void handleRequestApiAccess(api)
+      return
+    }
+
     setSelectedApi(apiId)
     setApiResponse(null)
     setShowSampleResponse(false)
@@ -209,9 +279,14 @@ const ApiTestingPage = () => {
   }
 
   const toggleSaveApi = (apiId: string) => {
-    setSavedApis((current) => (
-      current.includes(apiId) ? current.filter((id) => id !== apiId) : [...current, apiId]
-    ))
+    setSavedApis((current) => {
+      const isPinned = current.includes(apiId)
+      if (!isPinned) {
+        setRecentlyPinnedApi(apiId)
+        window.setTimeout(() => setRecentlyPinnedApi((currentApi) => (currentApi === apiId ? null : currentApi)), 900)
+      }
+      return isPinned ? current.filter((id) => id !== apiId) : [...current, apiId]
+    })
   }
 
   const renderEmptyState = () => {
@@ -267,16 +342,23 @@ const ApiTestingPage = () => {
             </p>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2">
+          <motion.div layout className="grid gap-3 md:grid-cols-2">
             {endpointsLoading ? (
               Array.from({ length: 4 }).map((_, index) => (
                 <div key={index} className="h-[86px] animate-pulse rounded-[14px] bg-white/10" />
               ))
             ) : (
-              recommendedApis.map((api) => {
+              recommendedApis.map((api, index) => {
                 const isEnabled = !isProduction || subscribedApiIds.has(api.id)
                 return (
-                  <div key={api.id} className="rounded-[14px] border border-white/10 bg-white/10 p-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                  <motion.div
+                    key={api.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, delay: index * 0.04 }}
+                    whileHover={{ y: -2 }}
+                    className="rounded-[14px] border border-white/10 bg-white/10 p-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-[13px] font-bold leading-5">{api.name}</p>
@@ -289,27 +371,29 @@ const ApiTestingPage = () => {
                       </span>
                     </div>
                     <div className="mt-4 flex items-center gap-3">
-                      <button
+                      <motion.button
+                        whileTap={{ scale: 0.98 }}
                         type="button"
                         onClick={() => handleSelectApi(api.id)}
                         className="h-8 rounded-[10px] bg-white px-3 text-[12px] font-normal leading-4 text-[#0a121f]"
                       >
                         {isProduction && !isEnabled ? 'Request access' : 'Try API'}
-                      </button>
-                      <button
+                      </motion.button>
+                      <motion.button
+                        whileTap={{ scale: 0.98 }}
                         type="button"
                         onClick={() => window.open(API_DOCS_URL, '_blank', 'noopener,noreferrer')}
                         className="inline-flex items-center gap-1 text-[11px] font-normal leading-4 text-white"
                       >
                         <FileText className="size-3.5" />
                         View docs
-                      </button>
+                      </motion.button>
                     </div>
-                  </div>
+                  </motion.div>
                 )
               })
             )}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -322,17 +406,19 @@ const ApiTestingPage = () => {
                 ['Enabled', enabledApis.length],
                 ['Pinned', pinnedApis.length],
               ] as [MarketplaceTab, number][]).map(([tab, count]) => (
-                <button
+                <motion.button
+                  layout
                   key={tab}
                   type="button"
                   onClick={() => setActiveTab(tab)}
+                  whileTap={{ scale: 0.97 }}
                   className={cn(
                     'h-8 rounded-full px-4 text-[12px] font-normal leading-4 transition',
                     activeTab === tab ? 'bg-[#255be8] text-white shadow-sm' : 'text-[#5c646f] hover:bg-[#f7f9fc]'
                   )}
                 >
                   {tab} ({count})
-                </button>
+                </motion.button>
               ))}
             </div>
 
@@ -355,18 +441,24 @@ const ApiTestingPage = () => {
                 {remainingCredits}
               </span>
             </div>
-            <button
+            <motion.button
+              whileTap={{ scale: 0.98 }}
               type="button"
               onClick={() => navigate('/billing')}
               className="inline-flex h-8 w-max items-center justify-center gap-1 rounded-full bg-[#0019ff] px-3 text-[12px] font-semibold text-white"
             >
               <Plus className="size-3.5" />
               Top up credits
-            </button>
+            </motion.button>
           </div>
 
           <div className="min-h-[400px]">
-            {endpointsLoading || subscriptionsLoading ? (
+            {(requestStatusMessage || requestedApisError) && (
+              <div className="mb-3 rounded-[12px] border border-[#d7e3f7] bg-[#f4f8ff] px-4 py-3 text-[12px] font-medium leading-5 text-[#195cdf]">
+                {requestStatusMessage || requestedApisError}
+              </div>
+            )}
+            {endpointsLoading || subscriptionsLoading || requestedApisLoading ? (
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {Array.from({ length: 9 }).map((_, index) => (
                   <div key={index} className="h-[166px] animate-pulse rounded-[20px] border border-[#e1e5ea] bg-[#f6f8fb]" />
@@ -375,19 +467,24 @@ const ApiTestingPage = () => {
             ) : marketplaceApis.length === 0 ? (
               renderEmptyState()
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {marketplaceApis.map((api) => (
-                  <ApiCard
-                    key={api.id}
-                    api={api}
-                    isPinned={savedApis.includes(api.id)}
-                    isEnabled={subscribedApiIds.has(api.id)}
-                    isProduction={isProduction}
-                    onSelect={() => handleSelectApi(api.id)}
-                    onTogglePin={() => toggleSaveApi(api.id)}
-                  />
-                ))}
-              </div>
+              <motion.div layout className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <AnimatePresence initial={false}>
+                  {marketplaceApis.map((api) => (
+                    <ApiCard
+                      key={api.id}
+                      api={api}
+                      isPinned={savedApis.includes(api.id)}
+                      isRecentlyPinned={recentlyPinnedApi === api.id}
+                      isEnabled={subscribedApiIds.has(api.id)}
+                      isRequested={requestedApiIds.includes(api.id)}
+                      isProduction={isProduction}
+                      isRequesting={requestingApiId === api.id}
+                      onSelect={() => handleSelectApi(api.id)}
+                      onTogglePin={() => toggleSaveApi(api.id)}
+                    />
+                  ))}
+                </AnimatePresence>
+              </motion.div>
             )}
           </div>
         </div>
@@ -418,8 +515,16 @@ const ApiTestingPage = () => {
             </div>
           </SheetHeader>
           <div className="mt-6 flex flex-col gap-4 pb-8">
+            <AnimatePresence mode="wait">
             {showSampleResponse && selectedApiData ? (
-              <div className="rounded-2xl border border-[#e7e8ea] bg-white p-4">
+              <motion.div
+                key="schema"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="rounded-2xl border border-[#e7e8ea] bg-white p-4"
+              >
                 <div className="mb-4 flex items-center gap-2">
                   <Code2 className="size-5 text-[#0019ff]" />
                   <h3 className="text-sm font-semibold text-[#131b31]">Schema sample from OpenAPI</h3>
@@ -431,9 +536,16 @@ const ApiTestingPage = () => {
                       : JSON.stringify(selectedApiData.sampleOutput || {}, null, 2)}
                   </pre>
                 </div>
-              </div>
+              </motion.div>
             ) : (
-              <>
+              <motion.div
+                key="runner"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col gap-4"
+              >
                 <ApiConfiguration
                   selectedApi={selectedApi}
                   apiEndpoints={apiEndpoints}
@@ -444,8 +556,9 @@ const ApiTestingPage = () => {
                   forceBackendExecution={isProduction}
                 />
                 <ApiResponse response={apiResponse} />
-              </>
+              </motion.div>
             )}
+            </AnimatePresence>
           </div>
         </SheetContent>
       </Sheet>
@@ -456,17 +569,39 @@ const ApiTestingPage = () => {
 type ApiCardProps = {
   api: ApiEndpoint
   isPinned: boolean
+  isRecentlyPinned: boolean
   isEnabled: boolean
+  isRequested: boolean
   isProduction: boolean
+  isRequesting: boolean
   onSelect: () => void
   onTogglePin: () => void
 }
 
-const ApiCard = ({ api, isPinned, isEnabled, isProduction, onSelect, onTogglePin }: ApiCardProps) => (
-  <div
-    className="flex min-h-[166px] cursor-pointer flex-col rounded-[20px] border border-[#e1e5ea] bg-white p-[21px] shadow-[0_1px_1px_rgba(17,22,31,0.04),0_1px_1.5px_rgba(17,22,31,0.06)] transition hover:-translate-y-0.5 hover:shadow-md"
+const ApiCard = ({ api, isPinned, isRecentlyPinned, isEnabled, isProduction, isRequesting, isRequested, onSelect, onTogglePin }: ApiCardProps) => (
+  <motion.div
+    layout
+    initial={{ opacity: 0, y: 12, scale: 0.98 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    exit={{ opacity: 0, y: 8, scale: 0.98 }}
+    transition={{ duration: 0.24, layout: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } }}
+    whileHover={{ y: -3 }}
+    className="relative flex min-h-[166px] cursor-pointer flex-col overflow-hidden rounded-[20px] border border-[#e1e5ea] bg-white p-[21px] shadow-[0_1px_1px_rgba(17,22,31,0.04),0_1px_1.5px_rgba(17,22,31,0.06)]"
     onClick={onSelect}
   >
+    <AnimatePresence>
+      {isRecentlyPinned && (
+        <motion.div
+          initial={{ opacity: 0, y: -8, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -8, scale: 0.95 }}
+          transition={{ duration: 0.2 }}
+          className="absolute right-[21px] top-[58px] rounded-full bg-[#e8f3ff] px-2 py-1 text-[10px] font-semibold leading-3 text-[#195cdf]"
+        >
+          Pinned
+        </motion.div>
+      )}
+    </AnimatePresence>
     <div className="flex items-start justify-between gap-3">
       <div className="min-w-0 pb-0.5">
         <p className="line-clamp-2 text-[16px] font-bold leading-5 text-[#0c121a]">{api.name}</p>
@@ -478,26 +613,37 @@ const ApiCard = ({ api, isPinned, isEnabled, isProduction, onSelect, onTogglePin
         <span
           className={cn(
             'inline-flex h-[20.5px] items-center gap-1 rounded-[10px] px-2 text-[10px] font-normal leading-[16.5px]',
-            !isProduction ? 'bg-[#fff0c5] text-[#bb4d00]' : isEnabled ? 'bg-[#e1faec] text-[#1f9a5b]' : 'bg-[#eef2f7] text-[#5c646f]'
+            !isProduction
+              ? 'bg-[#fff0c5] text-[#bb4d00]'
+              : isEnabled
+                ? 'bg-[#e1faec] text-[#1f9a5b]'
+                : isRequested
+                  ? 'bg-[#e8f3ff] text-[#195cdf]'
+                  : 'bg-[#eef2f7] text-[#5c646f]'
           )}
         >
           {!isProduction ? <Zap className="size-3" /> : isEnabled ? <Check className="size-3" /> : <Lock className="size-3" />}
-          {!isProduction ? 'Sandbox' : isEnabled ? 'Enabled' : 'Locked'}
+          {!isProduction ? 'Sandbox' : isEnabled ? 'Enabled' : isRequested ? 'Requested' : 'Locked'}
         </span>
-        <button
+        <motion.button
           type="button"
           onClick={(event) => {
             event.stopPropagation()
             onTogglePin()
           }}
+          whileTap={{ scale: 0.88, rotate: isPinned ? -10 : 10 }}
+          animate={isPinned ? { scale: [1, 1.16, 1], rotate: [0, -8, 0] } : { scale: 1, rotate: 0 }}
+          transition={{ duration: 0.24 }}
           className={cn(
             'grid size-8 place-items-center rounded-full border border-[#e1e5ea] bg-white p-px transition hover:border-[#b9c5d6]',
             isPinned && 'border-[#b9cdfd] bg-[#e8f3ff] text-[#195cdf]'
           )}
           aria-label={isPinned ? `Unpin ${api.name}` : `Pin ${api.name}`}
         >
-          <Pin className="size-3.5" />
-        </button>
+          <motion.span animate={isRecentlyPinned ? { scale: [1, 1.25, 1] } : { scale: 1 }} transition={{ duration: 0.32 }} className="grid place-items-center">
+            <Pin className="size-3.5" />
+          </motion.span>
+        </motion.button>
       </div>
     </div>
 
@@ -512,22 +658,26 @@ const ApiCard = ({ api, isPinned, isEnabled, isProduction, onSelect, onTogglePin
             <Zap className="size-3.5" />
             {!isProduction ? 'Sample response' : `${api.credit} Credits`}
           </span>
-          <ChevronRight className="size-4 text-[#5c646f]" />
+          <motion.span animate={{ x: 0 }} whileHover={{ x: 2 }} className="grid place-items-center">
+            <ChevronRight className="size-4 text-[#5c646f]" />
+          </motion.span>
         </div>
       ) : (
-        <button
+        <motion.button
           type="button"
           onClick={(event) => {
             event.stopPropagation()
             onSelect()
           }}
+          whileTap={{ scale: 0.98 }}
           className="flex h-9 w-full items-center justify-center rounded-[12px] bg-[#195cdf] text-center text-[14px] font-semibold leading-5 text-white transition hover:bg-[#124ec4]"
+          disabled={isRequesting || isRequested}
         >
-          Request Access
-        </button>
+          {isRequesting ? 'Requesting...' : isRequested ? 'Requested' : 'Request Access'}
+        </motion.button>
       )}
     </div>
-  </div>
+  </motion.div>
 )
 
 export default ApiTestingPage

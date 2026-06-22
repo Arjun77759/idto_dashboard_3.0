@@ -40,7 +40,8 @@ const KYCCallbackPage = () => {
       try {
         await updateDirectorKYC({
           code,
-          code_verifier: codeVerifier
+          code_verifier: codeVerifier,
+          redirect_uri: `${window.location.origin}/kyc-callback`
         })
         
         // Invalidate both stores so they refetch with updated data
