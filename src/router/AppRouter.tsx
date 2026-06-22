@@ -28,6 +28,7 @@ import SwitchToProductionMobileStepPage from '../pages/SwitchToProductionMobileS
 import TransactionDetailPage from '../pages/TransactionDetailPage'
 import TransactionsPage from '../pages/TransactionsPage'
 import UsersPage from '../pages/UsersPage'
+import WorkflowAnalyticsPage from '../pages/WorkflowAnalyticsPage'
 import WorkspaceProfilePage from '../pages/WorkspaceProfilePage'
 import WorkspaceSetupPage from '../pages/WorkspaceSetupPage'
 
@@ -113,6 +114,13 @@ const analyticsRoutes = [
   {
     index: true,
     element: <AnalyticsPage />
+  }
+]
+
+const workflowAnalyticsRoutes = [
+  {
+    index: true,
+    element: <WorkflowAnalyticsPage />
   }
 ]
 
@@ -206,6 +214,11 @@ const AppRouter = () => {
       path: '/analytics',
       element: <PrivateLayout />,
       children: analyticsRoutes,
+    },
+    {
+      path: '/workflow-analytics',
+      element: <PrivateLayout />,
+      children: workflowAnalyticsRoutes,
     },
     {
       path: '/dashboard',

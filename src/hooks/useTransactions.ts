@@ -10,6 +10,7 @@ export type Transaction = {
   status: string;
   timestamp: string;
   turn_around_time?: string | null;
+  final_price?: number | string | null;
 };
 
 type TransactionApiResponse = Omit<Transaction, "trax_id"> & {

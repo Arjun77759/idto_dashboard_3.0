@@ -392,6 +392,7 @@ const Sidebar = () => {
       items: [
         { name: 'Home', href: '/dashboard', icon: BarChart3, iconSrc: figmaNavHomeIcon, isActive: location.pathname === '/dashboard' },
         { name: 'Analytics', href: '/analytics', icon: BarChart3, iconSrc: figmaNavAnalyticsIcon, isActive: location.pathname === '/analytics' },
+        { name: 'Workflow Analytics', href: '/workflow-analytics', icon: BarChart3, isActive: location.pathname === '/workflow-analytics' },
         { name: 'Transactions', href: '/transactions', icon: Receipt, iconSrc: figmaNavTransactionsIcon, isActive: location.pathname === '/transactions' },
         { name: 'Billing', href: '/billing', icon: CreditCard, iconSrc: figmaNavBillingIcon, isActive: location.pathname === '/billing' },
         { name: 'API Testing', href: '/api-testing', icon: FlaskConical, isActive: location.pathname === '/api-testing' },
