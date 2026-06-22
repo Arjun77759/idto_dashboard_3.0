@@ -1,17 +1,8 @@
 import { useEffect, useState } from 'react'
 
 import { getConfiguredApis, type ConfiguredApisResponse } from '@/api/usageApi'
-import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
-
-const emptyConfiguredApisResponse: ConfiguredApisResponse = {
-  customer_id: '',
-  apis: [],
-  total_count: 0,
-}
 
 export function useConfiguredApis() {
-  const { data: onboardingStatus } = useOnboardingStatus()
-  const isProduction = Boolean(onboardingStatus?.is_onboarded)
   const [data, setData] = useState<ConfiguredApisResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -23,11 +14,6 @@ export function useConfiguredApis() {
       setLoading(true)
       setError(null)
       try {
-        if (!isProduction) {
-          if (!cancelled) setData(emptyConfiguredApisResponse)
-          return
-        }
-
         const response = await getConfiguredApis()
         if (!cancelled) setData(response)
       } catch (e: any) {
@@ -45,7 +31,7 @@ export function useConfiguredApis() {
     return () => {
       cancelled = true
     }
-  }, [isProduction])
+  }, [])
 
   return { data, loading, error }
 }

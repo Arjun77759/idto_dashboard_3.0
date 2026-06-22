@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getUsageComparison, getUsageOverview } from '@/api/usageApi'
 import type { UsageComparisonResponse } from '@/api/usageApi'
-import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
-import { getSandboxUsageOverview } from '@/mocks/sandboxTransactions'
 
 export type UsageOverview = {
   total: number
@@ -12,10 +10,6 @@ export type UsageOverview = {
 }
 
 export function useUsageOverview(period?: number) {
-  const { data: onboardingStatus } = useOnboardingStatus()
-  // If isProduction is false, mock this API with good data
-  const isProduction = Boolean(onboardingStatus?.is_onboarded)
-
   const [data, setData] = useState<UsageComparisonResponse | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
@@ -24,16 +18,6 @@ export function useUsageOverview(period?: number) {
     let cancelled = false
     async function fetchOverview() {
       setLoading(true)
-
-      // If not production, use mock data for sandbox and return early
-      if (!isProduction) {
-        if (!cancelled) {
-          setData(getSandboxUsageOverview())
-          setError(null)
-          setLoading(false)
-        }
-        return
-      }
 
       try {
         // Try comparison API first, fallback to basic overview if not available
@@ -95,8 +79,7 @@ export function useUsageOverview(period?: number) {
     return () => {
       cancelled = true
     }
-    // Also depend on isProduction so hook updates with onboardingStatus change
-  }, [period, isProduction])
+  }, [period])
 
   return { data, loading, error }
 }

@@ -77,7 +77,7 @@ const ActionCards = () => {
         }
     }
 
-    if (!isProduction) {
+    if (false) {
         return (
             <motion.section
                 initial={{ opacity: 0, y: 20 }}
@@ -311,7 +311,7 @@ const ActionCards = () => {
 
     const latestInvoice = invoices[0]
     const latestApi = apiEndpoints?.[0]
-    const chartValues = volumeData.length > 0 ? volumeData.map((point) => point.count) : barHeights
+    const chartValues = volumeData.map((point) => point.count)
     const maxChartValue = Math.max(...chartValues, 1)
     const liveActivity = transactions.slice(0, 4)
     const currentBalance = data?.balance ?? 0
@@ -355,7 +355,7 @@ const ActionCards = () => {
                         Add credits to your wallet
                     </h3>
                     <div className="flex flex-col gap-[21px]">
-                        <div className="rounded-[14.065px] bg-[#0019ff]/10 px-[14.065px] pb-[14.065px] pt-[13.185px]">
+                        <div className={`rounded-[14.065px] px-[14.065px] pb-[14.065px] pt-[13.185px] ${isProduction ? 'bg-[#0019ff]/10' : 'bg-[#fff2d0]'}`}>
                             <p className="text-[9.669px] font-bold uppercase leading-[14.504px] tracking-[0.4835px] text-[#5e6a7a]">
                                 Current Balance
                             </p>
@@ -364,7 +364,7 @@ const ActionCards = () => {
                             ) : error ? (
                                 <p className="pt-2 text-[11px] text-red-600">Balance unavailable</p>
                             ) : (
-                                <p className="pt-[1.758px] text-[26.371px] font-bold leading-[31.645px] tracking-[-0.6593px] text-[#0019ff]">
+                                <p className={`pt-[1.758px] text-[26.371px] font-bold leading-[31.645px] tracking-[-0.6593px] ${isProduction ? 'text-[#0019ff]' : 'text-[#f09c17]'}`}>
                                     {formatCurrency(currentBalance)}
                                 </p>
                             )}
@@ -374,13 +374,13 @@ const ActionCards = () => {
                         </div>
                         <div className="grid h-[33.403px] grid-cols-3 gap-[7.032px]">
                             <motion.button whileTap={{ scale: 0.97 }} className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}1,000</motion.button>
-                            <motion.button whileTap={{ scale: 0.97 }} className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#0019ff] bg-[#0019ff]/10 text-[12.306px] font-normal leading-[17.581px] text-[#0019ff]">{'\u20b9'}5,000</motion.button>
+                            <motion.button whileTap={{ scale: 0.97 }} className={`flex items-center justify-center rounded-[10.548px] border-[0.879px] text-[12.306px] font-normal leading-[17.581px] ${isProduction ? 'border-[#0019ff] bg-[#0019ff]/10 text-[#0019ff]' : 'border-[#f09c17] bg-[#fff2d0] text-[#f09c17]'}`}>{'\u20b9'}5,000</motion.button>
                             <motion.button whileTap={{ scale: 0.97 }} className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}10,000</motion.button>
                         </div>
                         <motion.button
                             whileTap={{ scale: 0.98 }}
                             onClick={handleRecharge}
-                            className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] bg-[#0019ff] py-[8.79px] text-[12.306px] font-normal leading-[17.581px] text-[#fcfcfc]"
+                            className={`inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] py-[8.79px] text-[12.306px] font-normal leading-[17.581px] text-[#fcfcfc] ${isProduction ? 'bg-[#0019ff]' : 'bg-[#f09c17]'}`}
                         >
                             Recharge now
                             <Plus className="size-[12.306px]" />
@@ -391,7 +391,7 @@ const ActionCards = () => {
                 <motion.article {...quickCardMotion} transition={{ duration: 0.28, delay: 0.04 }} whileHover={{ y: -4 }} className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
                     <div className="flex w-full items-center justify-between pb-[14.065px]">
                         <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
-                            <span className="size-[5.274px] rounded-full bg-[#0019ff]" />
+                            <span className={`size-[5.274px] rounded-full ${isProduction ? 'bg-[#0019ff]' : 'bg-[#f09c17]'}`} />
                             Analytics
                         </div>
                         <ArrowUpRight className="size-[14.065px] text-[#5e6a7a]" />
@@ -405,7 +405,7 @@ const ActionCards = () => {
                             return (
                                 <motion.div
                                     key={`${value}-${index}`}
-                                    className={`min-w-px flex-1 rounded-t-[8.79px] ${index === chartValues.slice(-12).length - 1 ? 'bg-[#0019ff]' : 'bg-[#0019ff]/10'}`}
+                                    className={`min-w-px flex-1 rounded-t-[8.79px] ${index === chartValues.slice(-12).length - 1 ? (isProduction ? 'bg-[#0019ff]' : 'bg-[#f09c17]') : (isProduction ? 'bg-[#0019ff]/10' : 'bg-[#fff2d0]')}`}
                                     initial={{ height: 0, opacity: 0.55 }}
                                     whileInView={{ height: barHeight, opacity: 1 }}
                                     viewport={{ once: true }}
@@ -475,7 +475,7 @@ const ActionCards = () => {
                 <article className="h-[230.831px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
                     <div className="flex w-full items-center justify-between pb-[14.065px]">
                         <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
-                            <span className="size-[5.274px] rounded-full bg-[#0019ff]" />
+                            <span className={`size-[5.274px] rounded-full ${isProduction ? 'bg-[#0019ff]' : 'bg-[#f09c17]'}`} />
                             Billing
                         </div>
                         <ArrowUpRight className="size-[14.065px] text-[#5e6a7a]" />
@@ -487,7 +487,7 @@ const ActionCards = () => {
                         <div className="rounded-[14.065px] border-[0.879px] border-[#dfe5ed] p-[14.944px]">
                             <div className="flex items-center justify-between">
                                 <span className="text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{latestInvoice?.id || '-'}</span>
-                                <span className="rounded-full bg-[#ddfcef] px-[7.032px] py-[1.758px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[0.2198px] text-[#007a55]">{latestInvoice?.status || 'Live'}</span>
+                                <span className={`rounded-full px-[7.032px] py-[1.758px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[0.2198px] ${isProduction ? 'bg-[#ddfcef] text-[#007a55]' : 'bg-[#fff2d0] text-[#f09c17]'}`}>{latestInvoice?.status || (isProduction ? 'Live' : 'Sandbox')}</span>
                             </div>
                             <p className="pt-[5.274px] text-[21.097px] font-bold leading-[28.129px] tracking-[-0.5274px] text-[#091123]">{formatCurrency(latestInvoice?.amount)}</p>
                             <p className="text-[10.548px] font-normal leading-[14.065px] text-[#5e6a7a]">{latestInvoice?.date_time || 'No invoice date'}</p>
@@ -499,12 +499,12 @@ const ActionCards = () => {
                                     type="button"
                                     onClick={() => handleDownloadInvoice(latestInvoice)}
                                     disabled={!latestInvoice || downloadingInvoiceId === latestInvoice.id}
-                                    className="inline-flex items-center gap-[3.516px] text-[10.548px] font-normal leading-[14.065px] text-[#0019ff] disabled:cursor-not-allowed disabled:opacity-50"
+                                    className={`inline-flex items-center gap-[3.516px] text-[10.548px] font-normal leading-[14.065px] disabled:cursor-not-allowed disabled:opacity-50 ${isProduction ? 'text-[#0019ff]' : 'text-[#f09c17]'}`}
                                 >
                                     <Download className="size-[10.548px]" />
                                     {downloadingInvoiceId === latestInvoice?.id ? '...' : 'PDF'}
                                 </button>
-                                <button onClick={handleRecharge} className="inline-flex items-center gap-[3.516px] text-[10.548px] font-normal leading-[14.065px] text-[#0019ff]">
+                                <button onClick={handleRecharge} className={`inline-flex items-center gap-[3.516px] text-[10.548px] font-normal leading-[14.065px] ${isProduction ? 'text-[#0019ff]' : 'text-[#f09c17]'}`}>
                                     View all
                                     <ArrowUpRight className="size-[10.548px]" />
                                 </button>
@@ -516,7 +516,7 @@ const ActionCards = () => {
                 <article className="h-[230.831px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
                     <div className="flex w-full items-center justify-between pb-[14.065px]">
                         <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
-                            <span className="size-[5.274px] rounded-full bg-[#0019ff]" />
+                            <span className={`size-[5.274px] rounded-full ${isProduction ? 'bg-[#0019ff]' : 'bg-[#f09c17]'}`} />
                             API Testing
                         </div>
                         <ArrowUpRight className="size-[14.065px] text-[#5e6a7a]" />
@@ -533,7 +533,7 @@ const ActionCards = () => {
                         <motion.button
                             whileTap={{ scale: 0.98 }}
                             onClick={handleStartTesting}
-                            className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] border-[0.879px] border-[#0019ff] bg-[#0019ff]/10 px-[0.879px] py-[7.911px] text-[12.306px] font-normal leading-[17.581px] text-[#0019ff]"
+                            className={`inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] border-[0.879px] px-[0.879px] py-[7.911px] text-[12.306px] font-normal leading-[17.581px] ${isProduction ? 'border-[#0019ff] bg-[#0019ff]/10 text-[#0019ff]' : 'border-[#f09c17] bg-[#fff2d0] text-[#f09c17]'}`}
                         >
                             <FlaskConical className="size-[12.306px]" />
                             Open API console
@@ -553,15 +553,15 @@ const ActionCards = () => {
                         Bring your brand to life
                     </h3>
                     <div className="flex flex-col gap-[10.548px]">
-                        <div className="overflow-hidden rounded-[14.065px] bg-[#0019ff]/10 p-[14.065px]">
+                        <div className={`overflow-hidden rounded-[14.065px] p-[14.065px] ${isProduction ? 'bg-[#0019ff]/10' : 'bg-[#fff2d0]'}`}>
                             <div className="flex items-center gap-[7.032px] pb-[6.153px]">
-                                <div className="grid size-[24.613px] place-items-center rounded-[8.79px] bg-[rgba(0,25,255,0.12)]">
-                                    <span className="text-[10.548px] font-bold leading-[14.065px] text-[#0019ff]">A</span>
+                                <div className={`grid size-[24.613px] place-items-center rounded-[8.79px] ${isProduction ? 'bg-[rgba(0,25,255,0.12)]' : 'bg-[#ffe1a3]'}`}>
+                                    <span className={`text-[10.548px] font-bold leading-[14.065px] ${isProduction ? 'text-[#0019ff]' : 'text-[#f09c17]'}`}>A</span>
                                 </div>
                                 <span className="text-[12.306px] font-bold leading-[17.581px] text-black">Brand Logo</span>
                             </div>
-                            <div className="h-[5.274px] overflow-hidden rounded-full bg-[rgba(0,25,255,0.12)]">
-                                <motion.div initial={{ width: 0 }} whileInView={{ width: '60%' }} viewport={{ once: true }} transition={{ duration: 0.55, ease: 'easeOut' }} className="h-full rounded-full bg-[#0019ff]" />
+                            <div className={`h-[5.274px] overflow-hidden rounded-full ${isProduction ? 'bg-[rgba(0,25,255,0.12)]' : 'bg-[#ffe1a3]'}`}>
+                                <motion.div initial={{ width: 0 }} whileInView={{ width: '60%' }} viewport={{ once: true }} transition={{ duration: 0.55, ease: 'easeOut' }} className={`h-full rounded-full ${isProduction ? 'bg-[#0019ff]' : 'bg-[#f09c17]'}`} />
                             </div>
                             <p className="mt-[4.395px] text-[9.669px] font-normal leading-[14.504px] text-black/80">60% customized</p>
                         </div>

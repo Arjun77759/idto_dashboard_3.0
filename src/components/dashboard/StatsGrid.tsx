@@ -8,37 +8,6 @@ import { useConfiguredApis } from '@/hooks/useConfiguredApis'
 import { useOpenApiEndpoints } from '@/hooks/useOpenApiEndpoints'
 import { useTransactions } from '@/hooks/useTransactions'
 
-const sandboxStats = [
-  {
-    title: 'Verifications (sandbox)',
-    value: '1,248',
-    change: '+12.4%',
-    icon: ShieldCheck,
-    iconClass: 'bg-[#fff2d0] text-[#f09c17]',
-  },
-  {
-    title: 'Success rate',
-    value: '98.7%',
-    change: '+0.3%',
-    icon: TrendingUp,
-    iconClass: 'bg-[#fff2d0] text-[#f09c17]',
-  },
-  {
-    title: 'Avg. latency',
-    value: '412 ms',
-    change: '-18 ms',
-    icon: Timer,
-    iconClass: 'bg-[#fff2d0] text-[#f09c17]',
-  },
-  {
-    title: 'Active APIs',
-    value: '6 / 14',
-    change: '5 unused',
-    icon: Activity,
-    iconClass: 'bg-[#fff2d0] text-[#f09c17]',
-  },
-]
-
 const cardMotion = {
   initial: { opacity: 0, y: 10 },
   whileInView: { opacity: 1, y: 0 },
@@ -102,59 +71,6 @@ const StatsGrid = () => {
   const { data: configuredApis } = useConfiguredApis()
   const { data: apiEndpoints } = useOpenApiEndpoints()
   const { data: transactions } = useTransactions()
-
-  if (!isProduction) {
-    return (
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
-        className="w-full overflow-hidden rounded-[21.483px] border-[0.895px] border-[#e1e5ea] bg-white p-[20.895px] shadow-[0_0.895px_1.79px_rgba(17,22,31,0.04),0_0.895px_2.685px_rgba(17,22,31,0.06)]"
-      >
-        <div className="mb-4">
-          <p className="text-[10px] font-bold uppercase leading-[15px] tracking-[1.6px] text-[#5e6a7a]">
-            Overview
-          </p>
-          <h2 className="pt-0.5 text-[24px] font-bold leading-8 tracking-[-0.6px] text-[#091123]">
-            Today at a glance
-          </h2>
-          <p className="text-[14px] font-normal leading-5 text-[#5e6a7a]">
-            Sandbox traffic from the last 24 hours.
-          </p>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {sandboxStats.map((stat, index) => {
-            const Icon = stat.icon
-            return (
-              <motion.article
-                {...cardMotion}
-                key={stat.title}
-                transition={{ duration: 0.26, delay: index * 0.05 }}
-                whileHover={{ y: -3 }}
-                className="h-[148px] rounded-[22px] border border-[#e1e5ea] bg-white p-[21px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
-              >
-                <div className="flex items-start justify-between">
-                  <motion.div whileHover={{ scale: 1.06 }} className={`grid size-9 place-items-center rounded-[14px] ${stat.iconClass}`}>
-                    <Icon className="size-4" />
-                  </motion.div>
-                  <span className="text-[12px] font-normal leading-4 text-[#5e6a7a]">
-                    {stat.change}
-                  </span>
-                </div>
-                <p className="pt-3.5 text-[30px] font-medium leading-8 tracking-[-0.6px] text-[#0a121f]">
-                  <AnimatedStatValue value={stat.value} />
-                </p>
-                <p className="text-[14px] font-normal leading-5 text-[#5e6a7a]">
-                  {stat.title}
-                </p>
-              </motion.article>
-            )
-          })}
-        </div>
-      </motion.section>
-    )
-  }
 
   const formatChange = (changePercent: number | null): string => {
     if (changePercent === null) return '+0.0%'
@@ -222,7 +138,7 @@ const StatsGrid = () => {
           Today at a glance
         </h2>
         <p className="text-[14px] font-normal leading-5 text-[#5e6a7a]">
-          Live traffic from your production workspace.
+          {isProduction ? 'Live traffic from your production workspace.' : 'Backend traffic for your sandbox workspace.'}
         </p>
       </div>
 
@@ -252,7 +168,7 @@ const StatsGrid = () => {
                 className="h-[148px] rounded-[22px] border border-[#e0e5eb] bg-white p-[21px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
               >
                 <div className="flex items-start justify-between">
-                  <motion.div whileHover={{ scale: 1.06 }} className="grid size-9 place-items-center rounded-[14px] bg-[#e8f3ff] text-[#0019ff]">
+                  <motion.div whileHover={{ scale: 1.06 }} className={`grid size-9 place-items-center rounded-[14px] ${isProduction ? 'bg-[#e8f3ff] text-[#0019ff]' : 'bg-[#fff2d0] text-[#f09c17]'}`}>
                     <Icon className="size-4" />
                   </motion.div>
                   <span className="text-[12px] font-normal leading-4 text-[#5b6472]">

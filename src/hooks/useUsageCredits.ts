@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import http from '@/api/axiosInstance'
-import { useOnboardingStatus } from '@/hooks/useOnboardingStatus'
 
 export type UsageCredits = {
   balance: number
@@ -15,19 +14,7 @@ type UsageOverview = {
   balance: number
 }
 
-// Good mock data for credits 
-function getMockUsageCredits(): UsageCredits {
-  return {
-    balance: 0,
-    last_recharge: '',
-    last_recharge_amount: '0'
-  }
-}
-
 export function useUsageCredits() {
-  const { data: onboardingStatus } = useOnboardingStatus()
-  const isProduction = Boolean(onboardingStatus?.is_onboarded)
-
   const [data, setData] = useState<UsageCredits | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
@@ -39,15 +26,6 @@ export function useUsageCredits() {
       setLoading(true)
       setError(null)
       try {
-        if (!isProduction) {
-          // Use mock data for non-production
-          if (!cancelled) {
-            setData(getMockUsageCredits())
-            setLoading(false)
-            setError(null)
-          }
-          return
-        }
         // Try credits endpoint first
         try {
           const { data: creditsData } = await http.get<UsageCredits>('/usage/credits')
@@ -100,7 +78,7 @@ export function useUsageCredits() {
     return () => {
       cancelled = true
     }
-  }, [isProduction])
+  }, [])
 
   return { data, loading, error }
 }

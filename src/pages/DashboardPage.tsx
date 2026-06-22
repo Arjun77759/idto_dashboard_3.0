@@ -359,14 +359,14 @@ const YourApisSection = ({ isProduction }: { isProduction: boolean }) => {
       return {
         title: api.display_name || api.api_name,
         description: endpoint?.shortDescription || api.pricing_note || 'Configured for your live workspace.',
-        calls: `${api.total_calls?.toLocaleString('en-IN') ?? 0} live calls`,
+        calls: `${api.total_calls?.toLocaleString('en-IN') ?? 0} ${isProduction ? 'live' : 'sandbox'} calls`,
         status: 'Active',
         icon: apiIconFor(api.display_name || api.api_name),
       }
     })
-  }, [apiEndpoints, configuredApis])
+  }, [apiEndpoints, configuredApis, isProduction])
 
-  const apis = isProduction ? productionApis : sandboxApis
+  const apis = productionApis
 
   return (
     <section className="w-full rounded-[22px] border border-[#e1e5ea] bg-white p-[21px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]">
@@ -391,13 +391,13 @@ const YourApisSection = ({ isProduction }: { isProduction: boolean }) => {
         </button>
       </div>
 
-      {isProduction && loading ? (
+      {loading ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
             <div key={index} className="h-[191px] animate-pulse rounded-[22px] border border-[#e0e5eb] bg-[#f7f9fc]" />
           ))}
         </div>
-      ) : isProduction && error ? (
+      ) : error ? (
         <p className="rounded-[14px] border border-red-100 bg-red-50 px-4 py-3 text-[12px] text-red-700">{error}</p>
       ) : apis.length === 0 ? (
         <p className="rounded-[14px] border border-[#e0e5eb] bg-[#f7f9fc] px-4 py-6 text-center text-[14px] text-[#5e6a7a]">
@@ -468,7 +468,7 @@ const RecommendedSection = ({ isProduction }: { isProduction: boolean }) => {
       }))
   }, [apiEndpoints, configuredNames])
 
-  const items = isProduction ? productionRecommendations : recommendations
+  const items = productionRecommendations
   const sectionClass = isProduction
     ? 'border-[#e1e5ea] bg-[linear-gradient(90deg,rgba(224,238,255,0.6)_0%,#ffffff_50%,rgba(203,255,236,0.4)_100%)]'
     : 'border-[#e1e5ea] bg-[linear-gradient(90deg,rgba(255,242,208,0.75)_0%,#ffffff_50%,rgba(255,225,163,0.45)_100%)]'
@@ -496,13 +496,13 @@ const RecommendedSection = ({ isProduction }: { isProduction: boolean }) => {
         </p>
       </div>
 
-      {isProduction && loading ? (
+      {loading ? (
         <div className="relative grid gap-4 md:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
             <div key={index} className="h-[222.5px] animate-pulse rounded-[18px] border border-[#e0e5eb] bg-white/70" />
           ))}
         </div>
-      ) : isProduction && error ? (
+      ) : error ? (
         <p className="relative rounded-[14px] border border-red-100 bg-red-50 px-4 py-3 text-[12px] text-red-700">{error}</p>
       ) : (
         <div className="relative grid gap-4 md:grid-cols-3">
@@ -607,7 +607,6 @@ const DashboardPage = () => {
         <FeatureHero isProduction={false} />
         <StatsGrid />
         <ActionCards />
-        <YourApisSection isProduction={false} />
         <RecommendedSection isProduction={false} />
         <InvoicesTable />
       </motion.div>

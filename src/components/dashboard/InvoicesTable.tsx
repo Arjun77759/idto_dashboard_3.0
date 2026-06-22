@@ -8,12 +8,6 @@ import { Download } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const sandboxInvoices = [
-  { id: 'INV-00012', date: 'May 12, 2026', amount: '\u20b90.00', status: 'Sandbox' },
-  { id: 'INV-00011', date: 'Apr 12, 2026', amount: '\u20b90.00', status: 'Sandbox' },
-  { id: 'INV-00010', date: 'Mar 12, 2026', amount: '\u20b90.00', status: 'Sandbox' },
-]
-
 const InvoicesTable = () => {
   const navigate = useNavigate()
   const { data: onboardingStatus } = useOnboardingStatus()
@@ -75,15 +69,13 @@ const InvoicesTable = () => {
     }
   }
 
-  const rows = isProduction
-    ? invoices.slice(0, 3).map((invoice) => ({
+  const rows = invoices.slice(0, 3).map((invoice) => ({
         source: invoice,
         id: invoice.id,
         date: formatDateTime(invoice.date_time),
         amount: formatAmount(invoice.amount),
         status: invoice.status,
       }))
-    : sandboxInvoices.map((invoice) => ({ ...invoice, source: null }))
 
   return (
     <motion.section
@@ -113,7 +105,7 @@ const InvoicesTable = () => {
             </tr>
           </thead>
           <tbody>
-            {isProduction && loading ? (
+            {loading ? (
               Array.from({ length: 3 }).map((_, index) => (
                 <tr key={index} className="h-[45.28px] border-b border-[#dfe5ed] last:border-b-0">
                   <td className="px-6"><Skeleton className="h-4 w-24" /></td>
@@ -123,7 +115,7 @@ const InvoicesTable = () => {
                   <td className="px-6"><Skeleton className="ml-auto h-4 w-10" /></td>
                 </tr>
               ))
-            ) : isProduction && error ? (
+            ) : error ? (
               <tr>
                 <td colSpan={5} className="px-6 py-6 text-center text-[12px] text-red-600">
                   {error}
@@ -149,10 +141,10 @@ const InvoicesTable = () => {
                   <td className="px-6 text-right">
                     <button
                       type="button"
-                      onClick={() => invoice.source && handleDownloadInvoice(invoice.source)}
-                      disabled={!invoice.source || downloadingInvoiceId === invoice.id}
+                      onClick={() => handleDownloadInvoice(invoice.source)}
+                      disabled={downloadingInvoiceId === invoice.id}
                       className="inline-flex items-center gap-1 text-[12px] font-normal leading-4 text-[#5e6a7a] transition-colors hover:text-[#0019ff] disabled:cursor-not-allowed disabled:opacity-50"
-                      title={invoice.source ? 'Download invoice PDF' : 'PDF available in production'}
+                      title="Download invoice PDF"
                     >
                       <Download className="size-3.5" />
                       {downloadingInvoiceId === invoice.id ? '...' : 'PDF'}

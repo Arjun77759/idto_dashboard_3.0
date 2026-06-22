@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import http from "@/api/axiosInstance";
-import { useOnboardingStatus } from "./useOnboardingStatus";
-import { sandboxTransactions } from "@/mocks/sandboxTransactions";
 
 export type Transaction = {
   trax_id: string;
@@ -19,8 +17,6 @@ type TransactionApiResponse = Omit<Transaction, "trax_id"> & {
 };
 
 export function useTransactions(search?: string) {
-  const { data: onboardingStatus } = useOnboardingStatus();
-  const isProduction = Boolean(onboardingStatus?.is_onboarded);
   const [data, setData] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,29 +28,6 @@ export function useTransactions(search?: string) {
       try {
         setLoading(true);
         setError(null);
-
-        if (!isProduction) {
-          const normalizedSearch = search?.trim().toLowerCase();
-          const filteredTransactions = normalizedSearch
-            ? sandboxTransactions.filter((transaction) =>
-                [
-                  transaction.trax_id,
-                  transaction.api_name,
-                  transaction.response_message,
-                  transaction.status,
-                ]
-                  .join(" ")
-                  .toLowerCase()
-                  .includes(normalizedSearch)
-              )
-            : sandboxTransactions;
-
-          if (!cancelled) {
-            setData(filteredTransactions);
-            setLoading(false);
-          }
-          return;
-        }
 
         // Fetch transactions with optional backend search
         const { data } = await http.get<TransactionApiResponse[]>("/usage/", {
@@ -84,7 +57,7 @@ export function useTransactions(search?: string) {
     return () => {
       cancelled = true;
     };
-  }, [isProduction, search]);
+  }, [search]);
 
   return { data, loading, error };
 }
