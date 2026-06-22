@@ -90,10 +90,10 @@ const InvoicesTable = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.5 }}
-      className="w-full overflow-hidden rounded-[22px] border border-[#e0e5eb] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
+      className="w-full overflow-hidden rounded-[22px] border border-[#e1e5ea] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
     >
-      <div className="flex h-[65px] items-center justify-between border-b border-[#e0e5eb] px-6">
-        <h2 className="text-[16px] font-medium leading-6 tracking-[-0.32px] text-[#0a121f]">Invoices</h2>
+      <div className="flex h-[65px] items-center justify-between border-b border-[#dfe5ed] px-6">
+        <h2 className="text-[16px] font-medium leading-6 tracking-[-0.32px] text-[#091123]">Invoices</h2>
         <button
           onClick={handleSeeAll}
           className="h-8 rounded-[12px] border border-[#e3e8ef] bg-[#f9fcff] px-[13px] text-[12px] font-normal leading-4 text-[#0a121f] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
@@ -104,7 +104,7 @@ const InvoicesTable = () => {
       <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-left">
           <thead>
-            <tr className="h-10 border-b border-[#e0e5eb] text-[12px] font-normal uppercase leading-4 tracking-[0.6px] text-[#5b6472]">
+            <tr className="h-10 border-b border-[#dfe5ed] text-[12px] font-normal uppercase leading-4 tracking-[0.6px] text-[#5e6a7a]">
               <th className="px-6">Invoice</th>
               <th className="px-6">Date</th>
               <th className="px-6 text-right">Amount</th>
@@ -115,7 +115,7 @@ const InvoicesTable = () => {
           <tbody>
             {isProduction && loading ? (
               Array.from({ length: 3 }).map((_, index) => (
-                <tr key={index} className="h-[45.28px] border-b border-[#e0e5eb] last:border-b-0">
+                <tr key={index} className="h-[45.28px] border-b border-[#dfe5ed] last:border-b-0">
                   <td className="px-6"><Skeleton className="h-4 w-24" /></td>
                   <td className="px-6"><Skeleton className="h-4 w-28" /></td>
                   <td className="px-6"><Skeleton className="ml-auto h-4 w-20" /></td>
@@ -131,16 +131,16 @@ const InvoicesTable = () => {
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-6 text-center text-[12px] text-[#5b6472]">
+                <td colSpan={5} className="px-6 py-6 text-center text-[12px] text-[#5e6a7a]">
                   No invoices to display
                 </td>
               </tr>
             ) : (
               rows.map((invoice) => (
-                <tr key={invoice.id} className="h-[45.28px] border-b border-[#e0e5eb] text-[12px] font-normal last:border-b-0">
-                  <td className="px-6 leading-4 text-[#0a121f]">{invoice.id}</td>
-                  <td className="px-6 leading-5 text-[#5b6472]">{invoice.date}</td>
-                  <td className="px-6 text-right leading-5 text-[#0a121f]">{invoice.amount}</td>
+                <tr key={invoice.id} className="h-[45.28px] border-b border-[#dfe5ed] text-[12px] font-normal last:border-b-0">
+                  <td className="px-6 leading-4 text-[#091123]">{invoice.id}</td>
+                  <td className="px-6 leading-5 text-[#5e6a7a]">{invoice.date}</td>
+                  <td className="px-6 text-right leading-5 text-[#091123]">{invoice.amount}</td>
                   <td className="px-6 text-center">
                     <span className={`rounded-full px-2 pb-[1.78px] pt-[1.5px] text-[12px] font-normal uppercase leading-[14.29px] tracking-[0.5px] ${isProduction ? 'bg-[#ddfcef] text-[#007a55]' : 'bg-[#fff2d0] text-[#f09c17]'}`}>
                       {invoice.status}
@@ -151,7 +151,7 @@ const InvoicesTable = () => {
                       type="button"
                       onClick={() => invoice.source && handleDownloadInvoice(invoice.source)}
                       disabled={!invoice.source || downloadingInvoiceId === invoice.id}
-                      className="inline-flex items-center gap-1 text-[12px] font-normal leading-4 text-[#5b6472] transition-colors hover:text-[#0019ff] disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex items-center gap-1 text-[12px] font-normal leading-4 text-[#5e6a7a] transition-colors hover:text-[#0019ff] disabled:cursor-not-allowed disabled:opacity-50"
                       title={invoice.source ? 'Download invoice PDF' : 'PDF available in production'}
                     >
                       <Download className="size-3.5" />

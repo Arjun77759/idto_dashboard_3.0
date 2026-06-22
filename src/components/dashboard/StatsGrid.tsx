@@ -14,28 +14,28 @@ const sandboxStats = [
     value: '1,248',
     change: '+12.4%',
     icon: ShieldCheck,
-    iconClass: 'bg-[#cbffec] text-[#0a8f6b]',
+    iconClass: 'bg-[#fff2d0] text-[#f09c17]',
   },
   {
     title: 'Success rate',
     value: '98.7%',
     change: '+0.3%',
     icon: TrendingUp,
-    iconClass: 'bg-[#e0eeff] text-[#231eec]',
+    iconClass: 'bg-[#fff2d0] text-[#f09c17]',
   },
   {
     title: 'Avg. latency',
     value: '412 ms',
     change: '-18 ms',
     icon: Timer,
-    iconClass: 'bg-[#e0eeff] text-[#231eec]',
+    iconClass: 'bg-[#fff2d0] text-[#f09c17]',
   },
   {
     title: 'Active APIs',
     value: '6 / 14',
     change: '5 unused',
     icon: Activity,
-    iconClass: 'bg-[#cbffec] text-[#0a8f6b]',
+    iconClass: 'bg-[#fff2d0] text-[#f09c17]',
   },
 ]
 
@@ -109,7 +109,7 @@ const StatsGrid = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.2 }}
-        className="w-full overflow-hidden rounded-[21.483px] border-[0.895px] border-[#e0e5eb] bg-white p-[20.895px] shadow-[0_0.895px_1.79px_rgba(17,22,31,0.04),0_0.895px_2.685px_rgba(17,22,31,0.06)]"
+        className="w-full overflow-hidden rounded-[21.483px] border-[0.895px] border-[#e1e5ea] bg-white p-[20.895px] shadow-[0_0.895px_1.79px_rgba(17,22,31,0.04),0_0.895px_2.685px_rgba(17,22,31,0.06)]"
       >
         <div className="mb-4">
           <p className="text-[10px] font-bold uppercase leading-[15px] tracking-[1.6px] text-[#5e6a7a]">
@@ -132,20 +132,20 @@ const StatsGrid = () => {
                 key={stat.title}
                 transition={{ duration: 0.26, delay: index * 0.05 }}
                 whileHover={{ y: -3 }}
-                className="h-[148px] rounded-[22px] border border-[#e0e5eb] bg-white p-[21px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
+                className="h-[148px] rounded-[22px] border border-[#e1e5ea] bg-white p-[21px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
               >
                 <div className="flex items-start justify-between">
                   <motion.div whileHover={{ scale: 1.06 }} className={`grid size-9 place-items-center rounded-[14px] ${stat.iconClass}`}>
                     <Icon className="size-4" />
                   </motion.div>
-                  <span className="text-[12px] font-normal leading-4 text-[#5b6472]">
+                  <span className="text-[12px] font-normal leading-4 text-[#5e6a7a]">
                     {stat.change}
                   </span>
                 </div>
                 <p className="pt-3.5 text-[30px] font-medium leading-8 tracking-[-0.6px] text-[#0a121f]">
                   <AnimatedStatValue value={stat.value} />
                 </p>
-                <p className="text-[14px] font-normal leading-5 text-[#5b6472]">
+                <p className="text-[14px] font-normal leading-5 text-[#5e6a7a]">
                   {stat.title}
                 </p>
               </motion.article>

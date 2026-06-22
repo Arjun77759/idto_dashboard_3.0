@@ -105,7 +105,7 @@ const PrivateLayout = () => {
               <div>
                 <div className="flex items-center gap-2 text-[12px] font-semibold uppercase leading-[17px] tracking-[1.76px] text-[#a1a1a1]">
                   <span className="size-1.5 rounded-full bg-[#00e59e]" />
-                  Live Data
+                  Sample Data
                 </div>
                 <h1 className="text-[26px] font-semibold leading-[39px] tracking-[-0.65px] text-[#171717]">
                   idto<span className="text-[#0019ff]">.</span>ai

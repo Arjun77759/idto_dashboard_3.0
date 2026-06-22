@@ -369,13 +369,13 @@ const YourApisSection = ({ isProduction }: { isProduction: boolean }) => {
   const apis = isProduction ? productionApis : sandboxApis
 
   return (
-    <section className="w-full rounded-[22px] border border-[#e0e5eb] bg-white p-[21px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]">
+    <section className="w-full rounded-[22px] border border-[#e1e5ea] bg-white p-[21px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]">
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-[20px] font-medium leading-7 tracking-[-0.5px] text-[#0a121f]">
+          <h2 className="text-[20px] font-medium leading-7 tracking-[-0.5px] text-[#091123]">
             Your APIs
           </h2>
-          <p className="mt-1 text-[14px] font-normal leading-5 text-[#5b6472]">
+          <p className="mt-1 text-[14px] font-normal leading-5 text-[#5e6a7a]">
             {isProduction
               ? "Products enabled for your live workspace, powered by backend usage data."
               : "Products you've enabled - all returning dummy responses in sandbox."}
@@ -384,7 +384,7 @@ const YourApisSection = ({ isProduction }: { isProduction: boolean }) => {
         <button
           type="button"
           onClick={() => navigate('/api-testing')}
-          className={`inline-flex items-center gap-1 text-[14px] font-normal leading-5 ${isProduction ? 'text-[#0019ff]' : 'text-[#231eec]'}`}
+          className={`inline-flex items-center gap-1 text-[14px] font-normal leading-5 ${isProduction ? 'text-[#0019ff]' : 'text-[#f09c17]'}`}
         >
           View all
           <ArrowUpRight className="size-3.5" />
@@ -400,7 +400,7 @@ const YourApisSection = ({ isProduction }: { isProduction: boolean }) => {
       ) : isProduction && error ? (
         <p className="rounded-[14px] border border-red-100 bg-red-50 px-4 py-3 text-[12px] text-red-700">{error}</p>
       ) : apis.length === 0 ? (
-        <p className="rounded-[14px] border border-[#e0e5eb] bg-[#f7f9fc] px-4 py-6 text-center text-[14px] text-[#5b6472]">
+        <p className="rounded-[14px] border border-[#e0e5eb] bg-[#f7f9fc] px-4 py-6 text-center text-[14px] text-[#5e6a7a]">
           No configured APIs found for this workspace.
         </p>
       ) : (
@@ -419,23 +419,23 @@ const YourApisSection = ({ isProduction }: { isProduction: boolean }) => {
                 className="flex min-h-[191px] flex-col gap-1 overflow-hidden rounded-[22px] border border-[#e0e5eb] bg-white p-[21px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
               >
                 <div className="flex items-start justify-between">
-                  <div className={`grid size-10 place-items-center rounded-[18px] ${isProduction ? 'bg-[#e8f3ff] text-[#0019ff]' : 'bg-[#e0eeff] text-[#231eec]'}`}>
+                  <div className={`grid size-10 place-items-center rounded-[18px] ${isProduction ? 'bg-[#e8f3ff] text-[#0019ff]' : 'bg-[#fff2d0] text-[#f09c17]'}`}>
                     <Icon className="size-5" strokeWidth={2} />
                   </div>
                   <span className={`rounded-full px-[7.032px] py-[1.758px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[0.2198px] ${isProduction ? 'bg-[#ddfcef] text-[#007a55]' : 'bg-[#fff2d0] text-[#f09c17]'}`}>
                     {isProduction ? api.status : 'Sandbox'}
                   </span>
                 </div>
-                <h3 className="pt-3 text-[16px] font-medium leading-6 tracking-[-0.32px] text-[#0a121f]">
+                <h3 className="pt-3 text-[16px] font-medium leading-6 tracking-[-0.32px] text-[#091123]">
                   {api.title}
                 </h3>
-                <p className="line-clamp-2 min-h-8 pb-3 text-[14px] font-normal leading-5 text-[#5b6472]">
+                <p className="line-clamp-2 min-h-8 pb-3 text-[14px] font-normal leading-5 text-[#5e6a7a]">
                   {api.description}
                 </p>
-                <div className="border-t border-[#e0e5eb] pt-[13px]">
+                <div className="border-t border-[#dfe5ed] pt-[13px]">
                   <span className="text-[12px] font-normal leading-4">
-                    <span className="text-[#0a121f]">{callCount}</span>
-                    <span className="text-[#5b6472]"> {callLabel.join(' ')}</span>
+                    <span className="text-[#091123]">{callCount}</span>
+                    <span className="text-[#5e6a7a]"> {callLabel.join(' ')}</span>
                   </span>
                 </div>
               </motion.article>
@@ -469,18 +469,27 @@ const RecommendedSection = ({ isProduction }: { isProduction: boolean }) => {
   }, [apiEndpoints, configuredNames])
 
   const items = isProduction ? productionRecommendations : recommendations
+  const sectionClass = isProduction
+    ? 'border-[#e1e5ea] bg-[linear-gradient(90deg,rgba(224,238,255,0.6)_0%,#ffffff_50%,rgba(203,255,236,0.4)_100%)]'
+    : 'border-[#e1e5ea] bg-[linear-gradient(90deg,rgba(255,242,208,0.75)_0%,#ffffff_50%,rgba(255,225,163,0.45)_100%)]'
+  const glowClass = isProduction
+    ? 'bg-[linear-gradient(135deg,#0019ff_0%,#00e59e_100%)]'
+    : 'bg-[linear-gradient(135deg,#f09c17_0%,#ffd66b_100%)]'
+  const labelClass = isProduction
+    ? 'bg-[#f9fcff]/80 text-[#0019ff]'
+    : 'bg-[#fff8e6]/90 text-[#f09c17]'
 
   return (
-    <section className="relative w-full overflow-hidden rounded-[22px] border border-[#e0e5eb] bg-[linear-gradient(90deg,rgba(224,238,255,0.6)_0%,#ffffff_50%,rgba(203,255,236,0.4)_100%)] p-[33px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]">
-      <div className="pointer-events-none absolute -right-[79px] -top-[79px] size-64 rounded-full bg-[linear-gradient(135deg,#0019ff_0%,#00e59e_100%)] opacity-10 blur-[64px]" />
+    <section className={`relative w-full overflow-hidden rounded-[22px] border p-[33px] shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] ${sectionClass}`}>
+      <div className={`pointer-events-none absolute -right-[79px] -top-[79px] size-64 opacity-10 blur-[64px] ${glowClass}`} />
       <div className="mb-5">
-        <span className="relative inline-flex h-[23px] items-center rounded-full bg-[#f9fcff]/80 px-[10px] py-1 text-[10px] font-normal uppercase leading-[15px] tracking-[0.5px] text-[#231eec] backdrop-blur">
+        <span className={`relative inline-flex h-[23px] items-center rounded-full px-[10px] py-1 text-[10px] font-normal uppercase leading-[15px] tracking-[0.5px] backdrop-blur ${labelClass}`}>
           {isProduction ? 'Available from API catalog' : 'Recommended for Acme Fintech'}
         </span>
-        <h2 className="relative pt-[12.5px] text-[20px] font-medium leading-7 tracking-[-0.5px] text-[#0a121f]">
+        <h2 className="relative pt-[12.5px] text-[20px] font-medium leading-7 tracking-[-0.5px] text-[#091123]">
           Teams like yours also use
         </h2>
-        <p className="relative text-[14px] font-normal leading-5 text-[#5b6472]">
+        <p className="relative text-[14px] font-normal leading-5 text-[#5e6a7a]">
           {isProduction
             ? 'Explore more APIs from the backend catalog and enable them from API Testing.'
             : 'Based on your industry, current stack, and what similar teams enabled next.'}
@@ -499,7 +508,9 @@ const RecommendedSection = ({ isProduction }: { isProduction: boolean }) => {
         <div className="relative grid gap-4 md:grid-cols-3">
           {items.map((item, index) => {
             const Icon = item.icon
-            const iconClass = index === 1 ? 'bg-[#cbffec] text-[#0a8f6b]' : 'bg-[#e0eeff] text-[#231eec]'
+            const iconClass = isProduction
+              ? index === 1 ? 'bg-[#cbffec] text-[#0a8f6b]' : 'bg-[#e0eeff] text-[#0019ff]'
+              : 'bg-[#fff2d0] text-[#f09c17]'
             return (
               <motion.article
                 initial={{ opacity: 0, y: 10 }}
@@ -508,24 +519,24 @@ const RecommendedSection = ({ isProduction }: { isProduction: boolean }) => {
                 transition={{ duration: 0.26, delay: index * 0.05 }}
                 whileHover={{ y: -3 }}
                 key={`${item.title}-${index}`}
-                className="h-[222.5px] rounded-[18px] border border-[#e0e5eb] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
+                className="h-[222.5px] rounded-[18px] border border-[#dfe5ed] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]"
               >
                 <div className={`grid size-10 place-items-center rounded-[18px] ${iconClass}`}>
                   <Icon className="size-5" />
                 </div>
-                <p className="mt-4 line-clamp-1 text-[10px] font-normal uppercase leading-[16.5px] tracking-[0.55px] text-[#5b6472]">
+                <p className="mt-4 line-clamp-1 text-[10px] font-normal uppercase leading-[16.5px] tracking-[0.55px] text-[#5e6a7a]">
                   {item.helper}
                 </p>
-                <h3 className="mt-2 line-clamp-1 text-[16px] font-medium leading-6 tracking-[-0.32px] text-[#0a121f]">
+                <h3 className="mt-2 line-clamp-1 text-[16px] font-medium leading-6 tracking-[-0.32px] text-[#091123]">
                   {item.title}
                 </h3>
-                <p className="mt-1 line-clamp-2 text-[14px] font-normal leading-5 text-[#5b6472]">
+                <p className="mt-1 line-clamp-2 text-[14px] font-normal leading-5 text-[#5e6a7a]">
                   {item.description}
                 </p>
                 <button
                   type="button"
                   onClick={() => navigate('/api-testing')}
-                  className={`mt-4 inline-flex items-center gap-1 text-center font-normal leading-5 ${index === 2 && !isProduction ? 'text-[12px]' : 'text-[14px]'} text-[#231eec]`}
+                  className={`mt-4 inline-flex items-center gap-1 text-center font-normal leading-5 ${index === 2 && !isProduction ? 'text-[12px]' : 'text-[14px]'} ${isProduction ? 'text-[#0019ff]' : 'text-[#f09c17]'}`}
                 >
                   {isProduction ? 'View API' : 'Try in sandbox'}
                   <ArrowUpRight className="size-3.5" />
@@ -580,14 +591,14 @@ const DashboardPage = () => {
         className="mx-auto flex w-full max-w-[1090px] flex-col gap-8"
       >
         <section className="pt-3">
-          <div className="flex items-center gap-1.5 text-[12px] font-normal uppercase leading-[16.5px] tracking-[1.98px] text-[#5b6472]">
+          <div className="flex items-center gap-1.5 text-[12px] font-normal uppercase leading-[16.5px] tracking-[1.98px] text-[#5e6a7a]">
             <span className="size-1.5 rounded-full bg-[#00e59e]" />
             {'Sandbox \u00b7 Test Data'}
           </div>
-          <h1 className="mt-1 text-[30px] font-semibold leading-[30px] tracking-[-0.8px] text-[#0a121f]">
-            Welcome back, <span className="text-[#0019ff]">{firstName}</span>
+          <h1 className="mt-1 text-[30px] font-semibold leading-[30px] tracking-[-0.8px] text-[#091123]">
+            Welcome back, <span className="text-[#f09c17]">{firstName}</span>
           </h1>
-          <p className="mt-1 text-[14px] font-normal leading-[21px] text-[#5b6472]">
+          <p className="mt-1 text-[14px] font-normal leading-[21px] text-[#5e6a7a]">
             Your sandbox is provisioned. Every product is live in test mode with dummy responses.
           </p>
         </section>

@@ -83,7 +83,7 @@ const ActionCards = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.2 }}
-                className="w-full rounded-[22px] border border-[#e0e5eb] bg-white p-5 shadow-[0_2px_5px_rgba(19,27,49,0.04)]"
+                className="w-full rounded-[22px] border border-[#e1e5ea] bg-white p-5 shadow-[0_2px_5px_rgba(19,27,49,0.04)]"
             >
                 <div className="mb-4">
                     <p className="text-[10px] font-bold uppercase leading-[15px] tracking-[1.6px] text-[#5e6a7a]">
@@ -110,7 +110,7 @@ const ActionCards = () => {
                             Add credits to your wallet
                         </h3>
                         <div className="flex flex-col gap-[21px]">
-                          <div className="rounded-[14.065px] bg-[#0019ff]/10 px-[14.065px] pb-[14.065px] pt-[13.185px]">
+                          <div className="rounded-[14.065px] bg-[#f8fafc] px-[14.065px] pb-[14.065px] pt-[13.185px]">
                             <p className="text-[9.669px] font-bold uppercase leading-[14.504px] tracking-[0.4835px] text-[#5e6a7a]">
                                 Current Balance
                             </p>
@@ -123,13 +123,13 @@ const ActionCards = () => {
                           </div>
                           <div className="grid h-[33.403px] grid-cols-3 gap-[7.032px]">
                             <motion.button whileTap={{ scale: 0.97 }} className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}1,000</motion.button>
-                            <motion.button whileTap={{ scale: 0.97 }} className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#0019ff] bg-[#0019ff]/10 text-[12.306px] font-normal leading-[17.581px] text-[#0019ff]">{'\u20b9'}5,000</motion.button>
+                            <motion.button whileTap={{ scale: 0.97 }} className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#f09c17] bg-[#fff2d0] text-[12.306px] font-normal leading-[17.581px] text-[#f09c17]">{'\u20b9'}5,000</motion.button>
                             <motion.button whileTap={{ scale: 0.97 }} className="flex items-center justify-center rounded-[10.548px] border-[0.879px] border-[#dfe5ed] bg-white text-[12.306px] font-normal leading-[17.581px] text-[#091123]">{'\u20b9'}10,000</motion.button>
                           </div>
                           <motion.button
                               whileTap={{ scale: 0.98 }}
                               onClick={handleRecharge}
-                              className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] bg-[#0019ff] py-[8.79px] text-[12.306px] font-normal leading-[17.581px] text-[#fcfcfc]"
+                              className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] bg-[#f09c17] py-[8.79px] text-[12.306px] font-normal leading-[17.581px] text-[#fcfcfc]"
                           >
                               Recharge now
                               <Plus className="size-[12.306px]" />
@@ -140,7 +140,7 @@ const ActionCards = () => {
                     <motion.article {...quickCardMotion} transition={{ duration: 0.28, delay: 0.04 }} whileHover={{ y: -4 }} className="min-h-[304.73px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
                         <div className="flex w-full items-center justify-between pb-[14.065px]">
                             <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
-                                <span className="size-[5.274px] rounded-full bg-[#0019ff]" />
+                                <span className="size-[5.274px] rounded-full bg-[#f09c17]" />
                                 Analytics
                             </div>
                             <ArrowUpRight className="size-[14.065px] text-[#5e6a7a]" />
@@ -152,7 +152,7 @@ const ActionCards = () => {
                             {barHeights.map((height, index) => (
                                 <motion.div
                                     key={height + index}
-                                    className={`min-w-px flex-1 rounded-t-[8.79px] ${index === barHeights.length - 1 ? 'bg-[#0019ff]' : 'bg-[#0019ff]/10'}`}
+                                    className={`min-w-px flex-1 rounded-t-[8.79px] ${index === barHeights.length - 1 ? 'bg-[#f09c17]' : 'bg-[#fff2d0]'}`}
                                     initial={{ height: 0, opacity: 0.55 }}
                                     whileInView={{ height, opacity: 1 }}
                                     viewport={{ once: true }}
@@ -217,7 +217,7 @@ const ActionCards = () => {
                     <article className="h-[230.831px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
                         <div className="flex w-full items-center justify-between pb-[14.065px]">
                             <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
-                                <span className="size-[5.274px] rounded-full bg-[#0019ff]" />
+                                <span className="size-[5.274px] rounded-full bg-[#f09c17]" />
                                 Billing
                             </div>
                             <ArrowUpRight className="size-[14.065px] text-[#5e6a7a]" />
@@ -234,7 +234,7 @@ const ActionCards = () => {
                           </div>
                           <div className="flex items-center justify-between">
                               <span className="text-[10.548px] font-normal leading-[14.065px] text-[#5e6a7a]">3 invoices this quarter</span>
-                              <button className="inline-flex items-center gap-[3.516px] text-[10.548px] font-normal leading-[14.065px] text-[#0019ff]">
+                              <button className="inline-flex items-center gap-[3.516px] text-[10.548px] font-normal leading-[14.065px] text-[#f09c17]">
                                 View all
                                 <ArrowUpRight className="size-[10.548px]" />
                               </button>
@@ -245,7 +245,7 @@ const ActionCards = () => {
                     <article className="h-[230.831px] rounded-[17.581px] border-[0.879px] border-[#dfe5ed] bg-white p-[18.46px]">
                         <div className="flex w-full items-center justify-between pb-[14.065px]">
                             <div className="inline-flex items-center gap-[7.032px] text-[8.79px] font-bold uppercase leading-[13.185px] tracking-[1.2306px] text-[#5e6a7a]">
-                                <span className="size-[5.274px] rounded-full bg-[#0019ff]" />
+                                <span className="size-[5.274px] rounded-full bg-[#f09c17]" />
                                 API Testing
                             </div>
                             <ArrowUpRight className="size-[14.065px] text-[#5e6a7a]" />
@@ -254,7 +254,7 @@ const ActionCards = () => {
                             Try an endpoint live
                         </h3>
                         <div className="flex h-[131px] flex-col gap-5">
-                          <div className="h-[79px] overflow-hidden rounded-[14.065px] bg-[#fbfcfe] px-[10.548px] pb-[10.548px] pt-[9.669px] font-mono">
+                          <div className="h-[79px] overflow-hidden rounded-[14.065px] bg-[#f8fafc] px-[10.548px] pb-[10.548px] pt-[9.669px] font-mono">
                               <p className="pb-[0.774px] text-[8.615px] font-normal leading-[15.717px] text-[#00d492]">POST</p>
                               <p className="h-[15.717px] text-[9.669px] font-normal leading-[15.717px] text-black/70">/v1/verify/pan</p>
                               <p className="pb-[0.774px] pt-[4.395px] text-[9.669px] font-normal leading-[15.717px] text-black/40">{'{ "pan": "ABCDE1234F" }'}</p>
@@ -262,7 +262,7 @@ const ActionCards = () => {
                           <motion.button
                               whileTap={{ scale: 0.98 }}
                               onClick={handleStartTesting}
-                              className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] border-[0.879px] border-[#0019ff] bg-[#0019ff]/10 px-[0.879px] py-[7.911px] text-[12.306px] font-normal leading-[17.581px] text-[#0019ff]"
+                              className="inline-flex w-full items-center justify-center gap-[7.032px] rounded-[10.548px] border-[0.879px] border-[#f09c17] bg-[#fff2d0] px-[0.879px] py-[7.911px] text-[12.306px] font-normal leading-[17.581px] text-[#f09c17]"
                           >
                               <FlaskConical className="size-[12.306px]" />
                               Open API console
@@ -282,15 +282,15 @@ const ActionCards = () => {
                             Bring your brand to life
                         </h3>
                         <div className="flex flex-col gap-[10.548px]">
-                          <div className="overflow-hidden rounded-[14.065px] bg-[#0019ff]/10 p-[14.065px]">
+                          <div className="overflow-hidden rounded-[14.065px] bg-[#fff2d0] p-[14.065px]">
                             <div className="flex items-center gap-[7.032px] pb-[6.153px]">
-                                <div className="grid size-[24.613px] place-items-center rounded-[8.79px] bg-[rgba(0,25,255,0.12)]">
-                                    <span className="text-[10.548px] font-bold leading-[14.065px] text-[#0019ff]">A</span>
+                                <div className="grid size-[24.613px] place-items-center rounded-[8.79px] bg-[#ffe1a3]">
+                                    <span className="text-[10.548px] font-bold leading-[14.065px] text-[#f09c17]">A</span>
                                 </div>
                                 <span className="text-[12.306px] font-bold leading-[17.581px] text-black">Brand Logo</span>
                             </div>
-                            <div className="h-[5.274px] overflow-hidden rounded-full bg-[rgba(0,25,255,0.12)]">
-                                <motion.div initial={{ width: 0 }} whileInView={{ width: '60%' }} viewport={{ once: true }} transition={{ duration: 0.55, ease: 'easeOut' }} className="h-full rounded-full bg-[#0019ff]" />
+                            <div className="h-[5.274px] overflow-hidden rounded-full bg-[#ffe1a3]">
+                                <motion.div initial={{ width: 0 }} whileInView={{ width: '60%' }} viewport={{ once: true }} transition={{ duration: 0.55, ease: 'easeOut' }} className="h-full rounded-full bg-[#f09c17]" />
                             </div>
                             <p className="mt-[4.395px] text-[9.669px] font-normal leading-[14.504px] text-black/80">60% customized</p>
                           </div>
