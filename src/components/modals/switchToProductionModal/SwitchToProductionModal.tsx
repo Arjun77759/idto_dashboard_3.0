@@ -10,6 +10,9 @@ import BasicDetailsForm from './components/BasicDetailsForm'
 import PANAndGSTForm from './components/PANAndGSTForm'
 import DirectorKYCForm from './components/DirectorKYCForm'
 import BankAccountForm from './components/BankAccountForm'
+import BankVerificationInFlightForm from './components/BankVerificationInFlightForm'
+import BankVerificationFailedForm, { type BankRecoveryMethod } from './components/BankVerificationFailedForm'
+import KYCFinalReviewForm from './components/KYCFinalReviewForm'
 import { useUserProfileStore } from '@/store/userProfileStore'
 import { ArrowRight, BadgeCheck, Building, Building2, Check, Clock3, Landmark, Lock, Monitor, RotateCcw, ShieldCheck, Smartphone, Sparkles, UserRoundCheck, Info } from 'lucide-react'
 
@@ -97,7 +100,7 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
     }
   }, [stepsStatus, isOpen, isProprietorship, isInStepperMode])
 
-  const stepOrder = ['basic-details', 'pan-gst', 'director-kyc', 'bank-account']
+  const stepOrder = ['basic-details', 'pan-gst', 'director-kyc', 'bank-account', 'bank-verification']
 
   const handleStartVerification = async () => {
     setCurrentStep('basic-details')
@@ -128,6 +131,16 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
   }
 
   const handleStepPrevious = () => {
+    if (currentStep === 'bank-final-review') {
+      setCurrentStep('bank-verification-failed')
+      return
+    }
+
+    if (currentStep === 'bank-verification' || currentStep === 'bank-verification-failed') {
+      setCurrentStep('bank-account')
+      return
+    }
+
     const currentIndex = stepOrder.indexOf(currentStep)
     if (currentIndex > 0) {
       // Go to previous step
@@ -143,7 +156,28 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
   const isFigmaStepTwo = isInStepperMode && currentStep === 'pan-gst'
   const isFigmaStepThree = isInStepperMode && currentStep === 'director-kyc'
   const isFigmaStepFour = isInStepperMode && currentStep === 'bank-account'
-  const isFigmaStepperCard = isFigmaStepOne || isFigmaStepTwo || isFigmaStepThree || isFigmaStepFour
+  const isFigmaBankVerifying = isInStepperMode && currentStep === 'bank-verification'
+  const isFigmaBankFailure = isInStepperMode && currentStep === 'bank-verification-failed'
+  const isFigmaFinalReview = isInStepperMode && currentStep === 'bank-final-review'
+  const isFigmaStepperCard = isFigmaStepOne || isFigmaStepTwo || isFigmaStepThree || isFigmaStepFour || isFigmaBankVerifying || isFigmaBankFailure || isFigmaFinalReview
+
+  const handleBankVerificationComplete = () => {
+    setCurrentStep('bank-verification-failed')
+  }
+
+  const handleBankFailureNext = (method: BankRecoveryMethod) => {
+    if (method === 'different-account') {
+      setCurrentStep('bank-account')
+      return
+    }
+
+    setCurrentStep('bank-final-review')
+  }
+
+  const handleFinalReviewSubmit = () => {
+    onConfirm()
+    onClose()
+  }
 
   const stepperSteps = [
     {
@@ -260,6 +294,24 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
       <BankAccountForm
         onNext={handleStepNext}
         onPrevious={handleStepPrevious}
+        isLoading={isLoading}
+      />
+      ) : isFigmaBankVerifying ? (
+      <BankVerificationInFlightForm
+        onComplete={handleBankVerificationComplete}
+        onPrevious={handleStepPrevious}
+      />
+      ) : isFigmaBankFailure ? (
+      <BankVerificationFailedForm
+        onNext={handleBankFailureNext}
+        onPrevious={handleStepPrevious}
+        isLoading={isLoading}
+      />
+      ) : isFigmaFinalReview ? (
+      <KYCFinalReviewForm
+        onSubmit={handleFinalReviewSubmit}
+        onPrevious={handleStepPrevious}
+        onSaveAndExit={onClose}
         isLoading={isLoading}
       />
       ) : (
@@ -402,7 +454,7 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
         </Sheet>
       ) : (
         <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className={`w-[min(1216px,calc(100vw-80px))] max-w-none overflow-hidden p-0 flex flex-col ${isFigmaStepperCard ? `${isFigmaStepOne ? 'h-[min(759px,calc(100vh-80px))]' : isFigmaStepFour ? 'h-[min(738px,calc(100vh-80px))]' : 'h-[min(602px,calc(100vh-80px))]'} border-0 bg-transparent shadow-none [&>button:last-child]:hidden` : 'max-h-[90vh]'}`}>
+          <DialogContent className={`w-[min(1216px,calc(100vw-80px))] max-w-none overflow-hidden p-0 flex flex-col ${isFigmaStepperCard ? `${isFigmaStepOne ? 'h-[min(759px,calc(100vh-80px))]' : isFigmaStepFour ? 'h-[min(738px,calc(100vh-80px))]' : isFigmaFinalReview ? 'h-[min(837px,calc(100vh-40px))]' : 'h-[min(602px,calc(100vh-80px))]'} border-0 bg-transparent shadow-none [&>button:last-child]:hidden` : 'max-h-[90vh]'}`}>
             <DesktopContent />
           </DialogContent>
         </Dialog>

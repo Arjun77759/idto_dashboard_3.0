@@ -1,6 +1,9 @@
 export { default as ActionButton } from "./ActionButton";
 export { default as BasicDetailsForm } from "./BasicDetailsForm";
 export { default as BankAccountForm } from "./BankAccountForm";
+export { default as BankVerificationInFlightForm } from "./BankVerificationInFlightForm";
+export { default as BankVerificationFailedForm } from "./BankVerificationFailedForm";
+export { default as KYCFinalReviewForm } from "./KYCFinalReviewForm";
 export { default as BusinessInfoForm } from "./BusinessInfoForm";
 export { default as BusinessPANForm } from "./BusinessPANForm";
 export { default as DirectorKYCForm } from "./DirectorKYCForm";

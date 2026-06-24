@@ -5,6 +5,9 @@ import GSTINForm from './GSTINForm'
 import PANAndGSTForm from './PANAndGSTForm'
 import DirectorKYCForm from './DirectorKYCForm'
 import BankAccountForm from './BankAccountForm'
+import BankVerificationInFlightForm from './BankVerificationInFlightForm'
+import BankVerificationFailedForm from './BankVerificationFailedForm'
+import KYCFinalReviewForm from './KYCFinalReviewForm'
 import type { OnboardingStatus } from '@/hooks/useOnboardingStatus'
 import type { OnboardingStepsStatus } from '@/hooks/useOnboardingSteps'
 
@@ -31,6 +34,12 @@ const StepForm = ({ currentStep, onNext, onPrevious, showPrevious = false, isLoa
         return <DirectorKYCForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} initialData={initialData} stepsStatus={stepsStatus} />
       case 'bank-account':
         return <BankAccountForm onNext={onNext} onPrevious={onPrevious} isLoading={isLoading} />
+      case 'bank-verification':
+        return <BankVerificationInFlightForm onComplete={onNext} onPrevious={onPrevious} />
+      case 'bank-verification-failed':
+        return <BankVerificationFailedForm onNext={() => onNext()} onPrevious={onPrevious} isLoading={isLoading} />
+      case 'bank-final-review':
+        return <KYCFinalReviewForm onSubmit={onNext} onPrevious={onPrevious} isLoading={isLoading} />
       // Keep old step names for backward compatibility if needed
       case 'business-pan':
         return <BusinessPANForm onNext={onNext} onPrevious={onPrevious} showPrevious={showPrevious} isLoading={isLoading} initialData={initialData} stepsStatus={stepsStatus} />
