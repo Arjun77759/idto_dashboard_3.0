@@ -5,9 +5,11 @@ import type { OnboardingStatus } from "@/hooks/useOnboardingStatus"
 import type { OnboardingStepsStatus } from "@/hooks/useOnboardingSteps"
 import { updatePAN, updateGST } from "@/api/onboardingApi"
 import { invalidateOnboardingSteps } from "@/store/onboardingStepsStore"
+import { fetchOnboardingStatus } from "@/store/onboardingStore"
 import { fetchUserProfile, invalidateUserProfile, useUserProfileStore } from "@/store/userProfileStore"
 import { useIsMobile } from "@/hooks/use-mobile"
 import idtoLogo from "@/assets/idto-logo.svg"
+import { normalizeEntityType } from "@/lib/entityType"
 
 interface PANAndGSTFormProps {
   onNext: () => void
@@ -36,7 +38,7 @@ const gstinSchema = z.object({
 const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPrevious = false, isLoading: externalLoading = false, initialData: _initialData, stepsStatus }: PANAndGSTFormProps) => {
   const isMobile = useIsMobile()
   const userProfile = useUserProfileStore((state) => state.data)
-  const isProprietorship = userProfile?.entity_type === 'proprietorship'
+  const isProprietorship = normalizeEntityType(userProfile?.entity_type) === 'proprietorship'
   
   const [formData, setFormData] = useState({
     pan_number: '',
@@ -55,6 +57,7 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
   const [fileError, setFileError] = useState('')
   const [isVerified, setIsVerified] = useState(false)
   const [hasNameMismatch, setHasNameMismatch] = useState(false)
+  const [nameMismatchSource, setNameMismatchSource] = useState<'pan' | 'gst' | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Pre-fill form data from user profile if available
@@ -68,11 +71,10 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
   }, [userProfile])
 
   useEffect(() => {
-    const gstReady = Boolean(stepsStatus?.gstin || isProprietorship)
-    if (stepsStatus?.businessPAN && gstReady) {
-      setIsVerified(true)
-    }
-  }, [stepsStatus?.businessPAN, stepsStatus?.gstin, isProprietorship])
+    const panVerified = Boolean(_initialData?.production_steps?.pan)
+    const gstReady = Boolean(_initialData?.production_steps?.gst || isProprietorship)
+    setIsVerified(panVerified && gstReady)
+  }, [_initialData?.production_steps?.pan, _initialData?.production_steps?.gst, isProprietorship])
 
   const handlePANChange = (value: string) => {
     const upperValue = value.toUpperCase()
@@ -81,6 +83,7 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
     setApiError('')
     setIsVerified(false)
     setHasNameMismatch(false)
+    setNameMismatchSource(null)
   }
 
   const handleGSTChange = (value: string) => {
@@ -93,6 +96,7 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
     setApiError('')
     setIsVerified(false)
     setHasNameMismatch(false)
+    setNameMismatchSource(null)
   }
 
   const handleFileSelect = (file: File | undefined) => {
@@ -162,16 +166,6 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
       return
     }
 
-    if (hasNameMismatch) {
-      onNext()
-      return
-    }
-
-    if (apiError) {
-      onNext()
-      return
-    }
-
     if (!validateForm()) {
       return
     }
@@ -181,36 +175,58 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
 
     try {
       // Submit PAN only if not already completed
-      if (!stepsStatus?.businessPAN) {
+      if (!_initialData?.production_steps?.pan) {
         const panPayload = { pan_number: formData.pan_number }
         const panResponse = await updatePAN(panPayload)
-        
+
+        if (!panResponse.success) {
+          if (panResponse.verification_result?.matched === false) {
+            setApiError("PAN holder name doesn't match the registered business name. Check the PAN or update the legal business name.")
+          } else {
+            setApiError(panResponse.message || 'PAN verification failed')
+          }
+          setIsLoading(false)
+          return
+        }
+
         if (!panResponse.verification_result?.matched) {
-          setHasNameMismatch(true)
+          setApiError("PAN holder name doesn't match the registered business name. Check the PAN or update the legal business name.")
           setIsLoading(false)
           return
         }
       }
 
       const storedGST = (userProfile?.gst_number || '').trim().toUpperCase()
-      const shouldVerifyGST = !noGstin && hasGSTInput && (!stepsStatus?.gstin || storedGST !== formData.gst_number)
+      const shouldVerifyGST = !noGstin && hasGSTInput && (!_initialData?.production_steps?.gst || storedGST !== formData.gst_number)
 
       // If a GSTIN is provided, verify it even when proprietorship has marked GST as not applicable.
       if (shouldVerifyGST) {
         const gstPayload = { gst_number: formData.gst_number }
         const gstResponse = await updateGST(gstPayload)
-        
+
+        if (!gstResponse.success) {
+          if (gstResponse.verification_result?.matched === false) {
+            setApiError("GSTIN legal name doesn't match the registered business name. Check the GSTIN or update the legal business name.")
+          } else {
+            setApiError(gstResponse.message || 'GST verification failed')
+          }
+          setIsLoading(false)
+          return
+        }
+
         if (!gstResponse.verification_result?.matched) {
-          setHasNameMismatch(true)
+          setApiError("GSTIN legal name doesn't match the registered business name. Check the GSTIN or update the legal business name.")
           setIsLoading(false)
           return
         }
       }
-      
+
+      await fetchOnboardingStatus(true).catch(() => null)
       invalidateOnboardingSteps() // Invalidate cache so it refetches
       invalidateUserProfile()
       await fetchUserProfile().catch(() => null)
       setIsVerified(true)
+      onNext()
     } catch (err: any) {
       const errorMessage = err?.response?.data?.message || err?.response?.data?.detail || err?.message || 'Failed to verify. Please check the details and try again.'
       setApiError(errorMessage)
@@ -429,10 +445,14 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
                     <AlertTriangle className="mt-0.5 size-4 shrink-0 text-[#b7791f]" />
                     <div className="min-w-0 flex-1">
                       <h3 className="text-[14px] font-bold leading-5 text-[#0c121a]">
-                        PAN name doesn't match GSTIN legal name
+                        {nameMismatchSource === 'gst'
+                          ? "GSTIN legal name doesn't match your registered business name"
+                          : "PAN holder name doesn't match your registered business name"}
                       </h3>
                       <p className="mt-1 text-[12px] leading-[18px] text-[#6a727d]">
-                        PAN holder: {userProfile?.registered_name?.replace('Payments', 'Payment') || 'Acme Payment Pvt Ltd'} . GSTIN legal: {userProfile?.registered_name || 'Acme Payments Pvt Ltd'}
+                        {nameMismatchSource === 'gst'
+                          ? 'The legal name returned by GST verification does not match the legal business name provided in company basics.'
+                          : 'The holder name returned by PAN verification does not match the legal business name provided in company basics.'}
                       </p>
                       <p className="mt-1 text-[12px] leading-[18px] text-[#6a727d]">
                         You can still proceed by uploading both documents - your application will move to pending review with our onboarding team.
@@ -457,6 +477,7 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
                           type="button"
                           onClick={() => {
                             setHasNameMismatch(false)
+                            setNameMismatchSource(null)
                             setIsVerified(false)
                           }}
                           className="inline-flex h-8 items-center justify-center rounded-lg border border-[#e0e5eb] bg-white px-3 text-[12px] font-medium leading-[18px] text-[#0c121a] hover:bg-[#f8fafd]"
@@ -504,7 +525,7 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
                     <div className="relative">
                       <input
                         type="text"
-                        value={formData.pan_number || userProfile?.pan_number || 'AAFCA1234B'}
+                        value={formData.pan_number || userProfile?.pan_number || ''}
                         readOnly
                         className={`${fieldClass} pr-9 uppercase shadow-[0_1px_2px_rgba(0,0,0,0.04)]`}
                       />
@@ -512,7 +533,7 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
                     </div>
                     <div className={verifiedNoteClass}>
                       <CheckCircle2 className="size-3 shrink-0" />
-                      Verified . {userProfile?.registered_name || 'Acme Payments Pvt Ltd'}
+                      Verified{userProfile?.registered_name ? ` · ${userProfile.registered_name}` : ''}
                     </div>
                   </div>
 
@@ -523,7 +544,7 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
                     <div className="relative">
                       <input
                         type="text"
-                        value={noGstin ? 'Not applicable' : (formData.gst_number || userProfile?.gst_number || '29AAFCA1234B1Z5')}
+                        value={noGstin ? 'Not applicable' : (formData.gst_number || userProfile?.gst_number || '')}
                         readOnly
                         className={`${fieldClass} pr-9 uppercase shadow-[0_1px_2px_rgba(0,0,0,0.04)]`}
                       />
@@ -531,7 +552,7 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
                     </div>
                     <div className={verifiedNoteClass}>
                       <CheckCircle2 className="size-3 shrink-0" />
-                      {noGstin ? 'Verified . Exemption proof received' : 'Verified . Registered in Karnataka'}
+                      {noGstin ? 'Verified · Exemption proof received' : 'Verified'}
                     </div>
                   </div>
                 </div>
@@ -547,7 +568,7 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
                         value={formData.pan_number}
                         onChange={(e) => handlePANChange(e.target.value)}
                         onBlur={validatePAN}
-                        placeholder="AAFCA1234B"
+                        placeholder="Enter 10-character PAN"
                         maxLength={10}
                         className={`${inputClass(Boolean(errors.pan_number))} uppercase`}
                       />
@@ -780,42 +801,20 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
               <ArrowLeft className="size-3.5" />
               Back
             </button>
-            {hasNameMismatch ? (
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={onNext}
-                  disabled={isLoading || externalLoading}
-                  className="inline-flex h-10 items-center justify-center rounded-lg border border-[#e0e5eb] bg-white px-4 text-[13px] font-medium leading-5 text-[#6a727d] hover:bg-[#f8fafd] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Skip for now
-                </button>
-                <button
-                  type="button"
-                  onClick={onNext}
-                  disabled={isLoading || externalLoading}
-                  className="flex h-10 w-[170px] items-center justify-center gap-2 rounded-lg bg-[#0019ff] text-[13px] font-bold leading-5 text-white shadow-[0_8px_18px_rgba(0,25,255,0.18)] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Continue to review
+            <button
+              onClick={handleSubmit}
+              disabled={isLoading || externalLoading || (!isVerified && !isFormValid)}
+              className="flex h-10 w-[110px] items-center justify-center gap-2 rounded-lg bg-[#0019ff] text-[13px] font-bold leading-5 text-white shadow-[0_8px_18px_rgba(0,25,255,0.18)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {(isLoading || externalLoading) ? (
+                <div className="size-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+              ) : (
+                <>
+                  Continue
                   <ArrowRight className="size-3.5" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={handleSubmit}
-                disabled={isLoading || externalLoading || !isFormValid}
-                className="flex h-10 w-[110px] items-center justify-center gap-2 rounded-lg bg-[#0019ff] text-[13px] font-bold leading-5 text-white shadow-[0_8px_18px_rgba(0,25,255,0.18)] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {(isLoading || externalLoading) ? (
-                  <div className="size-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                ) : (
-                  <>
-                    {apiError ? 'Continue anyway' : 'Continue'}
-                    <ArrowRight className="size-3.5" />
-                  </>
-                )}
-              </button>
-            )}
+                </>
+              )}
+            </button>
           </footer>
         </main>
       </div>

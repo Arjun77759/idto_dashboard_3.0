@@ -1,28 +1,42 @@
 import { useState } from "react"
 import { ArrowLeft, ArrowRight, Check, Clock3, CreditCard, HelpCircle, Landmark, Mail, MapPin, Save, ShieldCheck } from "lucide-react"
 import idtoLogo from "@/assets/idto-logo.svg"
+import type { UserProfile } from "@/store/userProfileStore"
+import { verifyCustomerBankDetails } from "@/api/onboardingApi"
+import { fetchOnboardingStatus } from "@/store/onboardingStore"
 
 interface BankAccountFormProps {
   onNext: () => void
+  onSkip?: () => void
   onPrevious?: () => void
   isLoading?: boolean
+  userProfile?: UserProfile | null
+  completedSteps?: {
+    basic_details: boolean
+    pan: boolean
+    gst: boolean
+    digilocker: boolean
+    bank: boolean
+  }
 }
 
-const BankAccountForm = ({ onNext, onPrevious, isLoading = false }: BankAccountFormProps) => {
+const BankAccountForm = ({ onNext, onSkip, onPrevious, isLoading = false, userProfile, completedSteps }: BankAccountFormProps) => {
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [verificationError, setVerificationError] = useState('')
   const [form, setForm] = useState({
     accountNumber: '',
     ifsc: '',
-    accountHolder: '',
-    financeEmail: '',
+    accountHolder: userProfile?.registered_name || userProfile?.brand_name || '',
+    financeEmail: userProfile?.authorized_signatory_email || userProfile?.email || '',
     opsEmail: '',
-    billingAddress: ''
+    billingAddress: userProfile?.business_address || ''
   })
 
   const progressItems = [
-    ['1', 'Company basics', true, false],
-    ['2', 'PAN & GST', true, false],
-    ['3', 'Authorized signatory', true, false],
-    ['4', 'Bank & review', false, true],
+    ['1', 'Company basics', Boolean(completedSteps?.basic_details), false],
+    ['2', 'PAN & GST', Boolean(completedSteps?.pan), false],
+    ['3', 'Authorized signatory', Boolean(completedSteps?.digilocker), false],
+    ['4', 'Bank & review', Boolean(completedSteps?.bank), true],
   ] as const
 
   const accountDigits = form.accountNumber.replace(/\D/g, '')
@@ -35,6 +49,7 @@ const BankAccountForm = ({ onNext, onPrevious, isLoading = false }: BankAccountF
     && form.billingAddress.trim().length > 5
 
   const updateField = (field: keyof typeof form, value: string) => {
+    setVerificationError('')
     setForm(prev => ({
       ...prev,
       [field]: field === 'ifsc'
@@ -43,6 +58,37 @@ const BankAccountForm = ({ onNext, onPrevious, isLoading = false }: BankAccountF
           ? value.replace(/\D/g, '').slice(0, 18).replace(/(\d{4})(?=\d)/g, '$1 ').trim()
           : value
     }))
+  }
+
+  const handleVerifyAccount = async () => {
+    if (!isValid || isVerifying) return
+
+    setIsVerifying(true)
+    setVerificationError('')
+
+    try {
+      await verifyCustomerBankDetails({
+        account_number: accountDigits,
+        ifsc_code: form.ifsc,
+        account_holder_name: form.accountHolder.trim(),
+        finance_email: form.financeEmail.trim(),
+        ops_email: form.opsEmail.trim() || undefined,
+        billing_address: form.billingAddress.trim(),
+      })
+      await fetchOnboardingStatus(true).catch(() => null)
+      onNext()
+    } catch (error: any) {
+      const detail = error?.response?.data?.detail
+      setVerificationError(
+        detail?.message
+        || detail
+        || error?.response?.data?.message
+        || error?.message
+        || 'Bank account verification failed. Please check the details and try again.'
+      )
+    } finally {
+      setIsVerifying(false)
+    }
   }
 
   const inputClass = "h-10 w-full rounded-lg border border-[#e0e5eb] bg-white px-3 text-[13px] leading-5 text-[#0c121a] outline-none transition placeholder:text-[#9aa3af] focus:border-[#3061ef] focus:ring-2 focus:ring-[#3061ef]/10"
@@ -154,13 +200,13 @@ const BankAccountForm = ({ onNext, onPrevious, isLoading = false }: BankAccountF
                       type="text"
                       value={form.ifsc}
                       onChange={(event) => updateField('ifsc', event.target.value)}
-                      placeholder="HDFC0000123"
+                      placeholder="Enter IFSC code"
                       className={`${inputClass} pr-[154px] uppercase`}
                     />
                     {isIfscValid && (
                       <span className="pointer-events-none absolute right-3 top-1/2 inline-flex -translate-y-1/2 items-center gap-2 text-[11px] leading-4 text-[#6a727d]">
                         <Check className="size-3.5 text-[#00a575]" />
-                        HDFC . Bengaluru MG Road
+                        Valid IFSC format
                       </span>
                     )}
                   </div>
@@ -175,7 +221,7 @@ const BankAccountForm = ({ onNext, onPrevious, isLoading = false }: BankAccountF
                     type="text"
                     value={form.accountHolder}
                     onChange={(event) => updateField('accountHolder', event.target.value)}
-                    placeholder="Acme Payments Pvt Ltd"
+                    placeholder="Enter account holder name"
                     className={inputClass}
                   />
                 </div>
@@ -190,7 +236,7 @@ const BankAccountForm = ({ onNext, onPrevious, isLoading = false }: BankAccountF
                       type="email"
                       value={form.financeEmail}
                       onChange={(event) => updateField('financeEmail', event.target.value)}
-                      placeholder="finance@acmepay.com"
+                      placeholder="Enter finance email"
                       className={iconInputClass}
                     />
                   </div>
@@ -207,7 +253,7 @@ const BankAccountForm = ({ onNext, onPrevious, isLoading = false }: BankAccountF
                       type="email"
                       value={form.opsEmail}
                       onChange={(event) => updateField('opsEmail', event.target.value)}
-                      placeholder="ops@acmepay.com"
+                      placeholder="Enter operations email"
                       className={iconInputClass}
                     />
                   </div>
@@ -224,7 +270,7 @@ const BankAccountForm = ({ onNext, onPrevious, isLoading = false }: BankAccountF
                       type="text"
                       value={form.billingAddress}
                       onChange={(event) => updateField('billingAddress', event.target.value)}
-                      placeholder="42, Brigade Road, Bengaluru 560001"
+                      placeholder="Enter billing address"
                       className={iconInputClass}
                     />
                   </div>
@@ -234,6 +280,11 @@ const BankAccountForm = ({ onNext, onPrevious, isLoading = false }: BankAccountF
               <div className="mt-5 flex h-[43px] items-center rounded-xl border border-[#d6e8ff] bg-[#f5faff] px-3 text-[12px] leading-[18px] text-[#2452b5]">
                 No auto-debit. Penny-drop is verification only we never charge your account without explicit consent.
               </div>
+              {verificationError && (
+                <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-[12px] leading-[18px] text-red-700">
+                  {verificationError}
+                </div>
+              )}
             </div>
           </div>
 
@@ -247,15 +298,25 @@ const BankAccountForm = ({ onNext, onPrevious, isLoading = false }: BankAccountF
               <ArrowLeft className="size-3.5" />
               Back
             </button>
-            <button
-              type="button"
-              onClick={onNext}
-              disabled={isLoading || !isValid}
-              className="flex h-10 w-[143px] items-center justify-center gap-2 rounded-lg bg-[#0019ff] text-[13px] font-bold leading-5 text-white shadow-[0_8px_18px_rgba(0,25,255,0.18)] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isLoading ? 'Verifying...' : 'Verify account'}
-              <ArrowRight className="size-3.5" />
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onSkip}
+                disabled={isLoading || isVerifying}
+                className="flex h-10 items-center justify-center rounded-lg border border-[#e0e5eb] bg-white px-4 text-[13px] font-medium leading-5 text-[#6a727d] hover:bg-[#f8fafd] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Skip for now
+              </button>
+              <button
+                type="button"
+                onClick={handleVerifyAccount}
+                disabled={isLoading || isVerifying || !isValid}
+                className="flex h-10 w-[143px] items-center justify-center gap-2 rounded-lg bg-[#0019ff] text-[13px] font-bold leading-5 text-white shadow-[0_8px_18px_rgba(0,25,255,0.18)] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isLoading || isVerifying ? 'Verifying...' : 'Verify account'}
+                <ArrowRight className="size-3.5" />
+              </button>
+            </div>
           </footer>
         </main>
       </div>

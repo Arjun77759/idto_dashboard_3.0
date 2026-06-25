@@ -13,9 +13,12 @@ import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import figmaLiveCreditsIcon from '@/assets/figma/transactions/page/live-credits.svg'
 import figmaTopUpPlusIcon from '@/assets/figma/transactions/page/top-up-plus.svg'
 
+const PRODUCTION_RESUME_STEP_KEY = 'idto:production-resume-step'
+
 const PrivateLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false) // Mobile drawer state; desktop sidebar stays visible.
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false)
+  const [productionResumeStep, setProductionResumeStep] = useState<string | null>(null)
   const token = getAccessToken()
   const location = useLocation()
   const navigate = useNavigate()
@@ -39,8 +42,18 @@ const PrivateLayout = () => {
   }
 
   useEffect(() => {
+    const resumeStep = sessionStorage.getItem(PRODUCTION_RESUME_STEP_KEY)
+    if (!resumeStep) return
+
+    sessionStorage.removeItem(PRODUCTION_RESUME_STEP_KEY)
+    setProductionResumeStep(resumeStep)
+    setIsSwitchModalOpen(true)
+  }, [])
+
+  useEffect(() => {
     const handleOpenSwitchModal = () => {
       closeModal()
+      setProductionResumeStep(null)
       setIsSwitchModalOpen(true)
     }
 
@@ -150,7 +163,11 @@ const PrivateLayout = () => {
         />
         <SwitchToProductionModal
           isOpen={isSwitchModalOpen}
-          onClose={() => setIsSwitchModalOpen(false)}
+          initialStep={productionResumeStep}
+          onClose={() => {
+            setIsSwitchModalOpen(false)
+            setProductionResumeStep(null)
+          }}
           onConfirm={handleConfirmSwitch}
         />
       </motion.div>
@@ -244,7 +261,11 @@ const PrivateLayout = () => {
       )}
       <SwitchToProductionModal
         isOpen={isSwitchModalOpen}
-        onClose={() => setIsSwitchModalOpen(false)}
+        initialStep={productionResumeStep}
+        onClose={() => {
+          setIsSwitchModalOpen(false)
+          setProductionResumeStep(null)
+        }}
         onConfirm={handleConfirmSwitch}
       />
     </motion.div>

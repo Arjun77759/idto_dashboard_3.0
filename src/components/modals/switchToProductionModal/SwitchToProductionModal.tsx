@@ -8,10 +8,16 @@ import { useUserProfile } from '@/hooks/useUserProfile'
 import { ModalHeader, StepperProgress, StepForm } from './components'
 import BasicDetailsForm from './components/BasicDetailsForm'
 import PANAndGSTForm from './components/PANAndGSTForm'
-import DirectorKYCForm from './components/DirectorKYCForm'
+import SignatoryChoiceForm from './components/SignatoryChoiceForm'
 import BankAccountForm from './components/BankAccountForm'
-import { useUserProfileStore } from '@/store/userProfileStore'
+import BankVerificationInFlightForm from './components/BankVerificationInFlightForm'
+import BankVerificationFailedForm, { type BankRecoveryMethod } from './components/BankVerificationFailedForm'
+import KYCFinalReviewForm from './components/KYCFinalReviewForm'
+import { fetchUserProfile, useUserProfileStore } from '@/store/userProfileStore'
 import { ArrowRight, BadgeCheck, Building, Building2, Check, Clock3, Landmark, Lock, Monitor, RotateCcw, ShieldCheck, Smartphone, Sparkles, UserRoundCheck, Info } from 'lucide-react'
+import { normalizeEntityType } from '@/lib/entityType'
+import { fetchOnboardingStatus } from '@/store/onboardingStore'
+import { fetchOnboardingSteps } from '@/store/onboardingStepsStore'
 
 const productionHighlights = [
   {
@@ -58,10 +64,15 @@ interface SwitchToProductionModalProps {
   isOpen: boolean
   onClose: () => void
   onConfirm: () => void
+  initialStep?: string | null
 }
 
-const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProductionModalProps) => {
+const stepOrder = ['basic-details', 'pan-gst', 'director-kyc', 'bank-account', 'bank-verification']
+const resumableSteps = [...stepOrder, 'bank-final-review']
+
+const SwitchToProductionModal = ({ isOpen, onClose, onConfirm, initialStep = null }: SwitchToProductionModalProps) => {
   const [isLoading, setIsLoading] = useState(false)
+  const [isRefreshingStatus, setIsRefreshingStatus] = useState(false)
   const [currentStep, setCurrentStep] = useState('basic-details')
   const [isInStepperMode, setIsInStepperMode] = useState(false)
   const isMobile = useIsMobile()
@@ -69,11 +80,42 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
   const stepsStatus = useOnboardingSteps()
   useUserProfile()
   const userProfile = useUserProfileStore((state) => state.data)
-  const isProprietorship = userProfile?.entity_type === 'proprietorship'
+  const isProprietorship = normalizeEntityType(userProfile?.entity_type) === 'proprietorship'
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    let cancelled = false
+    setIsRefreshingStatus(true)
+    Promise.all([
+      fetchOnboardingStatus(true),
+      fetchOnboardingSteps(true),
+      fetchUserProfile(true),
+    ])
+      .catch(() => null)
+      .finally(() => {
+        if (!cancelled) setIsRefreshingStatus(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen])
 
   useEffect(() => {
     if (!isOpen) {
       setIsInStepperMode(false)
+      return
+    }
+
+    if (isRefreshingStatus || onboardingData.loading || !onboardingData.data) {
+      return
+    }
+
+    const backendStep = onboardingData.data?.next_production_step
+    if (backendStep && resumableSteps.includes(backendStep)) {
+      setCurrentStep(backendStep)
+      setIsInStepperMode(true)
       return
     }
 
@@ -94,10 +136,9 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
       }
 
       setCurrentStep(firstIncompleteStep)
+      setIsInStepperMode(true)
     }
-  }, [stepsStatus, isOpen, isProprietorship, isInStepperMode])
-
-  const stepOrder = ['basic-details', 'pan-gst', 'director-kyc', 'bank-account']
+  }, [stepsStatus, isOpen, isProprietorship, isInStepperMode, initialStep, isRefreshingStatus, onboardingData.loading, onboardingData.data])
 
   const handleStartVerification = async () => {
     setCurrentStep('basic-details')
@@ -106,19 +147,20 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
 
   const handleStepNext = async () => {
     setIsLoading(true)
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000))
     setIsLoading(false)
 
-    // Move to next incomplete step
+    // BankAccountForm only calls onNext after the real v2 penny-drop API succeeds.
+    if (currentStep === 'bank-account') {
+      setCurrentStep('bank-final-review')
+      return
+    }
+
     const currentIndex = stepOrder.indexOf(currentStep)
     const nextIndex = currentIndex + 1
 
     if (nextIndex < stepOrder.length) {
       setCurrentStep(stepOrder[nextIndex])
-    } else if (currentStep === 'bank-account') {
-      onConfirm()
-      onClose()
     } else if (onboardingData.data?.is_onboarded) {
       onConfirm()
       onClose()
@@ -128,6 +170,16 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
   }
 
   const handleStepPrevious = () => {
+    if (currentStep === 'bank-final-review') {
+      setCurrentStep('bank-verification-failed')
+      return
+    }
+
+    if (currentStep === 'bank-verification' || currentStep === 'bank-verification-failed') {
+      setCurrentStep('bank-account')
+      return
+    }
+
     const currentIndex = stepOrder.indexOf(currentStep)
     if (currentIndex > 0) {
       // Go to previous step
@@ -143,7 +195,45 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
   const isFigmaStepTwo = isInStepperMode && currentStep === 'pan-gst'
   const isFigmaStepThree = isInStepperMode && currentStep === 'director-kyc'
   const isFigmaStepFour = isInStepperMode && currentStep === 'bank-account'
-  const isFigmaStepperCard = isFigmaStepOne || isFigmaStepTwo || isFigmaStepThree || isFigmaStepFour
+  const isFigmaBankVerifying = isInStepperMode && currentStep === 'bank-verification'
+  const isFigmaBankFailure = isInStepperMode && currentStep === 'bank-verification-failed'
+  const isFigmaFinalReview = isInStepperMode && currentStep === 'bank-final-review'
+  const isFigmaStepperCard = isFigmaStepOne || isFigmaStepTwo || isFigmaStepThree || isFigmaStepFour || isFigmaBankVerifying || isFigmaBankFailure || isFigmaFinalReview
+
+  const handleBankVerificationComplete = () => {
+    setCurrentStep('bank-final-review')
+  }
+
+  const handleBankFailureNext = (method: BankRecoveryMethod) => {
+    if (method === 'different-account') {
+      setCurrentStep('bank-account')
+      return
+    }
+
+    setCurrentStep('bank-final-review')
+  }
+
+  const handleFinalReviewSubmit = async () => {
+    setIsLoading(true)
+    try {
+      await fetchOnboardingStatus(true).catch(() => null)
+      onConfirm()
+      onClose()
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSkipBankVerification = async () => {
+    setIsLoading(true)
+    try {
+      await fetchOnboardingStatus(true).catch(() => null)
+      onConfirm()
+      onClose()
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const stepperSteps = [
     {
@@ -248,19 +338,39 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
         stepsStatus={stepsStatus}
       />
       ) : isFigmaStepThree ? (
-      <DirectorKYCForm
+      <SignatoryChoiceForm
         onNext={handleStepNext}
         onPrevious={handleStepPrevious}
-        showPrevious={true}
         isLoading={isLoading}
-        initialData={onboardingData.data}
-        stepsStatus={stepsStatus}
       />
       ) : isFigmaStepFour ? (
       <BankAccountForm
         onNext={handleStepNext}
+        onSkip={handleSkipBankVerification}
         onPrevious={handleStepPrevious}
         isLoading={isLoading}
+        userProfile={userProfile}
+        completedSteps={onboardingData.data?.production_steps}
+      />
+      ) : isFigmaBankVerifying ? (
+      <BankVerificationInFlightForm
+        onComplete={handleBankVerificationComplete}
+        onPrevious={handleStepPrevious}
+      />
+      ) : isFigmaBankFailure ? (
+      <BankVerificationFailedForm
+        onNext={handleBankFailureNext}
+        onPrevious={handleStepPrevious}
+        isLoading={isLoading}
+        userProfile={userProfile}
+      />
+      ) : isFigmaFinalReview ? (
+      <KYCFinalReviewForm
+        onSubmit={handleFinalReviewSubmit}
+        onPrevious={handleStepPrevious}
+        onSaveAndExit={onClose}
+        isLoading={isLoading}
+        userProfile={userProfile}
       />
       ) : (
       <PANAndGSTForm
@@ -292,6 +402,9 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
               isLoading={isLoading}
               initialData={onboardingData.data}
               stepsStatus={stepsStatus}
+              userProfile={userProfile}
+              onSkipBank={handleSkipBankVerification}
+              completedSteps={onboardingData.data?.production_steps}
             />
           </div>
         ) : (
@@ -395,14 +508,18 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm }: SwitchToProduct
   return (
     <>
       {isMobile ? (
-        <Sheet open={isOpen} onOpenChange={onClose}>
+        <Sheet open={isOpen} onOpenChange={(open) => {
+          if (!open) onClose()
+        }}>
           <SheetContent side="bottom" className="h-[70vh] p-0 flex flex-col overflow-hidden">
             <MobileContent />
           </SheetContent>
         </Sheet>
       ) : (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className={`w-[min(1216px,calc(100vw-80px))] max-w-none overflow-hidden p-0 flex flex-col ${isFigmaStepperCard ? `${isFigmaStepOne ? 'h-[min(759px,calc(100vh-80px))]' : isFigmaStepFour ? 'h-[min(738px,calc(100vh-80px))]' : 'h-[min(602px,calc(100vh-80px))]'} border-0 bg-transparent shadow-none [&>button:last-child]:hidden` : 'max-h-[90vh]'}`}>
+        <Dialog open={isOpen} onOpenChange={(open) => {
+          if (!open) onClose()
+        }}>
+          <DialogContent className={`w-[min(1216px,calc(100vw-80px))] max-w-none overflow-hidden p-0 flex flex-col ${isFigmaStepperCard ? `${isFigmaStepOne ? 'h-[min(759px,calc(100vh-80px))]' : isFigmaStepFour ? 'h-[min(738px,calc(100vh-80px))]' : isFigmaFinalReview ? 'h-[min(837px,calc(100vh-40px))]' : 'h-[min(602px,calc(100vh-80px))]'} border-0 bg-transparent shadow-none [&>button:last-child]:hidden` : 'max-h-[90vh]'}`}>
             <DesktopContent />
           </DialogContent>
         </Dialog>

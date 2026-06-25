@@ -7,7 +7,7 @@ import { useToast } from '../hooks/use-toast'
 import { setAuth } from '../lib/auth'
 import { clearSignupDraft, getSignupDraft } from '../lib/signupDraft'
 
-const setupItems = [
+const defaultSetupItems = [
   'Creating workspace · acme-verification',
   'Provisioning test environment',
   'Generating test API keys',
@@ -19,6 +19,14 @@ const WorkspaceSetupPage = () => {
   const navigate = useNavigate()
   const { toast } = useToast()
   const startedRef = useRef(false)
+  const draft = getSignupDraft()
+  const setupItems = [
+    `Creating workspace · ${(draft.companyName || 'your workspace').trim()}`,
+    defaultSetupItems[1],
+    defaultSetupItems[2],
+    'Preparing your verification workspace',
+    defaultSetupItems[4],
+  ]
   const [activeStep, setActiveStep] = useState(0)
   const [failed, setFailed] = useState(false)
 
@@ -80,6 +88,23 @@ const WorkspaceSetupPage = () => {
         return
       }
 
+      if (
+        !draft.fullName ||
+        !draft.jobTitle ||
+        !draft.teamFunction ||
+        !draft.companyName ||
+        !draft.operationType ||
+        (draft.operationType === 'business' && !draft.businessType)
+      ) {
+        toast({
+          title: 'Profile details required',
+          description: 'Please complete your profile and business details before finishing signup.',
+          variant: 'destructive',
+        })
+        navigate('/workspace-profile')
+        return
+      }
+
       try {
         const startedAt = Date.now()
         const response = await completeSignup({
@@ -87,6 +112,12 @@ const WorkspaceSetupPage = () => {
           password: draft.password,
           verification_token: draft.emailVerificationToken,
           mobile: draft.mobile,
+          full_name: draft.fullName,
+          job_title: draft.jobTitle,
+          team_function: draft.teamFunction,
+          company_name: draft.companyName,
+          operation_type: draft.operationType,
+          business_type: draft.businessType,
         })
 
         clearSignupDraft()

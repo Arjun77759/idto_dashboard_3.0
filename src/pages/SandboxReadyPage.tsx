@@ -1,11 +1,8 @@
 import { ArrowRight, Check, Sparkles, UserRound } from 'lucide-react'
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { completeSignup } from '../api/authApi'
 import idtoLogo from '../assets/idto-logo.svg'
 import { useToast } from '../hooks/use-toast'
-import { setAuth } from '../lib/auth'
-import { clearSignupDraft, getSignupDraft } from '../lib/signupDraft'
+import { getSignupDraft } from '../lib/signupDraft'
 
 const readyItems = [
   'Sandbox ready immediately',
@@ -16,9 +13,8 @@ const readyItems = [
 const SandboxReadyPage = () => {
   const navigate = useNavigate()
   const { toast } = useToast()
-  const [submitting, setSubmitting] = useState(false)
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     const draft = getSignupDraft()
 
     if (!draft.email) {
@@ -61,42 +57,23 @@ const SandboxReadyPage = () => {
       return
     }
 
-    try {
-      setSubmitting(true)
-      const response = await completeSignup({
-        email: draft.email,
-        password: draft.password,
-        verification_token: draft.emailVerificationToken,
-        mobile: draft.mobile,
-      })
-      clearSignupDraft()
-
-      if (response.access_token) {
-        setAuth({ access_token: response.access_token, user_agent: response.user_agent || 'email' })
-      }
-
+    if (
+      !draft.fullName ||
+      !draft.jobTitle ||
+      !draft.teamFunction ||
+      !draft.companyName ||
+      draft.operationType !== 'freelancer'
+    ) {
       toast({
-        title: 'Signup complete',
-        description: response.access_token ? 'Opening your sandbox.' : 'Your account is ready. Please sign in.',
-      })
-
-      navigate(response.access_token ? '/dashboard' : '/login', { state: { email: draft.email } })
-    } catch (err: any) {
-      const detail = err?.response?.data?.detail
-      const message = detail || err?.response?.data?.message || err?.message || 'Failed to complete signup'
-
-      toast({
-        title: err?.response?.status === 409 ? 'Email already registered' : 'Signup failed',
-        description: message,
+        title: 'Profile details required',
+        description: 'Please complete your profile and business details before finishing signup.',
         variant: 'destructive',
       })
-
-      if (err?.response?.status === 409) {
-        navigate('/login', { state: { email: draft.email } })
-      }
-    } finally {
-      setSubmitting(false)
+      navigate('/workspace-profile')
+      return
     }
+
+    navigate('/workspace-setup')
   }
 
   return (
@@ -164,10 +141,9 @@ const SandboxReadyPage = () => {
                 <button
                   type="button"
                   onClick={handleContinue}
-                  disabled={submitting}
                   className="flex h-11 w-full items-center justify-center gap-2 rounded-[20px] bg-[#050c13] px-4 text-[14px] font-normal leading-5 text-[#fafcfe] transition hover:bg-[#131b31] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {submitting ? 'Sending verification...' : 'Continue to sandbox'}
+                  Continue to sandbox
                   <ArrowRight className="size-4" strokeWidth={1.8} />
                 </button>
               </div>

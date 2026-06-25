@@ -61,7 +61,7 @@ export const useOnboardingStepsStore = <T,>(
   )
 }
 
-export const fetchOnboardingSteps = async (): Promise<OnboardingStepsStatus> => {
+export const fetchOnboardingSteps = async (force = false): Promise<OnboardingStepsStatus> => {
   // If a fetch is already in progress, return the existing promise
   if (fetchPromise) {
     return fetchPromise
@@ -79,7 +79,7 @@ export const fetchOnboardingSteps = async (): Promise<OnboardingStepsStatus> => 
   }
 
   // If already fetched, return cached data immediately
-  if (state.hasFetched) {
+  if (!force && state.hasFetched) {
     return {
       basicDetails: state.basicDetails,
       businessInfo: state.businessInfo,

@@ -175,6 +175,12 @@ export type CompleteSignupPayload = {
   password: string
   verification_token?: string
   mobile?: string
+  full_name?: string
+  job_title?: string
+  team_function?: string
+  company_name?: string
+  operation_type?: 'business' | 'freelancer'
+  business_type?: string
 }
 
 export type CompleteSignupResponse = {

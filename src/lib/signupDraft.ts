@@ -7,6 +7,11 @@ export type SignupDraft = {
   emailVerificationToken?: string
   mobile?: string
   mobileVerified?: boolean
+  fullName?: string
+  jobTitle?: string
+  teamFunction?: string
+  companyName?: string
+  operationType?: 'business' | 'freelancer'
   businessType?: string
 }
 

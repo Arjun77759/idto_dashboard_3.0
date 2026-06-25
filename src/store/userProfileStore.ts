@@ -16,7 +16,13 @@ export type UserProfile = {
   industry?: string | null
   brand_name?: string | null
   registered_name?: string | null
+  job_title?: string | null
+  team_function?: string | null
+  operation_type?: 'business' | 'freelancer' | null
   entity_type?: string | null
+  website_url?: string | null
+  pin_code?: string | null
+  authorized_signatory_email?: string | null
 }
 
 type UserProfileStoreState = {
@@ -63,7 +69,7 @@ export const useUserProfileStore = <T,>(
   )
 }
 
-export const fetchUserProfile = async (): Promise<UserProfile | null> => {
+export const fetchUserProfile = async (force = false): Promise<UserProfile | null> => {
   const token = getAccessToken()
 
   // If a fetch is already in progress, return the existing promise
@@ -83,7 +89,7 @@ export const fetchUserProfile = async (): Promise<UserProfile | null> => {
   }
 
   // If already fetched for the current authenticated user, return cached data immediately.
-  if (state.hasFetched && state.data && fetchedForToken === token) {
+  if (!force && state.hasFetched && state.data && fetchedForToken === token) {
     return state.data
   }
 

@@ -2,7 +2,7 @@ import { ArrowRight, Building2, Check, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import idtoLogo from '../assets/idto-logo.svg'
-import { updateSignupDraft } from '../lib/signupDraft'
+import { getSignupDraft, updateSignupDraft } from '../lib/signupDraft'
 
 const businessTypes = [
   'Private Limited',
@@ -21,9 +21,15 @@ const businessTypes = [
 
 const BusinessTypePage = () => {
   const navigate = useNavigate()
-  const [selectedType, setSelectedType] = useState('Private Limited')
+  const draft = getSignupDraft()
+  const [selectedType, setSelectedType] = useState(draft.businessType || '')
+  const [error, setError] = useState('')
 
   const handleSubmit = () => {
+    if (!selectedType) {
+      setError('Select your business type to continue.')
+      return
+    }
     updateSignupDraft({ businessType: selectedType })
     navigate('/workspace-setup')
   }
@@ -83,7 +89,10 @@ const BusinessTypePage = () => {
                       <button
                         key={type}
                         type="button"
-                        onClick={() => setSelectedType(type)}
+                        onClick={() => {
+                          setSelectedType(type)
+                          setError('')
+                        }}
                         className={`flex min-h-[38px] items-center justify-between gap-3 rounded-[14px] border px-[15px] py-[9px] text-left text-[14px] leading-5 transition ${
                           selected
                             ? 'border-[#0019ff] bg-[#0019ff]/[0.05] text-[#0a0e1f]'
@@ -105,6 +114,8 @@ const BusinessTypePage = () => {
                     )
                   })}
                 </div>
+
+                {error ? <p className="text-center text-[12px] text-red-600">{error}</p> : null}
 
                 <button
                   type="button"
