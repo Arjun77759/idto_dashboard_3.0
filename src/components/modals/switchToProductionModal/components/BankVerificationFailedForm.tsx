@@ -12,6 +12,7 @@ import {
   X
 } from 'lucide-react'
 import idtoLogo from '@/assets/idto-logo.svg'
+import type { UserProfile } from '@/store/userProfileStore'
 
 export type BankRecoveryMethod = 'different-account' | 'cancelled-cheque'
 
@@ -19,12 +20,14 @@ interface BankVerificationFailedFormProps {
   onNext: (method: BankRecoveryMethod) => void
   onPrevious?: () => void
   isLoading?: boolean
+  userProfile?: UserProfile | null
 }
 
 const BankVerificationFailedForm = ({
   onNext,
   onPrevious,
-  isLoading = false
+  isLoading = false,
+  userProfile,
 }: BankVerificationFailedFormProps) => {
   const [method, setMethod] = useState<BankRecoveryMethod>('cancelled-cheque')
   const [chequeFile, setChequeFile] = useState<File | null>(null)
@@ -138,11 +141,15 @@ const BankVerificationFailedForm = ({
             <div className="mt-4 grid grid-cols-2 gap-4 rounded-2xl border border-[#e0e5eb] bg-[#f8fafd] p-4">
               <div>
                 <p className="text-[10.5px] leading-4 text-[#6a727d]">You entered</p>
-                <p className="mt-1 text-[12.5px] font-medium leading-[19px] text-[#0c121a]">Acme Payments Pvt Ltd</p>
+                <p className="mt-1 text-[12.5px] font-medium leading-[19px] text-[#0c121a]">
+                  {userProfile?.registered_name || userProfile?.brand_name || 'Account holder name entered'}
+                </p>
               </div>
               <div>
                 <p className="text-[10.5px] leading-4 text-[#6a727d]">Bank returned</p>
-                <p className="mt-1 text-[12.5px] font-medium leading-[19px] text-[#0c121a]">ACME PAYMENT PVT LTD</p>
+                <p className="mt-1 text-[12.5px] font-medium leading-[19px] text-[#0c121a]">
+                  Different name returned by bank
+                </p>
               </div>
             </div>
 

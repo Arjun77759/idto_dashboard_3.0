@@ -23,8 +23,6 @@ type AadhaarUploadError = {
   action: string
 }
 
-const DIGILOCKER_URL = 'https://digilocker.meripehchaan.gov.in/'
-
 const SignatoryChoiceForm = ({ onNext, onPrevious, isLoading = false }: SignatoryChoiceFormProps) => {
   const userProfile = useUserProfileStore((state) => state.data)
   const [choice, setChoice] = useState<SignatoryChoice>('self')
@@ -49,6 +47,7 @@ const SignatoryChoiceForm = ({ onNext, onPrevious, isLoading = false }: Signator
   const [boardResolutionFile, setBoardResolutionFile] = useState<File | null>(null)
   const [cinCertificateFile, setCinCertificateFile] = useState<File | null>(null)
   const [boardResolutionError, setBoardResolutionError] = useState('')
+  const [digilockerError, setDigilockerError] = useState('')
 
   const progressItems = [
     ['1', 'Company basics', true, false],
@@ -57,8 +56,8 @@ const SignatoryChoiceForm = ({ onNext, onPrevious, isLoading = false }: Signator
     ['4', 'Bank & review', false, false],
   ] as const
 
-  const userName = userProfile?.name || 'Riya Sharma'
-  const userEmail = userProfile?.email || 'riya@acmepay.com'
+  const userName = userProfile?.name || 'Current account holder'
+  const userEmail = userProfile?.email || ''
   const progress = phase === 'board-resolution' ? 78 : phase === 'personal-pan-digital' ? 70 : phase === 'pan-verification-methods' ? 58 : phase === 'digilocker-handoff' || phase === 'digilocker-waiting' || phase === 'aadhaar-otp' || phase === 'upload-aadhaar' ? 62 : phase === 'methods' ? 58 : phase === 'invite-signatory' ? 55 : 52
   const aadhaarDigits = aadhaarNumber.replace(/\D/g, '')
   const isAadhaarValid = aadhaarDigits.length === 12
@@ -169,13 +168,28 @@ const SignatoryChoiceForm = ({ onNext, onPrevious, isLoading = false }: Signator
     onNext()
   }
 
+  const redirectToDigiLocker = () => {
+    const redirectUri = encodeURIComponent(`${window.location.origin}/kyc-callback`)
+    const digilockerUrl = `https://digilocker.idto.ai/digilocker?client_id=28d04bf7-9fa4-46ea-ad39-9d466c1ca3bf&redirect_uri=${redirectUri}&redirect_to_signup=false&req_docs=ADHAR`
+    window.location.href = digilockerUrl
+  }
+
   const continueToDigiLocker = () => {
-    window.open(DIGILOCKER_URL, '_blank', 'noopener,noreferrer')
-    setPhase('digilocker-waiting')
+    try {
+      setDigilockerError('')
+      redirectToDigiLocker()
+    } catch (error: any) {
+      setDigilockerError(error?.message || 'Unable to start DigiLocker verification')
+    }
   }
 
   const openDigiLockerAgain = () => {
-    window.open(DIGILOCKER_URL, '_blank', 'noopener,noreferrer')
+    try {
+      setDigilockerError('')
+      redirectToDigiLocker()
+    } catch (error: any) {
+      setDigilockerError(error?.message || 'Unable to start DigiLocker verification')
+    }
   }
 
   const useOtpInstead = () => {
@@ -545,7 +559,7 @@ const SignatoryChoiceForm = ({ onNext, onPrevious, isLoading = false }: Signator
                           type="email"
                           value={invitee.email}
                           onChange={(event) => handleInviteeChange('email', event.target.value)}
-                          placeholder="rohan@acmepay.com"
+                          placeholder="Enter signatory email"
                           className="h-10 w-full rounded-lg border border-[#e0e5eb] bg-white px-3 pl-9 text-[13px] leading-5 text-[#0c121a] outline-none transition placeholder:text-[#9aa3af] focus:border-[#3061ef] focus:ring-2 focus:ring-[#3061ef]/10"
                         />
                       </div>
@@ -561,7 +575,7 @@ const SignatoryChoiceForm = ({ onNext, onPrevious, isLoading = false }: Signator
                           type="tel"
                           value={invitee.mobile}
                           onChange={(event) => handleInviteeChange('mobile', event.target.value)}
-                          placeholder="+91 98765 43210"
+                          placeholder="Enter mobile number"
                           className="h-10 w-full rounded-lg border border-[#e0e5eb] bg-white px-3 pl-9 text-[13px] leading-5 text-[#0c121a] outline-none transition placeholder:text-[#9aa3af] focus:border-[#3061ef] focus:ring-2 focus:ring-[#3061ef]/10"
                         />
                       </div>
@@ -776,10 +790,10 @@ const SignatoryChoiceForm = ({ onNext, onPrevious, isLoading = false }: Signator
                       <div className="mt-4 rounded-xl border border-[#b8e6c8] bg-[#effaf3] px-3 py-3">
                         <div className="flex items-center gap-2 text-[12px] font-bold leading-[18px] text-[#047857]">
                           <Check className="size-3.5" />
-                          Verified . RIYA SHARMA
+                          Verified{userProfile?.name ? ` · ${userProfile.name}` : ''}
                         </div>
                         <p className="mt-1 text-[11px] leading-[17px] text-[#6a727d]">
-                          Matches the name on Aadhaar (RIYA SHARMA). Good to go.
+                          PAN verification completed successfully.
                         </p>
                       </div>
                     )}
@@ -1079,6 +1093,11 @@ const SignatoryChoiceForm = ({ onNext, onPrevious, isLoading = false }: Signator
                   <div className="mt-5 rounded-2xl border border-[#d6e8ff] bg-[#f5faff] px-4 py-3 text-[13px] leading-[20px] text-[#2452b5]">
                     <span className="font-bold text-[#1034b1]">What we'll receive:</span> Name . DOB . gender . masked Aadhaar . address. Nothing else.
                   </div>
+                  {digilockerError && (
+                    <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[12px] text-red-700">
+                      {digilockerError}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="-mt-10 flex h-[368px] flex-col items-center justify-center text-center">

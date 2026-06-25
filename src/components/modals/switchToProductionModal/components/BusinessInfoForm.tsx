@@ -6,6 +6,7 @@ import type { OnboardingStepsStatus } from "@/hooks/useOnboardingSteps"
 import { updateBusinessInfo } from "@/api/onboardingApi"
 import { invalidateOnboardingSteps } from "@/store/onboardingStepsStore"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useUserProfile } from "@/hooks/useUserProfile"
 
 interface BusinessInfoFormProps {
   onNext: () => void
@@ -31,6 +32,7 @@ const businessInfoSchema = z.object({
 
 const BusinessInfoForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPrevious = false, isLoading: externalLoading = false, initialData: _initialData }: BusinessInfoFormProps) => {
   const isMobile = useIsMobile()
+  const { data: userProfile } = useUserProfile()
   const [formData, setFormData] = useState({
     registered_name: '',
     authorized_email: '',
@@ -49,9 +51,16 @@ const BusinessInfoForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
   const [isLoading, setIsLoading] = useState(false)
   const [apiError, setApiError] = useState('')
 
-  // Note: initialData no longer contains registered_name
-  // This would need to come from user profile or be fetched separately
-  // For now, we'll just use the form's initial state
+  useEffect(() => {
+    if (!userProfile) return
+    setFormData((current) => ({
+      registered_name: current.registered_name || userProfile.registered_name || '',
+      authorized_email: current.authorized_email || userProfile.authorized_signatory_email || userProfile.email || '',
+      authorized_mobile: current.authorized_mobile || userProfile.mobile || '',
+      office_address: current.office_address || userProfile.business_address || '',
+      pin_code: current.pin_code || userProfile.pin_code || '',
+    }))
+  }, [userProfile])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))

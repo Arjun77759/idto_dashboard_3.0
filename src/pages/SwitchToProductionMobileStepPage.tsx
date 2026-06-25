@@ -6,9 +6,7 @@ import { useOnboardingSteps } from '@/hooks/useOnboardingSteps'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { getAccessToken } from '@/lib/auth'
 import StepForm from '@/components/modals/switchToProductionModal/components/StepForm'
-import DirectorKYCForm from '@/components/modals/switchToProductionModal/components/DirectorKYCForm'
-import { fetchOnboardingStatus, resetOnboardingStore } from '@/store/onboardingStore'
-import axiosInstance from '@/api/axiosInstance'
+import SignatoryChoiceForm from '@/components/modals/switchToProductionModal/components/SignatoryChoiceForm'
 
 const SwitchToProductionMobileStepPage = () => {
     const { step } = useParams<{ step: string }>()
@@ -80,24 +78,6 @@ const SwitchToProductionMobileStepPage = () => {
         }
     }
 
-    const handleSkip = async () => {
-        // Ensure we re-run the /onboard/check API so the store updates to production
-        try {
-            if (typeof resetOnboardingStore === 'function') {
-                resetOnboardingStore()
-            }
-            await fetchOnboardingStatus()
-        } catch (err) {
-            try {
-                await axiosInstance.get('/onboard/check')
-            } catch (err2) {
-                console.error('Failed to refresh onboarding status', err2)
-            }
-        } finally {
-            navigate('/dashboard', { replace: true })
-        }
-    }
-
     // Logo SVG component
     const Logo = () => (
         <svg xmlns="http://www.w3.org/2000/svg" width="57" height="32" viewBox="0 0 57 32" fill="none">
@@ -153,14 +133,10 @@ const SwitchToProductionMobileStepPage = () => {
             {/* Step Form Content */}
             <div className="flex-1 flex flex-col min-h-0">
                 {step === 'director-kyc' ? (
-                    <DirectorKYCForm
+                    <SignatoryChoiceForm
                         onNext={handleNext}
                         onPrevious={handlePrevious}
-                        showPrevious={true}
                         isLoading={isLoading}
-                        initialData={onboardingStatus}
-                        stepsStatus={stepsStatus}
-                        onSkip={handleSkip}
                     />
                 ) : (
                     <StepForm

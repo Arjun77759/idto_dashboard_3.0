@@ -2,6 +2,7 @@ import { ArrowRight, BriefcaseBusiness, Sparkles, UserRound } from 'lucide-react
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import idtoLogo from '../assets/idto-logo.svg'
+import { getSignupDraft, updateSignupDraft } from '../lib/signupDraft'
 
 const teamOptions = [
   'Founder',
@@ -14,12 +15,27 @@ const teamOptions = [
 
 const WorkspaceProfilePage = () => {
   const navigate = useNavigate()
-  const [fullName, setFullName] = useState('Arjun Mehta')
-  const [jobTitle, setJobTitle] = useState('Head of Risk')
-  const [team, setTeam] = useState('Risk & Compliance')
+  const draft = getSignupDraft()
+  const [fullName, setFullName] = useState(draft.fullName || '')
+  const [jobTitle, setJobTitle] = useState(draft.jobTitle || '')
+  const [team, setTeam] = useState(draft.teamFunction || '')
+  const [error, setError] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    const normalizedName = fullName.trim()
+    const normalizedJobTitle = jobTitle.trim()
+
+    if (!normalizedName || !normalizedJobTitle || !team) {
+      setError('Enter your name and job title, then select your team.')
+      return
+    }
+
+    updateSignupDraft({
+      fullName: normalizedName,
+      jobTitle: normalizedJobTitle,
+      teamFunction: team,
+    })
     navigate('/business-profile')
   }
 
@@ -77,7 +93,13 @@ const WorkspaceProfilePage = () => {
                     <input
                       id="full-name"
                       value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
+                      onChange={(e) => {
+                        setFullName(e.target.value)
+                        setError('')
+                      }}
+                      placeholder="Enter your full name"
+                      autoComplete="name"
+                      required
                       className="min-w-0 flex-1 bg-transparent text-[14px] leading-5 text-[#0a0e1f] outline-none"
                     />
                   </div>
@@ -92,7 +114,13 @@ const WorkspaceProfilePage = () => {
                     <input
                       id="job-title"
                       value={jobTitle}
-                      onChange={(e) => setJobTitle(e.target.value)}
+                      onChange={(e) => {
+                        setJobTitle(e.target.value)
+                        setError('')
+                      }}
+                      placeholder="Enter your job title"
+                      autoComplete="organization-title"
+                      required
                       className="min-w-0 flex-1 bg-transparent text-[14px] leading-5 text-[#0a0e1f] outline-none"
                     />
                   </div>
@@ -110,7 +138,10 @@ const WorkspaceProfilePage = () => {
                       <button
                         key={option}
                         type="button"
-                        onClick={() => setTeam(option)}
+                        onClick={() => {
+                          setTeam(option)
+                          setError('')
+                        }}
                         className={`rounded-full border px-3 py-[7px] text-center text-[12px] leading-4 transition ${
                           team === option
                             ? 'border-[#050c13] bg-[#050c13] text-white'
@@ -122,6 +153,8 @@ const WorkspaceProfilePage = () => {
                     ))}
                   </div>
                 </div>
+
+                {error ? <p className="text-center text-[12px] text-red-600">{error}</p> : null}
 
                 <button
                   type="submit"

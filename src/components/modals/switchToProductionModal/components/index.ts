@@ -7,6 +7,7 @@ export { default as KYCFinalReviewForm } from "./KYCFinalReviewForm";
 export { default as BusinessInfoForm } from "./BusinessInfoForm";
 export { default as BusinessPANForm } from "./BusinessPANForm";
 export { default as DirectorKYCForm } from "./DirectorKYCForm";
+export { default as SignatoryChoiceForm } from "./SignatoryChoiceForm";
 export { default as GSTINForm } from "./GSTINForm";
 export { default as PANAndGSTForm } from "./PANAndGSTForm";
 export { default as LeftPanel } from "./LeftPanel";

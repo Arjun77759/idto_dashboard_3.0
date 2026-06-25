@@ -24,13 +24,9 @@ const DirectorKYCForm = ({ onNext: _onNext, onPrevious: _onPrevious, showPreviou
       setIsLoading(true)
       setError('')
 
-      // Get current domain for redirect URL
+      // Keep this redirect flow identical to the previous dashboard.
       const redirectUri = encodeURIComponent(`${window.location.origin}/kyc-callback`)
-
-      // Construct DigiLocker URL with required parameters
       const digilockerUrl = `https://digilocker.idto.ai/digilocker?client_id=28d04bf7-9fa4-46ea-ad39-9d466c1ca3bf&redirect_uri=${redirectUri}&redirect_to_signup=false&req_docs=ADHAR`
-
-      // Redirect to DigiLocker authentication URL
       window.location.href = digilockerUrl
 
       // Note: User will be redirected away, so we don't call onNext() here

@@ -2,6 +2,7 @@ import { ArrowRight, Building2, Sparkles, Store, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import idtoLogo from '../assets/idto-logo.svg'
+import { getSignupDraft, updateSignupDraft } from '../lib/signupDraft'
 
 type OperationType = 'business' | 'freelancer'
 
@@ -27,12 +28,26 @@ const operationOptions: Array<{
 
 const BusinessProfilePage = () => {
   const navigate = useNavigate()
-  const [companyName, setCompanyName] = useState('Acme Verification Pvt. Ltd.')
-  const [operationType, setOperationType] = useState<OperationType>('business')
+  const draft = getSignupDraft()
+  const [companyName, setCompanyName] = useState(draft.companyName || '')
+  const [operationType, setOperationType] = useState<OperationType | ''>(draft.operationType || '')
+  const [error, setError] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    navigate(operationType === 'business' ? '/business-type' : '/workspace-setup')
+    const normalizedCompanyName = companyName.trim()
+
+    if (!normalizedCompanyName || !operationType) {
+      setError('Enter your company or workspace name and select how you operate.')
+      return
+    }
+
+    updateSignupDraft({
+      companyName: normalizedCompanyName,
+      operationType,
+      businessType: operationType === 'freelancer' ? 'Sole Proprietor' : undefined,
+    })
+    navigate(operationType === 'business' ? '/business-type' : '/sandbox-ready')
   }
 
   return (
@@ -91,7 +106,13 @@ const BusinessProfilePage = () => {
                     <input
                       id="company-name"
                       value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
+                      onChange={(e) => {
+                        setCompanyName(e.target.value)
+                        setError('')
+                      }}
+                      placeholder="Enter your company or workspace name"
+                      autoComplete="organization"
+                      required
                       className="min-w-0 flex-1 bg-transparent text-[14px] leading-5 text-[#0a0e1f] outline-none"
                     />
                   </div>
@@ -111,7 +132,10 @@ const BusinessProfilePage = () => {
                         <button
                           key={option.id}
                           type="button"
-                          onClick={() => setOperationType(option.id)}
+                          onClick={() => {
+                            setOperationType(option.id)
+                            setError('')
+                          }}
                           className={`flex min-h-[118px] flex-col items-center justify-center rounded-[14px] border px-4 py-5 text-center transition ${
                             selected
                               ? 'border-[#0019ff] bg-[#0019ff]/[0.04] shadow-[0_0_0_3px_rgba(0,25,255,0.08)]'
@@ -136,6 +160,8 @@ const BusinessProfilePage = () => {
                     Choosing Business / Company? You'll pick your company type next.
                   </p>
                 </div>
+
+                {error ? <p className="text-center text-[12px] text-red-600">{error}</p> : null}
 
                 <button
                   type="submit"

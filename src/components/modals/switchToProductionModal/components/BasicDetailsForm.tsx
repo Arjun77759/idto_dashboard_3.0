@@ -1,14 +1,16 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ArrowLeft, ArrowRight, AlertCircle, Building2, CheckCircle2, Clock3, HelpCircle, LockKeyhole, Mail, MapPin, Phone, Save, ShieldCheck, Sparkles, Timer, Globe2 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { OnboardingStatus } from "@/hooks/useOnboardingStatus"
 import type { OnboardingStepsStatus } from "@/hooks/useOnboardingSteps"
-import { updateBasicDetails } from "@/api/onboardingApi"
+import { updateBasicDetails, updateBusinessInfo, updateProductionProgress } from "@/api/onboardingApi"
 import { invalidateOnboardingSteps } from "@/store/onboardingStepsStore"
+import { fetchOnboardingStatus } from "@/store/onboardingStore"
 import { fetchUserProfile, invalidateUserProfile } from "@/store/userProfileStore"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useUserProfile } from "@/hooks/useUserProfile"
 import idtoLogo from "@/assets/idto-logo.svg"
+import { normalizeEntityType } from "@/lib/entityType"
 
 interface BasicDetailsFormProps {
   onNext: () => void
@@ -19,23 +21,53 @@ interface BasicDetailsFormProps {
   stepsStatus?: OnboardingStepsStatus
 }
 
+const industryOptions = [
+  'Banking & Financial Services',
+  'Fintech & Payments',
+  'Insurance',
+  'E-commerce & Retail',
+  'Healthcare',
+  'Education',
+  'Travel & Hospitality',
+  'Real Estate',
+  'Gaming',
+  'Telecommunications',
+  'Logistics & Transportation',
+  'Professional Services',
+  'Technology & SaaS',
+  'Government & Public Sector',
+  'Other',
+]
+
 const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPrevious = false, isLoading: externalLoading = false, initialData: _initialData, stepsStatus: _stepsStatus }: BasicDetailsFormProps) => {
   const isMobile = useIsMobile()
   const { data: userProfile } = useUserProfile()
   const [formData, setFormData] = useState({
-    brand_name: userProfile?.brand_name || '',
+    brand_name: '',
     website_url: '',
-    entity_type: userProfile?.entity_type || '',
-    pin_code: '560001'
+    entity_type: '',
+    industry: '',
+    pin_code: '',
+    registered_name: '',
+    business_address: '',
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [websiteError, setWebsiteError] = useState('')
 
-  // Note: initialData no longer contains brand_name or industry
-  // These would need to come from user profile or be fetched separately
-  // For now, we'll just use the form's initial state
+  useEffect(() => {
+    if (!userProfile) return
+    setFormData((current) => ({
+      brand_name: current.brand_name || userProfile.brand_name || '',
+      website_url: current.website_url || userProfile.website_url || '',
+      entity_type: current.entity_type || normalizeEntityType(userProfile.entity_type),
+      industry: current.industry || userProfile.industry || '',
+      pin_code: current.pin_code || userProfile.pin_code || '',
+      registered_name: current.registered_name || userProfile.registered_name || '',
+      business_address: current.business_address || userProfile.business_address || '',
+    }))
+  }, [userProfile])
 
   const validateWebsiteUrl = (url: string): string => {
     if (!url.trim()) {
@@ -90,6 +122,14 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
       return
     }
 
+    if (!formData.industry) {
+      return
+    }
+
+    if (!formData.registered_name.trim() || !formData.business_address.trim()) {
+      return
+    }
+
     if (!/^\d{6}$/.test(formData.pin_code.trim())) {
       return
     }
@@ -109,9 +149,22 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
       const payload = {
         brand_name: formData.brand_name,
         website_url: formData.website_url,
-        entity_type: formData.entity_type
+        entity_type: formData.entity_type,
+        industry: formData.industry,
+        pin_code: formData.pin_code,
       }
-      await updateBasicDetails(payload)
+      await Promise.all([
+        updateBasicDetails(payload),
+        updateBusinessInfo({
+          registered_name: formData.registered_name.trim(),
+          email: userProfile?.authorized_signatory_email || userProfile?.email || '',
+          mobile: userProfile?.mobile || '',
+          address: formData.business_address.trim(),
+          pin_code: formData.pin_code.trim(),
+        }),
+      ])
+      await updateProductionProgress('pan-gst')
+      await fetchOnboardingStatus(true).catch(() => null)
       invalidateOnboardingSteps() // Invalidate cache so it refetches
       invalidateUserProfile()
       await fetchUserProfile().catch(() => null)
@@ -126,7 +179,10 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
 
   const brandNameError = hasSubmitted && !formData.brand_name.trim() ? 'Brand name is required' : ''
   const entityTypeError = hasSubmitted && !formData.entity_type ? 'Select an entity type' : ''
+  const industryError = hasSubmitted && !formData.industry ? 'Select an industry' : ''
   const pinCodeError = hasSubmitted && !/^\d{6}$/.test(formData.pin_code.trim()) ? 'Enter a valid 6-digit PIN' : ''
+  const registeredNameError = hasSubmitted && !formData.registered_name.trim() ? 'Legal business name is required' : ''
+  const businessAddressError = hasSubmitted && !formData.business_address.trim() ? 'Registered office address is required' : ''
   
   // Mobile layout matching Figma
   if (isMobile) {
@@ -165,7 +221,7 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
                 type="text"
                 value={formData.brand_name}
                 onChange={(e) => handleInputChange('brand_name', e.target.value)}
-                placeholder="e.g., Zomato, Razorpay"
+                placeholder="Enter your brand name"
                 className="font-medium text-[16px] leading-[1.5] text-[#1c252e] tracking-[-0.16px] bg-transparent border-none outline-none w-full placeholder:text-[#9296a0]"
               />
               {brandNameError && <AlertCircle className="size-4 shrink-0 text-[#ef4444]" />}
@@ -226,6 +282,66 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
                 {entityTypeError}
               </p>
             )}
+          </div>
+
+          <div className="flex flex-col gap-1 w-full">
+            <label className="text-[12px] font-medium leading-[1.4] text-[#616675]">
+              Industry
+            </label>
+            <Select value={formData.industry} onValueChange={(value) => handleInputChange('industry', value)}>
+              <SelectTrigger className={`h-12 w-full rounded-[6px] bg-[#f7f7f8] text-[16px] ${industryError ? 'border-[#ef4444]' : 'border-[#e7e8ea]'}`}>
+                <SelectValue placeholder="Select industry" />
+              </SelectTrigger>
+              <SelectContent>
+                {industryOptions.map((industry) => (
+                  <SelectItem key={industry} value={industry}>
+                    {industry}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {industryError && <p className="text-xs text-[#d92d20]">{industryError}</p>}
+          </div>
+
+          <div className="flex flex-col gap-1 w-full">
+            <label className="text-[12px] font-medium leading-[1.4] text-[#616675]">
+              Legal business name
+            </label>
+            <input
+              type="text"
+              value={formData.registered_name}
+              onChange={(e) => handleInputChange('registered_name', e.target.value)}
+              placeholder="Enter legal business name"
+              className={`h-12 rounded-[6px] border bg-[#f7f7f8] px-3 text-[16px] outline-none ${registeredNameError ? 'border-[#ef4444]' : 'border-[#e7e8ea]'}`}
+            />
+            {registeredNameError && <p className="text-xs text-[#d92d20]">{registeredNameError}</p>}
+          </div>
+
+          <div className="flex flex-col gap-1 w-full">
+            <label className="text-[12px] font-medium leading-[1.4] text-[#616675]">
+              Registered office address
+            </label>
+            <input
+              type="text"
+              value={formData.business_address}
+              onChange={(e) => handleInputChange('business_address', e.target.value)}
+              placeholder="Enter registered office address"
+              className={`h-12 rounded-[6px] border bg-[#f7f7f8] px-3 text-[16px] outline-none ${businessAddressError ? 'border-[#ef4444]' : 'border-[#e7e8ea]'}`}
+            />
+            {businessAddressError && <p className="text-xs text-[#d92d20]">{businessAddressError}</p>}
+          </div>
+
+          <div className="flex flex-col gap-1 w-full">
+            <label className="text-[12px] font-medium leading-[1.4] text-[#616675]">PIN code</label>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={formData.pin_code}
+              onChange={(e) => handleInputChange('pin_code', e.target.value.replace(/\D/g, '').slice(0, 6))}
+              placeholder="Enter 6-digit PIN"
+              className={`h-12 rounded-[6px] border bg-[#f7f7f8] px-3 text-[16px] outline-none ${pinCodeError ? 'border-[#ef4444]' : 'border-[#e7e8ea]'}`}
+            />
+            {pinCodeError && <p className="text-xs text-[#d92d20]">{pinCodeError}</p>}
           </div>
         </div>
 
@@ -362,13 +478,13 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
                 <div className="relative">
                   <label className={labelClass}>
                     <span>Brand name</span>
-                    <span className={helperClass}>e.g. Zomato, Razorpay</span>
+                    <span className={helperClass}>From signup, if provided</span>
                   </label>
                   <input
                     type="text"
                     value={formData.brand_name}
                     onChange={(e) => handleInputChange('brand_name', e.target.value)}
-                    placeholder="Acme Pay"
+                    placeholder="Enter your brand name"
                     className={inputClass(Boolean(brandNameError))}
                   />
                   {brandNameError && <AlertCircle className="pointer-events-none absolute right-3 top-[33px] size-3.5 text-[#ef4444]" />}
@@ -385,14 +501,21 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
                     <span>Legal business name</span>
                     <span className={helperClass}>As per incorporation docs</span>
                   </label>
-                  <div className={readOnlyFieldClass}>{userProfile?.registered_name || 'Acme Payments Pvt Ltd'}</div>
+                  <input
+                    type="text"
+                    value={formData.registered_name}
+                    onChange={(e) => handleInputChange('registered_name', e.target.value)}
+                    placeholder="Enter legal business name"
+                    className={inputClass(Boolean(registeredNameError))}
+                  />
+                  {registeredNameError && <p className={errorTextClass}>{registeredNameError}</p>}
                 </div>
 
                 <div>
                   <label className={labelClass}>Entity type</label>
                   <Select value={formData.entity_type} onValueChange={(value) => handleInputChange('entity_type', value)}>
                     <SelectTrigger className={`h-10 w-full rounded-md bg-white text-[13px] text-[#0c121a] ${entityTypeError ? 'border-[#ef4444] shadow-[0_0_0_3px_rgba(239,68,68,0.10)] focus:ring-[#ef4444]/10' : 'border-[#e0e5eb]'}`}>
-                      <SelectValue placeholder="Private Limited Company" />
+                      <SelectValue placeholder="Select entity type" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="private_limited">Private Limited Company</SelectItem>
@@ -416,10 +539,19 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
 
                 <div>
                   <label className={labelClass}>Industry</label>
-                  <div className={`${readOnlyFieldClass} justify-between text-[#6a727d]`}>
-                    <span>{userProfile?.industry || 'Select industry'}</span>
-                    <ArrowRight className="size-3.5 rotate-90" />
-                  </div>
+                  <Select value={formData.industry} onValueChange={(value) => handleInputChange('industry', value)}>
+                    <SelectTrigger className={`h-10 w-full rounded-md bg-white text-[13px] text-[#0c121a] ${industryError ? 'border-[#ef4444] shadow-[0_0_0_3px_rgba(239,68,68,0.10)]' : 'border-[#e0e5eb]'}`}>
+                      <SelectValue placeholder="Select industry" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {industryOptions.map((industry) => (
+                        <SelectItem key={industry} value={industry}>
+                          {industry}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {industryError && <p className={errorTextClass}>{industryError}</p>}
                 </div>
 
                 <div>
@@ -433,7 +565,7 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
                       value={formData.website_url}
                       onChange={(e) => handleInputChange('website_url', e.target.value)}
                       onBlur={handleWebsiteBlur}
-                      placeholder="acmepay.com"
+                      placeholder="Enter website URL"
                       className="min-w-0 flex-1 bg-transparent text-[13px] leading-5 text-[#0c121a] outline-none placeholder:text-[#9aa3af]"
                     />
                     {websiteError && <AlertCircle className="ml-2 size-3.5 shrink-0 text-[#ef4444]" />}
@@ -454,7 +586,7 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
                       inputMode="numeric"
                       value={formData.pin_code}
                       onChange={(e) => handleInputChange('pin_code', e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      placeholder="560001"
+                      placeholder="Enter 6-digit PIN"
                       className="min-w-0 flex-1 bg-transparent text-[13px] leading-5 text-[#0c121a] outline-none placeholder:text-[#9aa3af]"
                     />
                     {pinCodeError ? (
@@ -473,10 +605,17 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
 
                 <div className="col-span-2">
                   <label className={labelClass}>Registered office address</label>
-                  <div className={readOnlyFieldClass}>
-                    <MapPin className="size-3.5 text-[#6a727d]" />
-                    {userProfile?.business_address || '42, Brigade Road, Bengaluru, Karnataka - 560001'}
+                  <div className={fieldShellClass(Boolean(businessAddressError))}>
+                    <MapPin className="mr-2 size-3.5 text-[#6a727d]" />
+                    <input
+                      type="text"
+                      value={formData.business_address}
+                      onChange={(e) => handleInputChange('business_address', e.target.value)}
+                      placeholder="Enter registered office address"
+                      className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-[#9aa3af]"
+                    />
                   </div>
+                  {businessAddressError && <p className={errorTextClass}>{businessAddressError}</p>}
                 </div>
 
                 <div>
@@ -486,7 +625,7 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
                   </label>
                   <div className={readOnlyFieldClass}>
                     <Mail className="size-3.5 text-[#6a727d]" />
-                    {userProfile?.email || 'riya@acmepay.com'}
+                    {userProfile?.email || 'Not provided'}
                   </div>
                 </div>
 
@@ -497,7 +636,7 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
                   </label>
                   <div className={readOnlyFieldClass}>
                     <Phone className="size-3.5 text-[#6a727d]" />
-                    {userProfile?.mobile || '+91 98765 43210'}
+                    {userProfile?.mobile || 'Not provided'}
                   </div>
                 </div>
               </div>

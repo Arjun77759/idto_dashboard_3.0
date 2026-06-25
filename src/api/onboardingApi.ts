@@ -19,6 +19,8 @@ export type BasicDetailsPayload = {
   brand_name: string
   website_url: string
   entity_type: string
+  industry: string
+  pin_code?: string
 }
 
 export type BasicDetailsResponse = {
@@ -122,7 +124,6 @@ export async function updateGST(payload: GSTPayload): Promise<GSTResponse> {
 export type DirectorKYCPayload = {
   code: string
   code_verifier: string
-  redirect_uri?: string
 }
 
 export type DirectorKYCResponse = {
@@ -132,6 +133,56 @@ export type DirectorKYCResponse = {
 
 export async function updateDirectorKYC(payload: DirectorKYCPayload): Promise<DirectorKYCResponse> {
   const { data } = await http.post<DirectorKYCResponse>('/customers/directors/digilocker', payload)
+  return data
+}
+
+export type CustomerBankVerificationPayload = {
+  account_number: string
+  ifsc_code: string
+  account_holder_name?: string
+  finance_email?: string
+  ops_email?: string
+  billing_address?: string
+}
+
+export type CustomerBankVerificationResponse = {
+  status: 'success'
+  message: string
+  data: {
+    account_status: 'VALID'
+    account_number: string
+    account_holder_name?: string | null
+    account_ifsc: string
+    bank_name?: string | null
+    branch?: string | null
+    tranx_id?: string | null
+  }
+}
+
+export async function verifyCustomerBankDetails(
+  payload: CustomerBankVerificationPayload
+): Promise<CustomerBankVerificationResponse> {
+  const { data } = await http.post<CustomerBankVerificationResponse>(
+    '/customers/bank-details/verify',
+    payload
+  )
+  return data
+}
+
+export type ProductionOnboardingStep =
+  | 'basic-details'
+  | 'pan-gst'
+  | 'director-kyc'
+  | 'bank-account'
+  | 'bank-final-review'
+  | 'completed'
+
+export async function updateProductionProgress(
+  nextStep: ProductionOnboardingStep
+): Promise<{ status: string; production_onboarding_step: ProductionOnboardingStep }> {
+  const { data } = await http.post('/onboard/production-progress', {
+    next_step: nextStep,
+  })
   return data
 }
 

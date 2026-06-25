@@ -5,6 +5,20 @@ import { getAccessToken } from '@/lib/auth'
 export type OnboardingStatus = {
   customer_id: string
   is_onboarded: boolean
+  production_onboarding_step:
+    | 'basic-details'
+    | 'pan-gst'
+    | 'director-kyc'
+    | 'bank-account'
+    | 'bank-final-review'
+    | 'completed'
+  production_steps: {
+    basic_details: boolean
+    pan: boolean
+    gst: boolean
+    digilocker: boolean
+    bank: boolean
+  }
 }
 
 type OnboardingStoreState = {
@@ -51,7 +65,7 @@ export const useOnboardingStore = <T,>(
   )
 }
 
-export const fetchOnboardingStatus = async () => {
+export const fetchOnboardingStatus = async (force = false) => {
   const token = getAccessToken()
 
   // If a fetch is already in progress, return the existing promise
@@ -72,7 +86,7 @@ export const fetchOnboardingStatus = async () => {
   }
 
   // If already fetched for the current authenticated user, return cached data immediately.
-  if (state.hasFetched && state.data && fetchedForToken === token) {
+  if (!force && state.hasFetched && state.data && fetchedForToken === token) {
     return state.data
   }
 

@@ -5,6 +5,9 @@ import { invalidateOnboardingStatus } from '@/store/onboardingStore'
 import { invalidateOnboardingSteps } from '@/store/onboardingStepsStore'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 
+const callbackRequests = new Map<string, Promise<void>>()
+const PRODUCTION_RESUME_STEP_KEY = 'idto:production-resume-step'
+
 const KYCCallbackPage = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -36,25 +39,39 @@ const KYCCallbackPage = () => {
       return
     }
 
+    const callbackKey = `${code}:${codeVerifier}`
+    let callbackRequest = callbackRequests.get(callbackKey)
+
+    if (!callbackRequest) {
+      callbackRequest = updateDirectorKYC({
+          code,
+          code_verifier: codeVerifier
+        })
+        .then(() => {
+          sessionStorage.setItem(PRODUCTION_RESUME_STEP_KEY, 'bank-account')
+        })
+        .then(() => undefined)
+      callbackRequests.set(callbackKey, callbackRequest)
+    }
+
+    let cancelled = false
+
     const handleCallback = async () => {
       try {
-        await updateDirectorKYC({
-          code,
-          code_verifier: codeVerifier,
-          redirect_uri: `${window.location.origin}/kyc-callback`
-        })
-        
-        // Invalidate both stores so they refetch with updated data
+        await callbackRequest
+
+        if (cancelled) return
+
         invalidateOnboardingStatus()
         invalidateOnboardingSteps()
-        
         setStatus('success')
-        
-        // Redirect to dashboard after 2 seconds
+
         setTimeout(() => {
-          navigate('/dashboard')
-        }, 2000)
+          window.location.replace('/dashboard')
+        }, 800)
       } catch (err: any) {
+        if (cancelled) return
+
         console.error('DigiLocker callback error:', err)
         setStatus('error')
         setErrorMessage(
@@ -67,6 +84,10 @@ const KYCCallbackPage = () => {
     }
 
     handleCallback()
+
+    return () => {
+      cancelled = true
+    }
   }, [searchParams, navigate])
 
   return (

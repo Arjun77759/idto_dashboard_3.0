@@ -1,64 +1,69 @@
 import { useState } from 'react'
 import { ArrowLeft, ArrowRight, Check, CircleHelp, Save, ShieldCheck } from 'lucide-react'
 import idtoLogo from '@/assets/idto-logo.svg'
+import { formatEntityType } from '@/lib/entityType'
+import type { UserProfile } from '@/store/userProfileStore'
 
 interface KYCFinalReviewFormProps {
   onSubmit: () => void
   onPrevious?: () => void
   onSaveAndExit?: () => void
   isLoading?: boolean
+  userProfile?: UserProfile | null
 }
-
-const reviewSections = [
-  {
-    title: 'Company basics',
-    rows: [
-      ['Brand', 'Acme Pay'],
-      ['Legal name', 'Acme Payments Pvt Ltd'],
-      ['Entity', 'Private Limited'],
-      ['Industry', 'Fintech / Payments'],
-      ['Address', '42, Brigade Road, Bengaluru 560001']
-    ]
-  },
-  {
-    title: 'PAN & GST',
-    rows: [
-      ['Business PAN', 'AAFCA1234B · Verified'],
-      ['GSTIN', '29AAFCA1234B1Z5 · Verified']
-    ]
-  },
-  {
-    title: 'Authorized signatory',
-    rows: [
-      ['Name', 'Riya Sharma'],
-      ['Aadhaar', 'Verified via DigiLocker'],
-      ['PAN', 'ABCDE1234F · Verified'],
-      ['Board resolution', 'board-resolution.pdf · 412 KB']
-    ]
-  },
-  {
-    title: 'Bank account',
-    rows: [
-      ['Account', 'HDFC •••• 4321'],
-      ['Holder', 'Acme Payments Pvt Ltd · Manual review'],
-      ['Finance email', 'finance@acmepay.com']
-    ]
-  }
-]
 
 const KYCFinalReviewForm = ({
   onSubmit,
   onPrevious,
   onSaveAndExit,
-  isLoading = false
+  isLoading = false,
+  userProfile,
 }: KYCFinalReviewFormProps) => {
   const [confirmed, setConfirmed] = useState(false)
+  const emptyValue = 'Not provided'
+  const companyName = userProfile?.registered_name || userProfile?.brand_name || ''
+
+  const reviewSections = [
+    {
+      title: 'Company basics',
+      rows: [
+        ['Brand', userProfile?.brand_name || emptyValue],
+        ['Legal name', userProfile?.registered_name || emptyValue],
+        ['Entity', formatEntityType(userProfile?.entity_type) || emptyValue],
+        ['Industry', userProfile?.industry || emptyValue],
+        ['Address', userProfile?.business_address || emptyValue],
+      ],
+    },
+    {
+      title: 'PAN & GST',
+      rows: [
+        ['Business PAN', userProfile?.pan_number ? `${userProfile.pan_number} · Verified` : emptyValue],
+        ['GSTIN', userProfile?.gst_number ? `${userProfile.gst_number} · Verified` : 'Not applicable or not provided'],
+      ],
+    },
+    {
+      title: 'Authorized signatory',
+      rows: [
+        ['Name', userProfile?.name || emptyValue],
+        ['Email', userProfile?.authorized_signatory_email || userProfile?.email || emptyValue],
+        ['Mobile', userProfile?.mobile || emptyValue],
+      ],
+    },
+    {
+      title: 'Bank account',
+      rows: [
+        ['Status', 'Pending verification'],
+        ['Holder', companyName || emptyValue],
+        ['Finance email', userProfile?.authorized_signatory_email || userProfile?.email || emptyValue],
+      ],
+    },
+  ]
 
   const progressItems = [
     ['1', 'Company basics'],
     ['2', 'PAN & GST'],
     ['3', 'Authorized signatory'],
-    ['4', 'Bank & review']
+    ['4', 'Bank & review'],
   ] as const
 
   return (
@@ -118,7 +123,7 @@ const KYCFinalReviewForm = ({
               Save & exit
             </button>
             <div className="flex items-center gap-3 text-[11px] text-[#6a727d]">
-              <span className="inline-flex items-center gap-1"><Save className="size-3" />auto-saved 4s ago</span>
+              <span className="inline-flex items-center gap-1"><Save className="size-3" />auto-saved</span>
               <span>·</span>
               <button type="button" className="inline-flex items-center gap-1"><CircleHelp className="size-3" />Help</button>
             </div>
@@ -130,7 +135,7 @@ const KYCFinalReviewForm = ({
               One last look before we submit
             </h2>
             <p className="mt-1.5 text-[12px] leading-[18px] text-[#6a727d]">
-              Once you submit, our onboarding team takes over. You&apos;ll hear back within 24 business hours.
+              Review the information currently stored for your account. Missing values are shown as not provided.
             </p>
 
             <div className="mt-7 flex flex-col gap-3">
@@ -158,7 +163,8 @@ const KYCFinalReviewForm = ({
                   onChange={(event) => setConfirmed(event.target.checked)}
                   className="mt-0.5 size-4 accent-[#0019ff]"
                 />
-                I confirm the above information is accurate and I&apos;m authorised to submit on behalf of Acme Payments Pvt Ltd.
+                I confirm the above information is accurate and I&apos;m authorised to submit
+                {companyName ? ` on behalf of ${companyName}` : ''}.
               </label>
             </div>
           </div>
