@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, AlertCircle, Building2, CheckCircle2, Clock3, He
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { OnboardingStatus } from "@/hooks/useOnboardingStatus"
 import type { OnboardingStepsStatus } from "@/hooks/useOnboardingSteps"
-import { updateBasicDetails, updateBusinessInfo, updateProductionProgress } from "@/api/onboardingApi"
+import { updateBasicDetails, updateBusinessInfo } from "@/api/onboardingApi"
 import { invalidateOnboardingSteps } from "@/store/onboardingStepsStore"
 import { fetchOnboardingStatus } from "@/store/onboardingStore"
 import { fetchUserProfile, invalidateUserProfile } from "@/store/userProfileStore"
@@ -163,7 +163,6 @@ const BasicDetailsForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _show
           pin_code: formData.pin_code.trim(),
         }),
       ])
-      await updateProductionProgress('pan-gst')
       await fetchOnboardingStatus(true).catch(() => null)
       invalidateOnboardingSteps() // Invalidate cache so it refetches
       invalidateUserProfile()

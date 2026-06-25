@@ -169,20 +169,4 @@ export async function verifyCustomerBankDetails(
   return data
 }
 
-export type ProductionOnboardingStep =
-  | 'basic-details'
-  | 'pan-gst'
-  | 'director-kyc'
-  | 'bank-account'
-  | 'bank-final-review'
-  | 'completed'
-
-export async function updateProductionProgress(
-  nextStep: ProductionOnboardingStep
-): Promise<{ status: string; production_onboarding_step: ProductionOnboardingStep }> {
-  const { data } = await http.post('/onboard/production-progress', {
-    next_step: nextStep,
-  })
-  return data
-}
 

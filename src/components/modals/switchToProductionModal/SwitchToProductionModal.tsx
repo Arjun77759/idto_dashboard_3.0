@@ -16,7 +16,6 @@ import KYCFinalReviewForm from './components/KYCFinalReviewForm'
 import { fetchUserProfile, useUserProfileStore } from '@/store/userProfileStore'
 import { ArrowRight, BadgeCheck, Building, Building2, Check, Clock3, Landmark, Lock, Monitor, RotateCcw, ShieldCheck, Smartphone, Sparkles, UserRoundCheck, Info } from 'lucide-react'
 import { normalizeEntityType } from '@/lib/entityType'
-import { updateProductionProgress } from '@/api/onboardingApi'
 import { fetchOnboardingStatus } from '@/store/onboardingStore'
 import { fetchOnboardingSteps } from '@/store/onboardingStepsStore'
 
@@ -113,9 +112,9 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm, initialStep = nul
       return
     }
 
-    const persistedStep = onboardingData.data?.production_onboarding_step
-    if (persistedStep && resumableSteps.includes(persistedStep)) {
-      setCurrentStep(persistedStep)
+    const backendStep = onboardingData.data?.next_production_step
+    if (backendStep && resumableSteps.includes(backendStep)) {
+      setCurrentStep(backendStep)
       setIsInStepperMode(true)
       return
     }
@@ -217,7 +216,6 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm, initialStep = nul
   const handleFinalReviewSubmit = async () => {
     setIsLoading(true)
     try {
-      await updateProductionProgress('completed')
       await fetchOnboardingStatus(true).catch(() => null)
       onConfirm()
       onClose()
@@ -229,7 +227,6 @@ const SwitchToProductionModal = ({ isOpen, onClose, onConfirm, initialStep = nul
   const handleSkipBankVerification = async () => {
     setIsLoading(true)
     try {
-      await updateProductionProgress('completed')
       await fetchOnboardingStatus(true).catch(() => null)
       onConfirm()
       onClose()

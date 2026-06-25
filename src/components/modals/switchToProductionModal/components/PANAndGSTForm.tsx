@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, AlertCircle, AlertTriangle, Check, CheckCircle2,
 import { z } from "zod"
 import type { OnboardingStatus } from "@/hooks/useOnboardingStatus"
 import type { OnboardingStepsStatus } from "@/hooks/useOnboardingSteps"
-import { updatePAN, updateGST, updateProductionProgress } from "@/api/onboardingApi"
+import { updatePAN, updateGST } from "@/api/onboardingApi"
 import { invalidateOnboardingSteps } from "@/store/onboardingStepsStore"
 import { fetchOnboardingStatus } from "@/store/onboardingStore"
 import { fetchUserProfile, invalidateUserProfile, useUserProfileStore } from "@/store/userProfileStore"
@@ -221,7 +221,6 @@ const PANAndGSTForm = ({ onNext, onPrevious: _onPrevious, showPrevious: _showPre
         }
       }
 
-      await updateProductionProgress('director-kyc')
       await fetchOnboardingStatus(true).catch(() => null)
       invalidateOnboardingSteps() // Invalidate cache so it refetches
       invalidateUserProfile()

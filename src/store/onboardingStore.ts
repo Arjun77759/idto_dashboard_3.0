@@ -5,13 +5,12 @@ import { getAccessToken } from '@/lib/auth'
 export type OnboardingStatus = {
   customer_id: string
   is_onboarded: boolean
-  production_onboarding_step:
+  next_production_step:
     | 'basic-details'
     | 'pan-gst'
     | 'director-kyc'
     | 'bank-account'
     | 'bank-final-review'
-    | 'completed'
   production_steps: {
     basic_details: boolean
     pan: boolean
